@@ -99,6 +99,7 @@ def generate_response(messages, resume_summary, job_summary):
     3. Be honest but positive
     4. Showcase relevant skills and experiences
     5. Be direct and to the point
+    6. Generate in human language so that it doesnt look like AI generated.
     
     Answer the interviewer's questions as if you are the candidate.
     """
