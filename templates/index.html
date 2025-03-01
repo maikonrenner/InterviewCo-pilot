@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Co-pilot</title>
+    <link rel="stylesheet" href="/static/copilot/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interview Co-pilot</h1>
+            <div class="status-container">
+                <p id="status">Not Connected</p>
+                <button id="startButton" class="btn">Start Interview</button>
+            </div>
+        </header>
+        
+        <main>
+            <div class="preview-container">
+                <h2>Screen Preview</h2>
+                <div id="preview">
+                    <p class="preview-placeholder">Screen preview will appear here when you start sharing...</p>
+                    <video id="videoPreview" autoplay muted></video>
+                </div>
+            </div>
+            
+            <div class="conversation-container">
+                <h2>Interview Conversation</h2>
+                <div id="conversationBox">
+                    <div class="system-message">
+                        <p>Welcome to Interview Co-pilot! Click "Start Interview" to begin.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div id="summaryContainer" class="summary-container">
+            <div class="summary-box">
+                <h3>Resume Summary</h3>
+                <p id="resumeSummary">Loading...</p>
+            </div>
+            <div class="summary-box">
+                <h3>Job Description Summary</h3>
+                <p id="jobSummary">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store the Deepgram API key
+        const DEEPGRAM_API_KEY = '{{ deepgram_api_key }}';
+    </script>
+    <script src="/static/copilot/js/interview.js"></script>
+</body>
+</html>

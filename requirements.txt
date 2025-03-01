@@ -1,0 +1,6 @@
+django==5.1.2
+channels==4.1.0
+channels-redis==4.2.0
+daphne==4.1.2
+openai==1.32.0
+PyPDF2==3.0.1
