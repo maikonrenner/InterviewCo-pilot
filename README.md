@@ -57,7 +57,11 @@ http://localhost:8000
 ### 8. Demo Video
 To understand the process better, watch the demo video:
 
-[![Watch the Demo](https://img.youtube.com/vi/your_video_id_here/0.jpg)](https://www.youtube.com/watch?v=your_video_id_here)
+<video width="600" controls>
+  <source src="assets/ai-copilot-demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 
 ## Good Luck with Your Interview!
 If you have any issues or suggestions for improvement, feel free to reach out to us via email anonymous911mail@gmail.com.
