@@ -57,7 +57,7 @@ http://localhost:8000
 ### 8. Demo Video
 To understand the process better, watch the demo video:
 
-![Demo Preview](assets/ai-copilot-demo.mp4)
+![Demo Preview]([assets/ai-copilot-demo.mp4](https://youtu.be/4krjgL6TX30))
 
 
 ## Good Luck with Your Interview!
