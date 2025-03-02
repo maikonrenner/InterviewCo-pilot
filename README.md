@@ -37,6 +37,7 @@ Use the following command to install required python packages:
 
 ```sh
 pip install -r requirements.txt
+pip install --upgrade openai
 ```
 
 ### 6. Run the Project
