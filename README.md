@@ -15,8 +15,8 @@ cd interview-copilot
 
 ### 2. Add Your Resume and Job Description
 Before starting the interview process, place your resume and job description in the appropriate folders:
-- **Resume:** Place your resume (PDF format) inside the `resume` folder.
-- **Job Description:** Place the job description (PDF format) inside the `job_description` folder.
+- **Resume:** Replace your resume (PDF format) inside the `resume` folder.
+- **Job Description:** Replace the job description (PDF format) inside the `job_description` folder.
 
 ### 3. Create API Keys
 This project requires API keys from OpenAI and Deepgram.
