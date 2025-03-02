@@ -57,7 +57,7 @@ http://localhost:8000
 ### 8. Demo Video
 To understand the process better, watch the demo video:
 
-![Watch Demo Video](https://youtu.be/4krjgL6TX30))
+[Watch Demo Video](https://youtu.be/4krjgL6TX30))
 
 
 ## Good Luck with Your Interview!
