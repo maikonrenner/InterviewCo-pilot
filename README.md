@@ -10,7 +10,7 @@ Follow the steps below to set up and run the project on your local machine.
 
 ```sh
 git clone https://github.com/yourusername/ai-interview-copilot.git
-cd ai-interview-copilot
+cd interview-copilot
 ```
 
 ### 2. Add Your Resume and Job Description
