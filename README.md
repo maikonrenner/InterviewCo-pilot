@@ -57,10 +57,7 @@ http://localhost:8000
 ### 8. Demo Video
 To understand the process better, watch the demo video:
 
-<video width="600" controls>
-  <source src="assets/ai-copilot-demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Demo Preview](assets/ai-copilot-demo.mp4)
 
 
 ## Good Luck with Your Interview!
