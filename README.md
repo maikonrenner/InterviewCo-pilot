@@ -56,6 +56,8 @@ http://localhost:8000
 ### 8. Demo Video
 To understand the process better, watch the demo video:
 
+If you find this project helpful, don't forget to ⭐ the repository!
+
 [![Watch the Demo](https://img.youtube.com/vi/your_video_id_here/0.jpg)](https://www.youtube.com/watch?v=your_video_id_here)
 
 ## Good Luck with Your Interview!
