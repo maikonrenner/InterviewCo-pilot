@@ -9,7 +9,7 @@ Follow the steps below to set up and run the project on your local machine.
 ### 1. Clone the Repository
 
 ```sh
-git clone [https://github.com/yourusername/ai-interview-copilot.git](https://github.com/nonymous911/interview-copilot.git)
+git clone https://github.com/yourusername/ai-interview-copilot.git
 cd ai-interview-copilot
 ```
 
