@@ -60,8 +60,11 @@ To understand the process better, watch the demo video:
 [Watch Demo Video](https://youtu.be/4krjgL6TX30)
 
 
-<video src="https://youtu.be/4krjgL6TX30" data-canonical-src="https://youtu.be/4krjgL6TX30" controls="controls" muted="muted" class="d-block rounded-bottom-2 border-top width-fit" style="max-height:640px; min-height: 200px"></video>
-
+<video src="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/PATH/TO/YOUR_VIDEO.mp4" 
+       controls="controls" 
+       muted="muted" 
+       style="max-height:640px; min-height: 200px;">
+</video>
 
 
 ## Good Luck with Your Interview!
