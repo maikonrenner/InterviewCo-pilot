@@ -9,22 +9,56 @@
 <body>
     <div class="container">
         <header>
-            <h1>Interview Co-pilot</h1>
+            <h1>SYNAPSE AI</h1>
             <div class="status-container">
+                <select id="modelSelector" class="model-selector">
+                    <option value="gpt-4o">GPT-4o (Recomendado)</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini (Rápido)</option>
+                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                    <option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
+                    <option value="gpt-4">GPT-4</option>
+                    <option value="gpt-4-32k">GPT-4 32K</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    <option value="gpt-3.5-turbo-16k">GPT-3.5 Turbo 16K</option>
+                    <option value="gpt-3.5-turbo-0125">GPT-3.5 Turbo 0125</option>
+                </select>
                 <p id="status">Not Connected</p>
+                <button id="overlayButton" class="btn btn-overlay">🖥️ Open Overlay</button>
                 <button id="startButton" class="btn">Start Interview</button>
             </div>
         </header>
         
         <main>
-            <div class="preview-container">
-                <h2>Screen Preview</h2>
-                <div id="preview">
-                    <p class="preview-placeholder">Screen preview will appear here when you start sharing...</p>
-                    <video id="videoPreview" autoplay muted></video>
+            <div class="left-column">
+                <div class="preview-container">
+                    <h2>Screen Preview</h2>
+                    <div id="preview">
+                        <p class="preview-placeholder">Screen preview will appear here when you start sharing...</p>
+                        <video id="videoPreview" autoplay muted></video>
+                    </div>
+                </div>
+
+                <div class="transcript-container">
+                    <div class="transcript-header">
+                        <h2>Live Transcript</h2>
+                        <button id="microphoneButton" class="mic-button" title="Toggle Microphone">
+                            <span class="mic-icon">🎤</span>
+                        </button>
+                    </div>
+                    <div id="liveTranscriptBox">
+                        <p class="transcript-placeholder">Live transcription will appear here...</p>
+                    </div>
+                    <div class="transcript-input-area">
+                        <input
+                            type="text"
+                            id="transcriptInput"
+                            class="transcript-input"
+                            placeholder="Type a question or press ENTER to send live transcript..."
+                        />
+                    </div>
                 </div>
             </div>
-            
+
             <div class="conversation-container">
                 <h2>Interview Conversation</h2>
                 <div id="conversationBox">
@@ -46,6 +80,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
         // Store the Deepgram API key

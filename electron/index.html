@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Co-pilot Overlay</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Opacity Control Bar -->
+        <div class="control-bar">
+            <div class="drag-handle">☰</div>
+            <div class="opacity-control">
+                <label>Opacity:</label>
+                <input type="range" id="opacitySlider" min="10" max="100" value="95" step="5">
+                <span id="opacityValue">95%</span>
+            </div>
+            <button id="closeBtn" class="close-btn">✕</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- Live Transcript Card -->
+            <div class="card transcript-card" id="transcriptCard">
+                <div class="card-header">
+                    <h2>Live Transcript (Mirror)</h2>
+                </div>
+                <div class="card-content" id="liveTranscriptContent">
+                    <p class="placeholder">Waiting for transcription from web interface...</p>
+                </div>
+                <div class="transcript-input-area">
+                    <input
+                        type="text"
+                        id="transcriptInput"
+                        class="transcript-input"
+                        placeholder="Type a question or press ENTER to send..."
+                    />
+                </div>
+            </div>
+
+            <!-- Interview Conversation Card -->
+            <div class="card conversation-card" id="conversationCard">
+                <div class="card-header">
+                    <h2>Interview Conversation</h2>
+                    <div class="card-controls">
+                        <button class="resize-handle" data-card="conversation">⊕</button>
+                    </div>
+                </div>
+                <div class="card-content" id="conversationContent">
+                    <div class="system-message">
+                        <p>Connected to Interview Co-pilot</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="js/renderer.js"></script>
+</body>
+</html>
