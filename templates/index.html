@@ -3,30 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interview Co-pilot</title>
+    <title>SYNAPSE AI - Interview Co-pilot</title>
     <link rel="stylesheet" href="/static/copilot/css/style.css">
+    <!-- Chart.js for interactive graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
             <h1>SYNAPSE AI</h1>
-            <div class="status-container">
-                <select id="modelSelector" class="model-selector">
-                    <option value="gpt-4o">GPT-4o (Recomendado)</option>
-                    <option value="gpt-4o-mini">GPT-4o Mini (Rápido)</option>
-                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                    <option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
-                    <option value="gpt-4">GPT-4</option>
-                    <option value="gpt-4-32k">GPT-4 32K</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    <option value="gpt-3.5-turbo-16k">GPT-3.5 Turbo 16K</option>
-                    <option value="gpt-3.5-turbo-0125">GPT-3.5 Turbo 0125</option>
-                </select>
-                <p id="status">Not Connected</p>
-                <button id="overlayButton" class="btn btn-overlay">🖥️ Open Overlay</button>
-                <button id="dualAudioButton" class="btn btn-dual" title="Capture both system audio and microphone with speaker identification">🎙️ Iniciar Entrevista</button>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active" data-page="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </li>
+                <li class="nav-item" data-page="interview">
+                    <span class="nav-icon">🎤</span>
+                    <span class="nav-text">Interview</span>
+                </li>
+                <li class="nav-item" data-page="resume-builder">
+                    <span class="nav-icon">📄</span>
+                    <span class="nav-text">AI Resume Builder</span>
+                </li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <p class="sidebar-version">v2.0.0</p>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page-content active">
+                <header class="page-header">
+                    <h1>Dashboard</h1>
+                    <div class="header-actions">
+                        <input type="date" id="dateFrom" class="date-filter">
+                        <input type="date" id="dateTo" class="date-filter">
+                        <button class="btn btn-export">📥 Export CSV</button>
+                    </div>
+                </header>
+
+                <!-- Metrics Cards -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">🎯</div>
+                        <div class="metric-content">
+                            <h3>Total Interviews</h3>
+                            <p class="metric-value" id="totalInterviews">0</p>
+                            <span class="metric-change positive">+12% this week</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">⏱️</div>
+                        <div class="metric-content">
+                            <h3>Avg Duration</h3>
+                            <p class="metric-value" id="avgDuration">0 min</p>
+                            <span class="metric-change">Last 30 days</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">💬</div>
+                        <div class="metric-content">
+                            <h3>Questions Answered</h3>
+                            <p class="metric-value" id="totalQuestions">0</p>
+                            <span class="metric-change positive">+8% this month</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">⚡</div>
+                        <div class="metric-content">
+                            <h3>AI Response Time</h3>
+                            <p class="metric-value" id="avgResponseTime">0.0s</p>
+                            <span class="metric-change negative">-15% faster</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="charts-row">
+                    <div class="chart-container">
+                        <h3>Interview Activity</h3>
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Language Distribution</h3>
+                        <canvas id="languageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="charts-row">
+                    <div class="chart-container">
+                        <h3>Most Frequent Questions</h3>
+                        <canvas id="questionsChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>AI Model Performance</h3>
+                        <canvas id="modelChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Sessions Table -->
+                <div class="table-container">
+                    <h3>Recent Sessions</h3>
+                    <table class="sessions-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Questions</th>
+                                <th>Language</th>
+                                <th>Model</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionsTableBody">
+                            <tr>
+                                <td colspan="6" class="no-data">No sessions yet. Start your first interview!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </header>
+
+            <!-- Interview Page -->
+            <div id="interview-page" class="page-content">
+                <header class="page-header">
+                    <h1>Live Interview</h1>
+                    <div class="status-container">
+                        <select id="modelSelector" class="model-selector">
+                            <option value="gpt-4o">GPT-4o (Recomendado)</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini (Rápido)</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-4-32k">GPT-4 32K</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            <option value="gpt-3.5-turbo-16k">GPT-3.5 Turbo 16K</option>
+                            <option value="gpt-3.5-turbo-0125">GPT-3.5 Turbo 0125</option>
+                        </select>
+                        <p id="status">Not Connected</p>
+                        <button id="overlayButton" class="btn btn-overlay">🖥️ Open Overlay</button>
+                        <button id="dualAudioButton" class="btn btn-dual" title="Capture both system audio and microphone with speaker identification">🎙️ Iniciar Entrevista</button>
+                    </div>
+                </header>
         
         <main>
             <div class="left-column">
@@ -69,14 +195,116 @@
             </div>
         </main>
         
-        <div id="summaryContainer" class="summary-container">
-            <div class="summary-box">
-                <h3>Resume Summary</h3>
-                <p id="resumeSummary">Loading...</p>
+                <div id="summaryContainer" class="summary-container">
+                    <div class="summary-box">
+                        <h3>Resume Summary</h3>
+                        <p id="resumeSummary">Loading...</p>
+                    </div>
+                    <div class="summary-box">
+                        <h3>Job Description Summary</h3>
+                        <p id="jobSummary">Loading...</p>
+                    </div>
+                </div>
             </div>
-            <div class="summary-box">
-                <h3>Job Description Summary</h3>
-                <p id="jobSummary">Loading...</p>
+
+            <!-- Resume Builder Page -->
+            <div id="resume-builder-page" class="page-content">
+                <header class="page-header">
+                    <h1>AI Resume Builder</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="generateSummaryBtn">🔄 Generate Summaries</button>
+                    </div>
+                </header>
+
+                <div class="resume-builder-grid">
+                    <!-- Resume Upload Section -->
+                    <div class="upload-section">
+                        <h3>📄 Resume / CV Upload</h3>
+                        <div class="upload-area" id="resumeUploadArea">
+                            <div class="upload-placeholder">
+                                <span class="upload-icon">📎</span>
+                                <p class="upload-text">Drag & Drop your resume here</p>
+                                <p class="upload-subtext">or click to browse</p>
+                                <p class="upload-formats">Supports: PDF, DOCX, TXT</p>
+                            </div>
+                            <input type="file" id="resumeFileInput" accept=".pdf,.docx,.doc,.txt" hidden>
+                        </div>
+                        <div class="uploaded-files" id="resumeFiles">
+                            <!-- Uploaded resume files will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Job Description Section -->
+                    <div class="upload-section">
+                        <h3>💼 Job Description</h3>
+                        <!-- Toggle Buttons -->
+                        <div class="toggle-buttons">
+                            <button class="toggle-btn active" data-mode="paste">📝 Paste Text</button>
+                            <button class="toggle-btn" data-mode="upload">📎 Upload File</button>
+                        </div>
+
+                        <!-- Paste Text Area (Default) -->
+                        <div class="paste-area active" id="jobPasteArea">
+                            <textarea
+                                id="jobTextArea"
+                                class="job-textarea"
+                                placeholder="Cole aqui a descrição da vaga (Job Title, Requirements, Responsibilities, Benefits, etc.)..."
+                                rows="10"
+                            ></textarea>
+                            <button class="btn btn-sm btn-primary" id="saveJobTextBtn">💾 Save Job Description</button>
+                        </div>
+
+                        <!-- Upload Area (Hidden by default) -->
+                        <div class="upload-area" id="jobUploadArea" style="display: none;">
+                            <div class="upload-placeholder">
+                                <span class="upload-icon">📎</span>
+                                <p class="upload-text">Drag & Drop job description here</p>
+                                <p class="upload-subtext">or click to browse</p>
+                                <p class="upload-formats">Supports: PDF, DOCX, TXT</p>
+                            </div>
+                            <input type="file" id="jobFileInput" accept=".pdf,.docx,.doc,.txt" hidden>
+                        </div>
+
+                        <div class="uploaded-files" id="jobFiles">
+                            <!-- Uploaded/saved job will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resume Summary Section -->
+                <div class="summary-section">
+                    <div class="summary-card">
+                        <h3>📋 Resume Summary</h3>
+                        <div class="summary-content" id="builderResumeSummary">
+                            <p class="empty-state">Upload a resume to generate summary...</p>
+                        </div>
+                        <div class="summary-actions">
+                            <button class="btn btn-sm btn-outline">📋 Copy</button>
+                            <button class="btn btn-sm btn-outline">✏️ Edit</button>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <h3>💼 Job Description Summary</h3>
+                        <div class="summary-content" id="builderJobSummary">
+                            <p class="empty-state">Upload a job description to generate summary...</p>
+                        </div>
+                        <div class="summary-actions">
+                            <button class="btn btn-sm btn-outline">📋 Copy</button>
+                            <button class="btn btn-sm btn-outline">✏️ Edit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Versions -->
+                <div class="versions-section">
+                    <h3>📚 Document Versions</h3>
+                    <div class="versions-grid" id="versionsGrid">
+                        <div class="empty-state-card">
+                            <p>No versions yet. Upload documents to start tracking versions.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -88,6 +316,9 @@
         // Store the Deepgram API key
         const DEEPGRAM_API_KEY = '{{ deepgram_api_key }}';
     </script>
+    <script src="/static/copilot/js/navigation.js"></script>
+    <script src="/static/copilot/js/dashboard.js"></script>
+    <script src="/static/copilot/js/resume-builder.js"></script>
     <script src="/static/copilot/js/interview.js"></script>
 </body>
 </html>

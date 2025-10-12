@@ -11,7 +11,7 @@ def extract_text_from_pdf(file_path):
     """Extract text from a PDF file."""
     if not os.path.exists(file_path):
         return "PDF file not found."
-    
+
     try:
         with open(file_path, 'rb') as file:
             reader = PyPDF2.PdfReader(file)
@@ -23,23 +23,41 @@ def extract_text_from_pdf(file_path):
     except Exception as e:
         return f"Error extracting text from PDF: {str(e)}"
 
+def extract_text_from_file(file_path):
+    """Extract text from a file (PDF or TXT)."""
+    if not os.path.exists(file_path):
+        return "File not found."
+
+    try:
+        # Check file extension
+        if file_path.endswith('.txt'):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        elif file_path.endswith('.pdf'):
+            return extract_text_from_pdf(file_path)
+        else:
+            return "Unsupported file format."
+    except Exception as e:
+        return f"Error extracting text from file: {str(e)}"
+
 def get_resume_summary():
     """Get a summary of the resume."""
     resume_dir = settings.RESUME_DIR
-    
+
     # Create directory if it doesn't exist
     if not os.path.exists(resume_dir):
         os.makedirs(resume_dir)
         return "Resume directory created. Please add your resume PDF file."
-    
-    resume_files = [f for f in os.listdir(resume_dir) if f.endswith('.pdf')]
-    
+
+    # Look for PDF or TXT files
+    resume_files = [f for f in os.listdir(resume_dir) if f.endswith(('.pdf', '.txt', '.docx'))]
+
     if not resume_files:
         return "No resume found in the resume directory."
-    
+
     # Use the first resume found
     resume_path = os.path.join(resume_dir, resume_files[0])
-    resume_text = extract_text_from_pdf(resume_path)
+    resume_text = extract_text_from_file(resume_path)
     
     # Generate DETAILED summary using OpenAI
     response = openai.chat.completions.create(
@@ -75,20 +93,21 @@ Resume text:
 def get_job_description_summary():
     """Get a summary of the job description."""
     job_dir = settings.JOB_DESCRIPTION_DIR
-    
+
     # Create directory if it doesn't exist
     if not os.path.exists(job_dir):
         os.makedirs(job_dir)
         return "Job description directory created. Please add your job description PDF file."
-    
-    job_files = [f for f in os.listdir(job_dir) if f.endswith('.pdf')]
-    
+
+    # Look for PDF or TXT files
+    job_files = [f for f in os.listdir(job_dir) if f.endswith(('.pdf', '.txt', '.docx'))]
+
     if not job_files:
         return "No job description found in the job description directory."
-    
+
     # Use the first job description found
     job_path = os.path.join(job_dir, job_files[0])
-    job_text = extract_text_from_pdf(job_path)
+    job_text = extract_text_from_file(job_path)
     
     # Generate summary using OpenAI
     response = openai.chat.completions.create(
