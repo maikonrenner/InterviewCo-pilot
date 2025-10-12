@@ -15,6 +15,8 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 ### ✨ Key Features
 
 - **🎤 Live Transcription**: Real-time speech-to-text using Deepgram Nova-3 API
+- **🎙️ Dual Audio Capture**: Simultaneously captures system audio (screen sharing) and microphone with automatic speaker identification
+- **👥 Speaker Diarization**: Automatically distinguishes between Interviewer and Candidate voices with color-coded labels
 - **🖥️ Electron Overlay**: Transparent, always-on-top overlay window for seamless interview experience
 - **🤖 AI-Powered Responses**: Context-aware answers using GPT-4/GPT-4o models
 - **🧠 Smart Question Extraction**: Automatically extracts clean questions from long, cluttered transcripts
@@ -221,12 +223,15 @@ npm start
 #### Web Interface
 
 1. Open browser: `http://localhost:8004`
-2. Click **"Start Interview"** to begin audio capture
-3. Select audio input source (microphone or screen audio)
-4. Allow microphone permissions
-5. Speak your questions - live transcription appears in yellow box
-6. Press **ENTER** or click **Send** to get AI response
+2. Click **"🎙️ Iniciar Entrevista"** to begin dual audio capture
+3. Allow screen sharing and microphone permissions when prompted
+4. The system will capture both:
+   - **System audio** (from screen sharing) → Labeled as **[Interviewer]** (red)
+   - **Microphone audio** → Labeled as **[You]** (green)
+5. Speak during the interview - live transcription with speaker labels appears
+6. Press **ENTER** to send the transcript and get AI response
 7. Click **"Open Overlay"** to launch Electron window (optional)
+8. Click **"⏹️ Parar Entrevista"** to stop the interview
 
 #### Electron Overlay
 
@@ -271,7 +276,42 @@ Edit `copilot/utils.py` starting at line 132 to modify the AI persona and respon
 
 ### 🧪 Key Features Explained
 
-#### 1. Smart Question Extraction
+#### 1. Dual Audio Capture with Speaker Diarization
+
+The system simultaneously captures audio from two sources and automatically identifies speakers:
+
+**Audio Sources:**
+- **Screen Sharing Audio**: Captures the interviewer's voice from virtual meeting platforms (Zoom, Teams, Google Meet)
+- **Microphone Audio**: Captures your voice (candidate) directly from your microphone
+
+**How It Works:**
+```
+1. User clicks "🎙️ Iniciar Entrevista"
+   ↓
+2. Browser requests two permissions:
+   - Screen sharing with audio (getDisplayMedia)
+   - Microphone access (getUserMedia)
+   ↓
+3. Web Audio API combines both streams into one
+   ↓
+4. Combined audio sent to Deepgram with diarization enabled
+   ↓
+5. Deepgram identifies speakers (Speaker 0, Speaker 1)
+   ↓
+6. System maps speakers to roles:
+   - First speaker (usually from screen) → [Interviewer] (red label)
+   - Second speaker (usually from mic) → [You] (green label)
+   ↓
+7. Live transcript shows color-coded speaker labels
+```
+
+**Visual Indicators:**
+- 🟥 **[Interviewer]**: Red background - Questions from the interviewer
+- 🟩 **[You]**: Green background - Your responses
+
+This feature is perfect for virtual interviews where you need to capture both sides of the conversation accurately.
+
+#### 2. Smart Question Extraction
 
 The system uses GPT-3.5-turbo to extract clean questions from potentially long, cluttered transcripts:
 
@@ -371,6 +411,8 @@ AI Interview Co-pilot é um assistente inteligente em tempo real projetado para 
 ### ✨ Recursos Principais
 
 - **🎤 Transcrição ao Vivo**: Conversão de fala em texto em tempo real usando Deepgram Nova-3 API
+- **🎙️ Captura Dupla de Áudio**: Captura simultaneamente áudio do sistema (compartilhamento de tela) e microfone com identificação automática de locutores
+- **👥 Diarização de Locutores**: Distingue automaticamente entre Entrevistador e Candidato com etiquetas coloridas
 - **🖥️ Overlay Electron**: Janela transparente sempre visível para experiência de entrevista perfeita
 - **🤖 Respostas com IA**: Respostas conscientes do contexto usando modelos GPT-4/GPT-4o
 - **🧠 Extração Inteligente de Perguntas**: Extrai automaticamente perguntas limpas de transcrições longas e poluídas
@@ -546,12 +588,15 @@ npm start
 #### Interface Web
 
 1. Abrir navegador: `http://localhost:8004`
-2. Clicar em **"Start Interview"** para iniciar captura de áudio
-3. Selecionar fonte de entrada de áudio (microfone ou áudio da tela)
-4. Permitir permissões de microfone
-5. Falar suas perguntas - transcrição ao vivo aparece na caixa amarela
-6. Pressionar **ENTER** ou clicar em **Send** para obter resposta da IA
+2. Clicar em **"🎙️ Iniciar Entrevista"** para iniciar captura dupla de áudio
+3. Permitir permissões de compartilhamento de tela e microfone quando solicitado
+4. O sistema irá capturar ambos:
+   - **Áudio do sistema** (do compartilhamento de tela) → Rotulado como **[Interviewer]** (vermelho)
+   - **Áudio do microfone** → Rotulado como **[You]** (verde)
+5. Fale durante a entrevista - transcrição ao vivo com etiquetas de locutor aparece
+6. Pressionar **ENTER** para enviar a transcrição e obter resposta da IA
 7. Clicar em **"Open Overlay"** para abrir janela Electron (opcional)
+8. Clicar em **"⏹️ Parar Entrevista"** para parar a entrevista
 
 #### Overlay Electron
 
@@ -569,7 +614,42 @@ npm start
 
 ### 🧪 Recursos Principais Explicados
 
-#### 1. Extração Inteligente de Perguntas
+#### 1. Captura Dupla de Áudio com Diarização de Locutores
+
+O sistema captura simultaneamente áudio de duas fontes e identifica automaticamente os locutores:
+
+**Fontes de Áudio:**
+- **Áudio do Compartilhamento de Tela**: Captura a voz do entrevistador de plataformas de reunião virtual (Zoom, Teams, Google Meet)
+- **Áudio do Microfone**: Captura sua voz (candidato) diretamente do seu microfone
+
+**Como Funciona:**
+```
+1. Usuário clica em "🎙️ Iniciar Entrevista"
+   ↓
+2. Navegador solicita duas permissões:
+   - Compartilhamento de tela com áudio (getDisplayMedia)
+   - Acesso ao microfone (getUserMedia)
+   ↓
+3. Web Audio API combina ambos os streams em um
+   ↓
+4. Áudio combinado enviado ao Deepgram com diarização habilitada
+   ↓
+5. Deepgram identifica locutores (Speaker 0, Speaker 1)
+   ↓
+6. Sistema mapeia locutores para funções:
+   - Primeiro locutor (geralmente da tela) → [Interviewer] (etiqueta vermelha)
+   - Segundo locutor (geralmente do mic) → [You] (etiqueta verde)
+   ↓
+7. Transcrição ao vivo mostra etiquetas coloridas de locutores
+```
+
+**Indicadores Visuais:**
+- 🟥 **[Interviewer]**: Fundo vermelho - Perguntas do entrevistador
+- 🟩 **[You]**: Fundo verde - Suas respostas
+
+Este recurso é perfeito para entrevistas virtuais onde você precisa capturar ambos os lados da conversa com precisão.
+
+#### 2. Extração Inteligente de Perguntas
 
 O sistema usa GPT-3.5-turbo para extrair perguntas limpas de transcrições potencialmente longas e confusas:
 

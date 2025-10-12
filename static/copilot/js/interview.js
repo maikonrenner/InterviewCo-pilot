@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
-    const startButton = document.getElementById('startButton');
+    const dualAudioButton = document.getElementById('dualAudioButton');
     const overlayButton = document.getElementById('overlayButton');
     const statusElement = document.getElementById('status');
     const conversationBox = document.getElementById('conversationBox');
@@ -22,7 +22,51 @@ document.addEventListener('DOMContentLoaded', function() {
     let transcriptionTimeout;
     const TRANSCRIPTION_PAUSE_THRESHOLD = 2000; // 2 seconds
     let isMicrophoneMode = false; // Track if microphone mode is active
-    
+    let isDualAudioMode = false; // Track if dual audio mode is active
+    let micStream = null; // Store microphone stream for dual mode
+    let audioContext = null; // Web Audio API context
+    let speakerMap = {}; // Map speaker IDs to labels (You/Interviewer)
+
+    // Get speaker label for diarization
+    function getSpeakerLabel(speakerId) {
+        // If we haven't assigned a label yet, assign based on order
+        if (!speakerMap[speakerId]) {
+            const speakerCount = Object.keys(speakerMap).length;
+            // First speaker detected is usually Interviewer (from screen sharing)
+            // Second speaker is You (from microphone)
+            speakerMap[speakerId] = speakerCount === 0 ? 'Interviewer' : 'You';
+            console.log(`🎯 Speaker ${speakerId} mapped to: ${speakerMap[speakerId]}`);
+        }
+        return speakerMap[speakerId];
+    }
+
+    // Combine system audio and microphone audio using Web Audio API
+    async function combineMicrophoneAndSystemAudio(systemStream, microphoneStream) {
+        try {
+            console.log('🎛️ Combining audio streams...');
+
+            // Create audio context
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Create sources from both streams
+            const systemSource = audioContext.createMediaStreamSource(systemStream);
+            const micSource = audioContext.createMediaStreamSource(microphoneStream);
+
+            // Create destination for combined audio
+            const destination = audioContext.createMediaStreamDestination();
+
+            // Connect both sources to destination (mixed mono)
+            systemSource.connect(destination);
+            micSource.connect(destination);
+
+            console.log('✅ Audio streams combined successfully');
+            return destination.stream;
+        } catch (error) {
+            console.error('❌ Error combining audio streams:', error);
+            throw error;
+        }
+    }
+
     // Check browser support
     const checkBrowserSupport = () => {
         // Check for Safari-specific issues
@@ -98,13 +142,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function initDeepgramSocket() {
         // Configure Deepgram Nova-3 with multi-language support (English, Portuguese, French)
         // Using 'multi' language detection for automatic language identification
-        const deepgramUrl = 'wss://api.deepgram.com/v1/listen?' + new URLSearchParams({
+        const params = {
             'model': 'nova-3',           // Nova-3 model - best accuracy (54.2% WER reduction)
             'language': 'multi',         // Automatic detection: English, French, Portuguese, Spanish, German, Hindi, Russian, Japanese, Italian, Dutch
             'punctuate': 'true',         // Automatic punctuation
             'interim_results': 'true',   // Real-time streaming results
             'smart_format': 'true'       // Smart formatting for numbers, dates, etc.
-        });
+        };
+
+        // Add diarization for dual audio mode (speaker separation)
+        if (isDualAudioMode) {
+            params['diarize'] = 'true';  // Enable speaker diarization
+            console.log('🎙️ Dual audio mode: Diarization enabled');
+        }
+
+        const deepgramUrl = 'wss://api.deepgram.com/v1/listen?' + new URLSearchParams(params);
 
         deepgramSocket = new WebSocket(deepgramUrl, [
             'token',
@@ -145,8 +197,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const received = JSON.parse(message.data);
             console.log('Deepgram response:', received);
 
-            const transcript = received.channel.alternatives[0].transcript;
+            const alternative = received.channel.alternatives[0];
+            const transcript = alternative.transcript;
             console.log('Transcript:', transcript, 'is_final:', received.is_final);
+
+            // Process speaker information if diarization is enabled
+            let speakerLabel = '';
+            if (isDualAudioMode && alternative.words && alternative.words.length > 0) {
+                const speakerId = alternative.words[0].speaker;
+                speakerLabel = getSpeakerLabel(speakerId);
+                console.log('Speaker detected:', speakerId, '→', speakerLabel);
+            }
 
             // Clear previous timeout to avoid early submission while still speaking
             clearTimeout(transcriptionTimeout);
@@ -154,8 +215,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (transcript) {
                 if (received.is_final) {
                     console.log('Final transcript received:', transcript);
+
+                    // Add speaker label if dual audio mode with color coding
+                    let labeledTranscript;
+                    if (speakerLabel) {
+                        const labelClass = speakerLabel === 'Interviewer' ? 'speaker-interviewer' : 'speaker-you';
+                        labeledTranscript = `<span class="${labelClass}">[${speakerLabel}]:</span> ${transcript}`;
+                    } else {
+                        labeledTranscript = transcript;
+                    }
+
                     // Add final transcript to current transcript with a space
-                    currentTranscript += transcript + ' ';
+                    currentTranscript += labeledTranscript + ' ';
                     interimTranscript = '';
 
                     // Update live transcript box (without interim)
@@ -214,6 +285,13 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Strip HTML tags from text
+    function stripHtmlTags(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+    }
+
     // Send transcription to server
     function sendTranscriptionToServer(text) {
         console.log('sendTranscriptionToServer called with text:', text);
@@ -224,11 +302,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedModel = modelSelector.value;
         console.log('Selected model:', selectedModel);
 
+        // Strip HTML tags before sending to server
+        const cleanText = stripHtmlTags(text);
+        console.log('Clean text (without HTML):', cleanText);
+
         if (socket && socket.readyState === WebSocket.OPEN) {
             console.log('Sending to WebSocket...');
             socket.send(JSON.stringify({
                 type: 'transcription',
-                text: text,
+                text: cleanText,
                 model: selectedModel
             }));
             console.log('Message sent to WebSocket!');
@@ -241,17 +323,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function addMessageToConversation(type, text, timestamp) {
         const messageDiv = document.createElement('div');
         messageDiv.className = type;
-        
+
         const timeSpan = document.createElement('span');
         timeSpan.className = 'timestamp';
         timeSpan.textContent = timestamp;
-        
+
         const textParagraph = document.createElement('p');
-        textParagraph.textContent = text;
-        
+        // Use innerHTML to render HTML tags (like <strong> for speaker labels)
+        textParagraph.innerHTML = text;
+
         messageDiv.appendChild(timeSpan);
         messageDiv.appendChild(textParagraph);
-        
+
         if (type === 'answer') {
             messageDiv.id = 'current-answer';
         }
@@ -320,6 +403,118 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
     
+    // Start capturing dual audio (system + microphone)
+    async function startCapturingDualAudio() {
+        if (!checkBrowserSupport()) {
+            return;
+        }
+
+        try {
+            console.log('🎙️ Starting dual audio capture (System + Microphone)...');
+
+            // Capture screen audio
+            stream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true
+            });
+
+            // Check if audio track is available
+            const systemAudioTracks = stream.getAudioTracks();
+            if (systemAudioTracks.length === 0) {
+                alert('No system audio track available. Make sure to select "Share audio" when sharing.');
+                stream.getTracks().forEach(track => track.stop());
+                return;
+            }
+
+            // Capture microphone audio
+            micStream = await navigator.mediaDevices.getUserMedia({
+                audio: true
+            });
+
+            const micAudioTracks = micStream.getAudioTracks();
+            if (micAudioTracks.length === 0) {
+                alert('No microphone available. Please check your microphone settings.');
+                stream.getTracks().forEach(track => track.stop());
+                micStream.getTracks().forEach(track => track.stop());
+                return;
+            }
+
+            console.log('✅ Both audio sources captured');
+
+            // Show video preview
+            videoPreview.srcObject = stream;
+            videoPreview.style.display = 'block';
+            document.querySelector('.preview-placeholder').style.display = 'none';
+
+            // Combine both audio streams
+            const systemStream = new MediaStream(systemAudioTracks);
+            const microphoneStream = new MediaStream(micAudioTracks);
+            const combinedAudioStream = await combineMicrophoneAndSystemAudio(systemStream, microphoneStream);
+
+            // Create audio stream from combined source
+            const audioStream = combinedAudioStream;
+
+            // Add event handler to stop everything when screen sharing is stopped
+            stream.getTracks()[0].onended = () => {
+                stopCapturing();
+            };
+
+            // Get supported MIME type
+            const mimeType = getSupportedMimeType();
+            if (!mimeType) {
+                alert('Your browser does not support any of the required audio recording formats.');
+                audioStream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(track => track.stop());
+                micStream.getTracks().forEach(track => track.stop());
+                return;
+            }
+
+            // Set options based on supported MIME type
+            const options = {
+                mimeType: mimeType,
+                audioBitsPerSecond: 128000
+            };
+
+            // Create MediaRecorder with supported options
+            try {
+                mediaRecorder = new MediaRecorder(audioStream, options);
+            } catch (e) {
+                // Fallback without specifying mimeType
+                console.warn('Failed to create MediaRecorder with specified options, trying with defaults', e);
+                mediaRecorder = new MediaRecorder(audioStream);
+            }
+
+            // Set dual audio mode flag
+            isDualAudioMode = true;
+
+            // Initialize Deepgram for transcription (with multichannel)
+            initDeepgramSocket();
+
+            // Change button to stop mode
+            dualAudioButton.textContent = '⏹️ Parar Entrevista';
+            dualAudioButton.classList.add('btn-stop');
+            microphoneButton.disabled = true;
+
+        } catch (error) {
+            console.error('Error accessing dual audio:', error);
+            statusElement.textContent = 'Error: ' + error.message;
+
+            // Clean up streams if error occurs
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            if (micStream) micStream.getTracks().forEach(track => track.stop());
+            if (audioContext) audioContext.close();
+
+            isDualAudioMode = false;
+
+            // Provide more helpful error messages
+            if (error.name === 'NotAllowedError') {
+                statusElement.textContent = 'Error: Permission denied. Please allow screen recording and microphone access.';
+            } else if (error.name === 'NotSupportedError') {
+                statusElement.textContent = 'Error: Dual audio capture is not supported in this browser. Please try Chrome, Edge, or Firefox.';
+            }
+        }
+    }
+
     // Start capturing system audio (screen audio only)
     async function startCapturingSystemAudio() {
         if (!checkBrowserSupport()) {
@@ -380,9 +575,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Initialize Deepgram for transcription
             initDeepgramSocket();
 
-            // Disable start button and microphone button
-            startButton.disabled = true;
-            startButton.textContent = 'Interview in Progress';
+            // Disable buttons (only for microphone mode, not used anymore)
+            dualAudioButton.disabled = true;
             microphoneButton.disabled = true;
 
         } catch (error) {
@@ -404,6 +598,18 @@ document.addEventListener('DOMContentLoaded', function() {
             stream.getTracks().forEach(track => track.stop());
         }
 
+        // Stop microphone stream if dual audio mode
+        if (micStream) {
+            micStream.getTracks().forEach(track => track.stop());
+            micStream = null;
+        }
+
+        // Close audio context if it exists
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
         }
@@ -418,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholder.style.display = 'flex';
         placeholder.textContent = 'Screen preview will appear here when you start sharing...';
 
-        const sourceText = isMicrophoneMode ? 'Microphone' : 'Screen sharing';
+        const sourceText = isDualAudioMode ? 'Dual Audio' : (isMicrophoneMode ? 'Microphone' : 'Screen sharing');
         statusElement.textContent = `Disconnected - ${sourceText} stopped`;
 
         // Disable transcript input
@@ -434,9 +640,15 @@ document.addEventListener('DOMContentLoaded', function() {
             microphoneButton.classList.remove('active');
         }
 
-        // Enable start button and microphone button
-        startButton.disabled = false;
-        startButton.textContent = 'Start Interview';
+        // Reset dual audio mode
+        if (isDualAudioMode) {
+            isDualAudioMode = false;
+            speakerMap = {}; // Reset speaker map
+        }
+
+        // Reset button to start mode
+        dualAudioButton.textContent = '🎙️ Iniciar Entrevista';
+        dualAudioButton.classList.remove('btn-stop');
         microphoneButton.disabled = false;
     }
     
@@ -578,9 +790,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Initializing Deepgram socket for microphone...');
             initDeepgramSocket();
 
-            // Disable start button when microphone is active
-            startButton.disabled = true;
-            startButton.textContent = 'Microphone Active';
+            // Disable dual audio button when microphone is active
+            dualAudioButton.disabled = true;
 
         } catch (error) {
             console.error('Error accessing microphone:', error);
@@ -601,9 +812,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event listeners
-    startButton.addEventListener('click', () => {
-        startCapturingSystemAudio();
-    });
+    // Dual Audio button - Capture both system audio and microphone (toggle)
+    if (dualAudioButton) {
+        console.log('✅ Dual Audio button found, adding event listener...');
+        dualAudioButton.addEventListener('click', () => {
+            console.log('🎙️ Dual Audio button clicked!');
+
+            // If interview is active, stop it
+            if (isDualAudioMode) {
+                console.log('⏹️ Stopping interview...');
+                stopCapturing();
+            } else {
+                // Otherwise, start the interview
+                console.log('▶️ Starting interview...');
+                startCapturingDualAudio();
+            }
+        });
+    } else {
+        console.error('❌ Dual Audio button NOT found in DOM!');
+    }
 
     // Overlay button - Open Electron app
     overlayButton.addEventListener('click', async () => {

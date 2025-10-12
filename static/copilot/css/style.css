@@ -100,6 +100,32 @@ h1 {
     background-color: #5f4dd8;
 }
 
+.btn-dual {
+    background-color: #27ae60;
+}
+
+.btn-dual:hover {
+    background-color: #229954;
+}
+
+.btn-dual.btn-stop {
+    background-color: #e74c3c;
+    animation: pulse-red 2s infinite;
+}
+
+.btn-dual.btn-stop:hover {
+    background-color: #c0392b;
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
+    }
+}
+
 main {
     display: flex;
     gap: 20px;
@@ -315,6 +341,50 @@ main {
     margin-bottom: 10px;
     border-left: 3px solid #ffc107;
     font-style: italic;
+}
+
+/* Speaker labels styling in live transcript */
+.live-transcript strong {
+    font-weight: bold;
+    font-style: normal;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+/* Speaker label - Interviewer (red) */
+.speaker-interviewer {
+    color: #e74c3c;
+    background-color: #ffeaea;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+    font-style: normal;
+    display: inline-block;
+}
+
+/* Speaker label - You (green) */
+.speaker-you {
+    color: #27ae60;
+    background-color: #e8f8f0;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+    font-style: normal;
+    display: inline-block;
+}
+
+/* Style for question (interviewer speech in conversation) */
+.question strong,
+.question .speaker-interviewer {
+    color: #e74c3c;
+    background-color: #ffeaea;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 5px;
 }
 
 .timestamp {
