@@ -112,15 +112,15 @@ def upload_document(request):
 
         if file_type == 'job':
             try:
-                print('🔍 Extracting text from job description file...')
+                print('Extracting text from job description file...')
                 job_text = extract_text_from_file(file_path)
 
-                print('🔍 Extracting company and position from job description...')
+                print('Extracting company and position from job description...')
                 company, position = extract_company_and_position(job_text)
-                print(f'✅ Extracted: Company={company}, Position={position}')
+                print(f'Extracted: Company={company}, Position={position}')
 
                 # Generate job description summary automatically
-                print('📝 Generating job description summary...')
+                print('Generating job description summary...')
                 job_summary = get_job_description_summary()
                 if "not found" in job_summary.lower() or "created" in job_summary.lower():
                     job_summary = None
@@ -224,12 +224,12 @@ def save_job_text(request):
             f.write(job_text)
 
         # Extract company and position using AI
-        print('🔍 Extracting company and position from job description...')
+        print('Extracting company and position from job description...')
         company, position = extract_company_and_position(job_text)
-        print(f'✅ Extracted: Company={company}, Position={position}')
+        print(f'Extracted: Company={company}, Position={position}')
 
         # Generate job description summary automatically
-        print('📝 Generating job description summary...')
+        print('Generating job description summary...')
         try:
             job_summary = get_job_description_summary()
             if "not found" in job_summary.lower() or "created" in job_summary.lower():
