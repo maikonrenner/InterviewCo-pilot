@@ -13,11 +13,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const jobTextArea = document.getElementById('jobTextArea');
     const saveJobTextBtn = document.getElementById('saveJobTextBtn');
 
+    // Interview details inputs
+    const builderCompanyName = document.getElementById('builderCompanyName');
+    const builderJobTitle = document.getElementById('builderJobTitle');
+
     // Toggle buttons
     const toggleButtons = document.querySelectorAll('.toggle-btn');
 
     // Generate button
     const generateBtn = document.getElementById('generateSummaryBtn');
+
+    // Load existing interview details
+    loadInterviewDetails();
+
+    // Save interview details to localStorage on change
+    if (builderCompanyName) {
+        builderCompanyName.addEventListener('input', saveInterviewDetails);
+    }
+    if (builderJobTitle) {
+        builderJobTitle.addEventListener('input', saveInterviewDetails);
+    }
 
     // Setup resume upload
     if (resumeUploadArea && resumeFileInput) {
@@ -386,6 +401,36 @@ function clearAllVersions() {
     alert('✅ All document versions have been cleared!');
 }
 
+// Save interview details to localStorage
+function saveInterviewDetails() {
+    const companyName = document.getElementById('builderCompanyName').value.trim();
+    const jobTitle = document.getElementById('builderJobTitle').value.trim();
+
+    const interviewDetails = {
+        company: companyName,
+        position: jobTitle
+    };
+
+    localStorage.setItem('interviewDetails', JSON.stringify(interviewDetails));
+    console.log('💾 Interview details saved:', interviewDetails);
+}
+
+// Load interview details from localStorage
+function loadInterviewDetails() {
+    const interviewDetails = JSON.parse(localStorage.getItem('interviewDetails') || '{}');
+
+    const companyInput = document.getElementById('builderCompanyName');
+    const jobInput = document.getElementById('builderJobTitle');
+
+    if (companyInput && interviewDetails.company) {
+        companyInput.value = interviewDetails.company;
+    }
+
+    if (jobInput && interviewDetails.position) {
+        jobInput.value = interviewDetails.position;
+    }
+}
+
 // Make functions available globally
 window.clearJobText = clearJobText;
 window.deleteVersion = deleteVersion;
@@ -477,5 +522,6 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('pageChanged', function(e) {
     if (e.detail.page === 'resume-builder') {
         updateVersionsDisplay();
+        loadInterviewDetails();
     }
 });

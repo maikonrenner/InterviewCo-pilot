@@ -277,7 +277,7 @@ function updateSessionsTable() {
     tbody.innerHTML = '';
 
     if (sessionData.sessions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="no-data">No sessions yet. Start your first interview!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data">No sessions yet. Start your first interview!</td></tr>';
         return;
     }
 
@@ -288,6 +288,8 @@ function updateSessionsTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${new Date(session.date).toLocaleDateString()}</td>
+            <td>${session.company || '-'}</td>
+            <td>${session.position || '-'}</td>
             <td>${session.duration || 0} min</td>
             <td>${session.questions || 0}</td>
             <td>${session.language || 'English'}</td>
@@ -313,11 +315,13 @@ function exportToCSV() {
     }
 
     // CSV headers
-    let csv = 'Date,Duration (min),Questions,Language,Model,Status\n';
+    let csv = 'Date,Company,Position,Duration (min),Questions,Language,Model,Status\n';
 
     // Add rows
     sessionData.sessions.forEach(session => {
         csv += `${new Date(session.date).toLocaleDateString()},`;
+        csv += `${session.company || '-'},`;
+        csv += `${session.position || '-'},`;
         csv += `${session.duration || 0},`;
         csv += `${session.questions || 0},`;
         csv += `${session.language || 'English'},`;
@@ -341,6 +345,8 @@ function exportToCSV() {
 function addSessionToAnalytics(sessionInfo) {
     sessionData.sessions.push({
         date: new Date().toISOString(),
+        company: sessionInfo.company || '-',
+        position: sessionInfo.position || '-',
         duration: sessionInfo.duration || 0,
         questions: sessionInfo.questions || 0,
         language: sessionInfo.language || 'English',

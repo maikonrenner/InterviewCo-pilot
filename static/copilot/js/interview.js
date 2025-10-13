@@ -26,6 +26,43 @@ document.addEventListener('DOMContentLoaded', function() {
     let micStream = null; // Store microphone stream for dual mode
     let audioContext = null; // Web Audio API context
     let speakerMap = {}; // Map speaker IDs to labels (You/Interviewer)
+    let sessionStartTime = null; // Interview session start time
+    let sessionData = {}; // Store session data (company, position, date)
+    let timerInterval = null; // Timer interval for interview duration
+
+    // Update interview info when page is opened
+    function updateInterviewInfo() {
+        const interviewDetails = JSON.parse(localStorage.getItem('interviewDetails') || '{}');
+        const companyPositionElement = document.getElementById('interviewCompanyPosition');
+        const dateElement = document.getElementById('interviewDate');
+
+        // Update company and position
+        if (companyPositionElement) {
+            if (interviewDetails.company && interviewDetails.position) {
+                companyPositionElement.textContent = `${interviewDetails.company}: ${interviewDetails.position}`;
+            } else {
+                companyPositionElement.textContent = 'No interview details set. Configure in Resume Builder.';
+            }
+        }
+
+        // Update date
+        if (dateElement) {
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            dateElement.textContent = formattedDate;
+        }
+    }
+
+    // Listen for page changes to update interview info
+    document.addEventListener('pageChanged', function(e) {
+        if (e.detail.page === 'interview') {
+            updateInterviewInfo();
+        }
+    });
 
     // Get speaker label for diarization
     function getSpeakerLabel(speakerId) {
@@ -412,6 +449,21 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('🎙️ Starting dual audio capture (System + Microphone)...');
 
+            // Load interview details from localStorage (saved by Resume Builder)
+            const interviewDetails = JSON.parse(localStorage.getItem('interviewDetails') || '{}');
+
+            sessionData = {
+                company: interviewDetails.company || 'Not specified',
+                position: interviewDetails.position || 'Not specified',
+                date: new Date().toISOString().split('T')[0],
+                model: modelSelector.value
+            };
+            sessionStartTime = Date.now();
+            console.log('📋 Session data captured:', sessionData);
+
+            // Start timer
+            startInterviewTimer();
+
             // Capture screen audio
             stream = await navigator.mediaDevices.getDisplayMedia({
                 video: true,
@@ -592,8 +644,77 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Start interview timer
+    function startInterviewTimer() {
+        // Stop existing timer if any
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+
+        timerInterval = setInterval(() => {
+            if (sessionStartTime) {
+                const elapsed = Date.now() - sessionStartTime;
+                const hours = Math.floor(elapsed / 3600000);
+                const minutes = Math.floor((elapsed % 3600000) / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+
+                const timerElement = document.getElementById('interviewTimer');
+                if (timerElement) {
+                    timerElement.textContent =
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }
+        }, 1000);
+    }
+
+    // Stop interview timer
+    function stopInterviewTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        // Reset timer display
+        const timerElement = document.getElementById('interviewTimer');
+        if (timerElement) {
+            timerElement.textContent = '00:00:00';
+        }
+    }
+
     // Stop capturing
     function stopCapturing() {
+        // Stop timer
+        stopInterviewTimer();
+
+        // Save session data to localStorage
+        if (sessionStartTime && sessionData.company) {
+            const duration = Math.floor((Date.now() - sessionStartTime) / 1000 / 60); // minutes
+            const session = {
+                company: sessionData.company,
+                position: sessionData.position,
+                date: sessionData.date || new Date().toISOString(),
+                duration: duration,
+                questions: 0, // TODO: Track questions count during interview
+                language: 'English', // TODO: Detect from transcription
+                model: sessionData.model,
+                avgResponseTime: 0 // TODO: Calculate average response time
+            };
+
+            console.log('💾 Saving session data:', session);
+
+            // Call global function from dashboard.js
+            if (typeof window.addSessionToAnalytics === 'function') {
+                window.addSessionToAnalytics(session);
+                console.log('✅ Session saved to analytics');
+            } else {
+                console.error('❌ addSessionToAnalytics function not found');
+            }
+
+            // Reset session data
+            sessionStartTime = null;
+            sessionData = {};
+        }
+
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }

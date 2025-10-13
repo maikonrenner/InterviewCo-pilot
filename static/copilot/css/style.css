@@ -1115,6 +1115,98 @@ body {
     gap: 10px;
 }
 
+/* Interview Header with Info */
+.interview-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.interview-header-left h1 {
+    margin: 0;
+}
+
+.interview-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #657786;
+    font-weight: 500;
+}
+
+.company-position {
+    color: #1da1f2;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.separator {
+    color: #e1e8ed;
+}
+
+.interview-date {
+    color: #657786;
+}
+
+.interview-timer {
+    color: #27ae60;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+}
+
+/* Interview Details Input (Resume Builder) */
+.interview-details-input {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.interview-details-input h3 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    color: #14171a;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.detail-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #14171a;
+}
+
+.detail-input {
+    padding: 12px 15px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.detail-input:focus {
+    outline: none;
+    border-color: #1da1f2;
+    box-shadow: 0 0 5px rgba(29, 161, 242, 0.3);
+}
+
+.detail-input::placeholder {
+    color: #aab8c2;
+}
+
 /* For smaller screens */
 @media (max-width: 768px) {
     .sidebar {

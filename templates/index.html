@@ -116,6 +116,8 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Company</th>
+                                <th>Position</th>
                                 <th>Duration</th>
                                 <th>Questions</th>
                                 <th>Language</th>
@@ -125,7 +127,7 @@
                         </thead>
                         <tbody id="sessionsTableBody">
                             <tr>
-                                <td colspan="6" class="no-data">No sessions yet. Start your first interview!</td>
+                                <td colspan="8" class="no-data">No sessions yet. Start your first interview!</td>
                             </tr>
                         </tbody>
                     </table>
@@ -135,7 +137,16 @@
             <!-- Interview Page -->
             <div id="interview-page" class="page-content">
                 <header class="page-header">
-                    <h1>Live Interview</h1>
+                    <div class="interview-header-left">
+                        <h1>Live Interview</h1>
+                        <div class="interview-info">
+                            <span id="interviewCompanyPosition" class="company-position">-</span>
+                            <span class="separator">•</span>
+                            <span id="interviewDate" class="interview-date">-</span>
+                            <span class="separator">•</span>
+                            <span id="interviewTimer" class="interview-timer">00:00:00</span>
+                        </div>
+                    </div>
                     <div class="status-container">
                         <select id="modelSelector" class="model-selector">
                             <option value="gpt-4o">GPT-4o (Recomendado)</option>
@@ -215,6 +226,21 @@
                         <button class="btn btn-primary" id="generateSummaryBtn">🔄 Generate Summaries</button>
                     </div>
                 </header>
+
+                <!-- Interview Details Input -->
+                <div class="interview-details-input">
+                    <h3>📋 Interview Details</h3>
+                    <div class="details-grid">
+                        <div class="detail-group">
+                            <label for="builderCompanyName">🏢 Company Name</label>
+                            <input type="text" id="builderCompanyName" placeholder="e.g., Google, Microsoft, Amazon" class="detail-input">
+                        </div>
+                        <div class="detail-group">
+                            <label for="builderJobTitle">💼 Job Title / Position</label>
+                            <input type="text" id="builderJobTitle" placeholder="e.g., Senior Data Engineer, Full Stack Developer" class="detail-input">
+                        </div>
+                    </div>
+                </div>
 
                 <div class="resume-builder-grid">
                     <!-- Resume Upload Section -->
