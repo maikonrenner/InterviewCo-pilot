@@ -105,11 +105,24 @@ def upload_document(request):
         filename = fs.save(uploaded_file.name, uploaded_file)
         file_path = fs.path(filename)
 
-        # If job description file, extract company and position
+        # Initialize variables for extraction
         company = None
         position = None
         job_summary = None
+        resume_summary = None
 
+        # If resume file, generate summary automatically
+        if file_type == 'resume':
+            try:
+                print('Generating resume summary automatically...')
+                resume_summary = get_resume_summary()
+                if "not found" in resume_summary.lower() or "created" in resume_summary.lower():
+                    resume_summary = None
+            except Exception as e:
+                print(f"Error generating resume summary: {str(e)}")
+                # Continue even if summary generation fails
+
+        # If job description file, extract company and position
         if file_type == 'job':
             try:
                 print('Extracting text from job description file...')
@@ -134,6 +147,10 @@ def upload_document(request):
             'file_path': file_path,
             'file_name': filename
         }
+
+        # Add resume summary if it's a resume
+        if file_type == 'resume' and resume_summary:
+            response_data['resume_summary'] = resume_summary
 
         # Add extracted data if it's a job description
         if file_type == 'job' and company and position:

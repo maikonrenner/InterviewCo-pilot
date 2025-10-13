@@ -190,8 +190,20 @@ function uploadFile(file, type) {
         if (data.success) {
             console.log('File uploaded successfully:', data);
 
+            // If resume with generated summary
+            if (type === 'resume' && data.resume_summary) {
+                summaryElement.innerHTML = `<p>${data.resume_summary}</p>`;
+
+                // Update interview page summary
+                const resumeSummaryElement = document.getElementById('resumeSummary');
+                if (resumeSummaryElement) {
+                    resumeSummaryElement.textContent = data.resume_summary;
+                }
+
+                alert('✅ Resume uploaded and summary generated automatically!');
+            }
             // If job description with extracted data
-            if (type === 'job' && data.company && data.position) {
+            else if (type === 'job' && data.company && data.position) {
                 // Auto-fill company and position fields
                 const companyInput = document.getElementById('builderCompanyName');
                 const positionInput = document.getElementById('builderJobTitle');
@@ -220,7 +232,7 @@ function uploadFile(file, type) {
 
                 alert(`✅ Extracted:\n🏢 Company: ${data.company}\n💼 Position: ${data.position}`);
             } else {
-                summaryElement.innerHTML = '<p class="empty-state">✅ File uploaded! Click "Generate Summaries" to create analysis.</p>';
+                summaryElement.innerHTML = '<p class="empty-state">✅ File uploaded successfully!</p>';
             }
 
             // Store file info for versioning
@@ -363,11 +375,15 @@ function loadExistingSummaries() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update builder summaries
-            if (data.resume_summary && data.resume_summary !== 'Loading...') {
+            // Update builder summaries - only if they're not "No ... found" messages
+            if (data.resume_summary &&
+                data.resume_summary !== 'Loading...' &&
+                !data.resume_summary.includes('No resume found')) {
                 document.getElementById('builderResumeSummary').innerHTML = `<p>${data.resume_summary}</p>`;
             }
-            if (data.job_summary && data.job_summary !== 'Loading...') {
+            if (data.job_summary &&
+                data.job_summary !== 'Loading...' &&
+                !data.job_summary.includes('No job description found')) {
                 document.getElementById('builderJobSummary').innerHTML = `<p>${data.job_summary}</p>`;
             }
 
