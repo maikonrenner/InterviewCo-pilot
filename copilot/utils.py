@@ -108,17 +108,42 @@ def get_job_description_summary():
     # Use the first job description found
     job_path = os.path.join(job_dir, job_files[0])
     job_text = extract_text_from_file(job_path)
-    
-    # Generate summary using OpenAI
+
+    # Generate DETAILED summary using OpenAI
     response = openai.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are an assistant that summarizes job descriptions."},
-            {"role": "user", "content": f"Please provide a concise summary of the following job description in about 150 words: {job_text}"}
+            {"role": "system", "content": "You are an assistant that creates detailed, structured summaries of job descriptions for interview preparation."},
+            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following job description. Include ALL relevant information:
+
+**REQUIRED SECTIONS:**
+1. **Position Overview**: Job title, level (Junior/Mid/Senior), employment type, location/remote
+2. **Company Information**: Company name, industry, size, culture (if mentioned)
+3. **Key Responsibilities**: ALL main duties and tasks (be specific and detailed)
+4. **Required Qualifications**:
+   - Education requirements
+   - Years of experience required
+   - Technical skills (programming languages, frameworks, tools, platforms)
+   - Soft skills (communication, leadership, teamwork, etc.)
+5. **Preferred Qualifications**: Nice-to-have skills, certifications, additional experience
+6. **Technical Stack**: Complete list of technologies, tools, databases, cloud platforms mentioned
+7. **Benefits & Compensation**: Salary range (if mentioned), benefits, perks, work arrangements
+8. **Interview Process**: If mentioned, describe the hiring process steps
+
+**IMPORTANT:**
+- Be VERY specific about technologies, tools, and methodologies
+- Include ALL required and preferred qualifications
+- Include metrics and expectations (percentages, amounts, timeframes) if mentioned
+- Use bullet points for clarity
+- DO NOT summarize or skip information - include EVERYTHING relevant
+- If some sections are not mentioned in the job description, note that clearly
+
+Job description text:
+{job_text}"""}
         ],
-        max_tokens=300
+        max_tokens=2000  # Increased from 300 to 2000 for detailed summary
     )
-    
+
     return response.choices[0].message.content
 
 def extract_question_from_transcript(transcript_text):
