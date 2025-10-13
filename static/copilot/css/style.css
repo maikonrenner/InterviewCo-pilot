@@ -1016,10 +1016,26 @@ body {
     margin-bottom: 30px;
 }
 
+.versions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .versions-section h3 {
-    margin: 0 0 20px 0;
+    margin: 0;
     font-size: 18px;
     color: #14171a;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
 }
 
 .versions-grid {
@@ -1060,6 +1076,23 @@ body {
     font-size: 14px;
     font-weight: 600;
     color: #14171a;
+}
+
+.version-delete-btn {
+    background: transparent;
+    border: none;
+    color: #657786;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 5px;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.version-delete-btn:hover {
+    color: #e74c3c;
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 .version-date {

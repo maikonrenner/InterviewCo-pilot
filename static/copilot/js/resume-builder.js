@@ -312,18 +312,30 @@ function loadExistingSummaries() {
 
 function updateVersionsDisplay() {
     const versionsGrid = document.getElementById('versionsGrid');
+    const clearAllBtn = document.getElementById('clearAllVersionsBtn');
+
     if (!versionsGrid) return;
 
     const versions = JSON.parse(localStorage.getItem('documentVersions') || '[]');
 
     if (versions.length === 0) {
         versionsGrid.innerHTML = '<div class="empty-state-card"><p>No versions yet. Upload documents to start tracking versions.</p></div>';
+        if (clearAllBtn) clearAllBtn.style.display = 'none';
         return;
     }
 
+    // Show clear all button if there are versions
+    if (clearAllBtn) clearAllBtn.style.display = 'block';
+
     versionsGrid.innerHTML = '';
 
-    versions.reverse().slice(0, 6).forEach((version, index) => {
+    // Get the last 6 versions (most recent first)
+    const recentVersions = versions.slice(-6).reverse();
+
+    recentVersions.forEach((version, displayIndex) => {
+        // Calculate actual index in the full versions array
+        const actualIndex = versions.length - displayIndex - 1;
+
         const card = document.createElement('div');
         card.className = 'version-card';
 
@@ -333,6 +345,7 @@ function updateVersionsDisplay() {
         card.innerHTML = `
             <div class="version-header">
                 <span class="version-title">${version.type === 'resume' ? '📄' : '💼'} ${version.name}</span>
+                <button class="version-delete-btn" onclick="deleteVersion(${actualIndex})" title="Delete this version">🗑️</button>
             </div>
             <div class="version-date">${formattedDate}</div>
         `;
@@ -341,8 +354,42 @@ function updateVersionsDisplay() {
     });
 }
 
-// Make function available globally
+function deleteVersion(index) {
+    if (!confirm('Are you sure you want to delete this version?')) {
+        return;
+    }
+
+    const versions = JSON.parse(localStorage.getItem('documentVersions') || '[]');
+
+    // Remove the version at the specified index
+    versions.splice(index, 1);
+
+    // Save back to localStorage
+    localStorage.setItem('documentVersions', JSON.stringify(versions));
+
+    // Update the display
+    updateVersionsDisplay();
+}
+
+function clearAllVersions() {
+    if (!confirm('Are you sure you want to delete ALL document versions? This cannot be undone.')) {
+        return;
+    }
+
+    // Clear all versions from localStorage
+    localStorage.setItem('documentVersions', JSON.stringify([]));
+
+    // Update the display
+    updateVersionsDisplay();
+
+    // Show success message
+    alert('✅ All document versions have been cleared!');
+}
+
+// Make functions available globally
 window.clearJobText = clearJobText;
+window.deleteVersion = deleteVersion;
+window.clearAllVersions = clearAllVersions;
 
 function generateSummaries() {
     const generateBtn = document.getElementById('generateSummaryBtn');

@@ -298,7 +298,10 @@
 
                 <!-- Document Versions -->
                 <div class="versions-section">
-                    <h3>📚 Document Versions</h3>
+                    <div class="versions-header">
+                        <h3>📚 Document Versions</h3>
+                        <button class="btn btn-sm btn-danger" id="clearAllVersionsBtn" onclick="clearAllVersions()" style="display: none;">🗑️ Clear All</button>
+                    </div>
                     <div class="versions-grid" id="versionsGrid">
                         <div class="empty-state-card">
                             <p>No versions yet. Upload documents to start tracking versions.</p>
