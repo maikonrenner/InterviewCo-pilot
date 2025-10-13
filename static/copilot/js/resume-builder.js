@@ -177,7 +177,7 @@ function uploadFile(file, type) {
     const summaryId = type === 'resume' ? 'builderResumeSummary' : 'builderJobSummary';
     const summaryElement = document.getElementById(summaryId);
     if (summaryElement) {
-        summaryElement.innerHTML = '<p class="empty-state">📤 Uploading file...</p>';
+        summaryElement.innerHTML = '<p class="empty-state">📤 Uploading and analyzing file...</p>';
     }
 
     // Upload to server
@@ -189,7 +189,39 @@ function uploadFile(file, type) {
     .then(data => {
         if (data.success) {
             console.log('File uploaded successfully:', data);
-            summaryElement.innerHTML = '<p class="empty-state">✅ File uploaded! Click "Generate Summaries" to create analysis.</p>';
+
+            // If job description with extracted data
+            if (type === 'job' && data.company && data.position) {
+                // Auto-fill company and position fields
+                const companyInput = document.getElementById('builderCompanyName');
+                const positionInput = document.getElementById('builderJobTitle');
+
+                if (companyInput) companyInput.value = data.company;
+                if (positionInput) positionInput.value = data.position;
+
+                // Save to localStorage
+                saveInterviewDetails();
+
+                // Display job summary if available
+                if (data.job_summary) {
+                    summaryElement.innerHTML = `<p>${data.job_summary}</p>`;
+
+                    // Update interview page summary
+                    const jobSummaryElement = document.getElementById('jobSummary');
+                    if (jobSummaryElement) {
+                        jobSummaryElement.textContent = data.job_summary;
+                    }
+                } else {
+                    summaryElement.innerHTML = '<p class="empty-state">✅ File uploaded and analyzed! Company and position extracted automatically.</p>';
+                }
+
+                // Add to interviews list
+                addInterviewToList(data.company, data.position);
+
+                alert(`✅ Extracted:\n🏢 Company: ${data.company}\n💼 Position: ${data.position}`);
+            } else {
+                summaryElement.innerHTML = '<p class="empty-state">✅ File uploaded! Click "Generate Summaries" to create analysis.</p>';
+            }
 
             // Store file info for versioning
             storeFileVersion(file, type, data.file_path);
@@ -230,7 +262,7 @@ function saveJobText() {
     const builderJobSummary = document.getElementById('builderJobSummary');
 
     // Show loading
-    builderJobSummary.innerHTML = '<p class="empty-state">💾 Saving job description...</p>';
+    builderJobSummary.innerHTML = '<p class="empty-state">💾 Saving and analyzing job description...</p>';
 
     // Send to backend
     fetch('/save-job-text/', {
@@ -259,12 +291,40 @@ function saveJobText() {
                 </div>
             `;
 
-            builderJobSummary.innerHTML = '<p class="empty-state">✅ Job description saved! Click "Generate Summaries" to create analysis.</p>';
+            // Auto-fill company and position fields
+            if (data.company && data.position) {
+                const companyInput = document.getElementById('builderCompanyName');
+                const positionInput = document.getElementById('builderJobTitle');
+
+                if (companyInput) companyInput.value = data.company;
+                if (positionInput) positionInput.value = data.position;
+
+                // Save to localStorage
+                saveInterviewDetails();
+
+                // Display job summary if available
+                if (data.job_summary) {
+                    builderJobSummary.innerHTML = `<p>${data.job_summary}</p>`;
+
+                    // Update interview page summary
+                    const jobSummaryElement = document.getElementById('jobSummary');
+                    if (jobSummaryElement) {
+                        jobSummaryElement.textContent = data.job_summary;
+                    }
+                } else {
+                    builderJobSummary.innerHTML = '<p class="empty-state">✅ Job description saved and analyzed!</p>';
+                }
+
+                // Add to interviews list
+                addInterviewToList(data.company, data.position);
+
+                alert(`✅ Extracted:\n🏢 Company: ${data.company}\n💼 Position: ${data.position}`);
+            } else {
+                builderJobSummary.innerHTML = '<p class="empty-state">✅ Job description saved!</p>';
+            }
 
             // Store in versions
             storeTextVersion(jobText, 'job');
-
-            alert('✅ Job description saved successfully!');
         } else {
             throw new Error(data.message || 'Save failed');
         }
@@ -431,10 +491,105 @@ function loadInterviewDetails() {
     }
 }
 
+// Add interview to list
+function addInterviewToList(company, position) {
+    const interviews = JSON.parse(localStorage.getItem('savedInterviews') || '[]');
+
+    // Check if already exists
+    const exists = interviews.some(i => i.company === company && i.position === position);
+    if (exists) {
+        console.log('Interview already in list');
+        updateInterviewsTable();
+        return;
+    }
+
+    // Add new interview
+    interviews.push({
+        company: company,
+        position: position,
+        date: new Date().toISOString(),
+        status: 'Pending'
+    });
+
+    localStorage.setItem('savedInterviews', JSON.stringify(interviews));
+    console.log('✅ Interview added to list:', { company, position });
+
+    // Update table display
+    updateInterviewsTable();
+}
+
+// Update interviews table display
+function updateInterviewsTable() {
+    const tableBody = document.getElementById('interviewsTableBody');
+    const clearAllBtn = document.getElementById('clearAllInterviewsBtn');
+
+    if (!tableBody) return;
+
+    const interviews = JSON.parse(localStorage.getItem('savedInterviews') || '[]');
+
+    // Show/hide clear all button
+    if (clearAllBtn) {
+        clearAllBtn.style.display = interviews.length > 0 ? 'block' : 'none';
+    }
+
+    if (interviews.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="no-data">No interviews registered yet.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = '';
+
+    // Show last 10 interviews
+    const recentInterviews = interviews.slice(-10).reverse();
+
+    recentInterviews.forEach((interview, index) => {
+        const actualIndex = interviews.length - index - 1;
+        const row = document.createElement('tr');
+        const date = new Date(interview.date);
+
+        row.innerHTML = `
+            <td>${date.toLocaleDateString()}</td>
+            <td>${interview.company}</td>
+            <td>${interview.position}</td>
+            <td class="actions-cell">
+                <button class="btn-icon-sm" onclick="deleteInterview(${actualIndex})" title="Delete">🗑️</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Delete interview from list
+function deleteInterview(index) {
+    if (!confirm('Are you sure you want to delete this interview?')) {
+        return;
+    }
+
+    const interviews = JSON.parse(localStorage.getItem('savedInterviews') || '[]');
+    interviews.splice(index, 1);
+    localStorage.setItem('savedInterviews', JSON.stringify(interviews));
+
+    updateInterviewsTable();
+    alert('✅ Interview deleted successfully!');
+}
+
+// Clear all interviews
+function clearAllInterviews() {
+    if (!confirm('Are you sure you want to delete ALL interviews? This cannot be undone.')) {
+        return;
+    }
+
+    localStorage.setItem('savedInterviews', JSON.stringify([]));
+    updateInterviewsTable();
+    alert('✅ All interviews have been cleared!');
+}
+
 // Make functions available globally
 window.clearJobText = clearJobText;
 window.deleteVersion = deleteVersion;
 window.clearAllVersions = clearAllVersions;
+window.deleteInterview = deleteInterview;
+window.clearAllInterviews = clearAllInterviews;
 
 function generateSummaries() {
     const generateBtn = document.getElementById('generateSummaryBtn');
@@ -518,10 +673,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Initialize versions display when page loads
+// Initialize versions display and interviews table when page loads
 document.addEventListener('pageChanged', function(e) {
     if (e.detail.page === 'resume-builder') {
         updateVersionsDisplay();
         loadInterviewDetails();
+        updateInterviewsTable();
     }
 });

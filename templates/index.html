@@ -322,15 +322,43 @@
                     </div>
                 </div>
 
-                <!-- Document Versions -->
-                <div class="versions-section">
-                    <div class="versions-header">
-                        <h3>📚 Document Versions</h3>
-                        <button class="btn btn-sm btn-danger" id="clearAllVersionsBtn" onclick="clearAllVersions()" style="display: none;">🗑️ Clear All</button>
+                <!-- Document Versions and Interviews Row -->
+                <div class="bottom-sections-row">
+                    <!-- Document Versions -->
+                    <div class="versions-section">
+                        <div class="versions-header">
+                            <h3>📚 Document Versions</h3>
+                            <button class="btn btn-sm btn-danger" id="clearAllVersionsBtn" onclick="clearAllVersions()" style="display: none;">🗑️ Clear All</button>
+                        </div>
+                        <div class="versions-grid" id="versionsGrid">
+                            <div class="empty-state-card">
+                                <p>No versions yet. Upload documents to start tracking versions.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="versions-grid" id="versionsGrid">
-                        <div class="empty-state-card">
-                            <p>No versions yet. Upload documents to start tracking versions.</p>
+
+                    <!-- Registered Interviews -->
+                    <div class="interviews-section">
+                        <div class="interviews-header">
+                            <h3>🎯 Registered Interviews</h3>
+                            <button class="btn btn-sm btn-danger" id="clearAllInterviewsBtn" onclick="clearAllInterviews()" style="display: none;">🗑️ Clear All</button>
+                        </div>
+                        <div class="interviews-table-container">
+                            <table class="interviews-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Company</th>
+                                        <th>Position</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="interviewsTableBody">
+                                    <tr>
+                                        <td colspan="4" class="no-data">No interviews registered yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -146,6 +146,44 @@ Job description text:
 
     return response.choices[0].message.content
 
+def extract_company_and_position(job_text):
+    """Extract company name and job position from job description text using AI."""
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",  # Fast model for extraction
+            messages=[
+                {"role": "system", "content": """You are an assistant that extracts structured information from job descriptions.
+
+Extract the company name and job title/position from the job description text.
+
+Return ONLY a JSON object in this exact format (no additional text):
+{
+    "company": "Company Name",
+    "position": "Job Title"
+}
+
+If company or position cannot be found, use "Not specified" for that field."""},
+                {"role": "user", "content": f"Extract company name and job position from this job description:\n\n{job_text[:2000]}"}
+            ],
+            max_tokens=100,
+            temperature=0.3
+        )
+
+        result = response.choices[0].message.content.strip()
+
+        # Parse JSON response
+        try:
+            import json
+            data = json.loads(result)
+            return data.get('company', 'Not specified'), data.get('position', 'Not specified')
+        except:
+            # If parsing fails, return defaults
+            return 'Not specified', 'Not specified'
+
+    except Exception as e:
+        print(f"Error extracting company and position: {str(e)}")
+        return 'Not specified', 'Not specified'
+
 def extract_question_from_transcript(transcript_text):
     """Extract ALL questions and relevant context from a potentially long transcript."""
     try:

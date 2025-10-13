@@ -6,7 +6,7 @@ from django.core.files.storage import FileSystemStorage
 import subprocess
 import os
 import json
-from .utils import get_resume_summary, get_job_description_summary, extract_text_from_pdf
+from .utils import get_resume_summary, get_job_description_summary, extract_text_from_pdf, extract_company_and_position, extract_text_from_file
 import PyPDF2
 
 def index(request):
@@ -105,12 +105,43 @@ def upload_document(request):
         filename = fs.save(uploaded_file.name, uploaded_file)
         file_path = fs.path(filename)
 
-        return JsonResponse({
+        # If job description file, extract company and position
+        company = None
+        position = None
+        job_summary = None
+
+        if file_type == 'job':
+            try:
+                print('🔍 Extracting text from job description file...')
+                job_text = extract_text_from_file(file_path)
+
+                print('🔍 Extracting company and position from job description...')
+                company, position = extract_company_and_position(job_text)
+                print(f'✅ Extracted: Company={company}, Position={position}')
+
+                # Generate job description summary automatically
+                print('📝 Generating job description summary...')
+                job_summary = get_job_description_summary()
+                if "not found" in job_summary.lower() or "created" in job_summary.lower():
+                    job_summary = None
+            except Exception as e:
+                print(f"Error processing job description: {str(e)}")
+                # Continue even if extraction fails
+
+        response_data = {
             'success': True,
             'message': 'File uploaded successfully',
             'file_path': file_path,
             'file_name': filename
-        })
+        }
+
+        # Add extracted data if it's a job description
+        if file_type == 'job' and company and position:
+            response_data['company'] = company
+            response_data['position'] = position
+            response_data['job_summary'] = job_summary
+
+        return JsonResponse(response_data)
 
     except Exception as e:
         return JsonResponse({
@@ -166,7 +197,7 @@ def generate_summaries(request):
 
 @csrf_exempt
 def save_job_text(request):
-    """Save pasted job description text"""
+    """Save pasted job description text and auto-extract company, position, and generate summary"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
@@ -192,9 +223,27 @@ def save_job_text(request):
         with open(txt_path, 'w', encoding='utf-8') as f:
             f.write(job_text)
 
+        # Extract company and position using AI
+        print('🔍 Extracting company and position from job description...')
+        company, position = extract_company_and_position(job_text)
+        print(f'✅ Extracted: Company={company}, Position={position}')
+
+        # Generate job description summary automatically
+        print('📝 Generating job description summary...')
+        try:
+            job_summary = get_job_description_summary()
+            if "not found" in job_summary.lower() or "created" in job_summary.lower():
+                job_summary = None
+        except Exception as e:
+            print(f"Job summary generation failed: {str(e)}")
+            job_summary = None
+
         return JsonResponse({
             'success': True,
-            'message': 'Job description saved successfully'
+            'message': 'Job description saved and analyzed successfully',
+            'company': company,
+            'position': position,
+            'job_summary': job_summary
         })
 
     except Exception as e:
