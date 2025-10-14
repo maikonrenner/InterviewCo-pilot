@@ -21,9 +21,13 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 - **🤖 AI-Powered Responses**: Context-aware answers using GPT-4/GPT-4o models
 - **🧠 Smart Question Extraction**: Automatically extracts clean questions from long, cluttered transcripts
 - **📄 Resume Analysis**: Detailed CV parsing and summarization for personalized responses
-- **🌐 Multi-language Support**: Supports English, Portuguese, French, Spanish, and German
+- **🌐 Multi-language Support**: Automatic multi-language detection (English, Portuguese, French, Spanish, German, etc.)
 - **🔄 Real-time Streaming**: WebSocket-based streaming for instant response delivery
 - **🎨 Modern UI**: Clean, responsive interface with live transcript mirroring
+- **📊 Dashboard Analytics**: Interactive charts and metrics to track interview performance
+- **📅 Google Calendar Integration**: Sync and view upcoming/past interviews from Google Calendar
+- **⚙️ Settings Management**: Browser-based configuration for API keys (OpenAI and Deepgram)
+- **📝 AI Resume Builder**: Upload and analyze resumes/job descriptions with AI-powered summaries
 
 ### 🏗️ Architecture
 
@@ -350,6 +354,51 @@ Uses Django Channels group messaging to broadcast live transcripts to:
 - Electron overlay instances
 - Maintains synchronization across all interfaces
 
+#### 5. Dashboard Analytics
+
+Track your interview performance with interactive visualizations:
+- **Interview Activity Chart**: 7-day history of interview sessions
+- **Language Distribution**: Pie chart of languages used in interviews
+- **Questions Answered**: Bar chart tracking question count over time
+- **AI Model Performance**: Compare response times across different models
+- **Session Metrics**: Total interviews, average duration, questions answered, AI response time
+
+All data is stored locally in the browser's localStorage.
+
+#### 6. Google Calendar Integration
+
+Automatically sync interview schedules from Google Calendar:
+- **Visual Calendar**: Color-coded day blocks (🟩 green for upcoming, ⬜ gray for past interviews)
+- **Smart Filtering**: Automatically detects interview-related events using multilingual keywords
+- **Event Details**: Click on any day to view interview details (time, description, location)
+- **60-Day Range**: Shows interviews from 60 days back to 60 days ahead
+
+**Supported Keywords**: interview, entrevista, entretien, meeting, rencontre, discussion, échange, call, appel
+
+#### 7. Settings Management
+
+Configure API keys directly in the browser (no backend required):
+- **OpenAI API Key**: Configure your OpenAI key for GPT models
+- **Deepgram API Key**: Configure your Deepgram key for speech-to-text
+- **Default AI Model**: Select preferred GPT model (GPT-4o, GPT-4o Mini, GPT-4 Turbo, etc.)
+- **Auto-Language Detection**: System automatically detects and transcribes multiple languages
+- **Local Storage**: All settings stored securely in browser's localStorage
+
+**Visual Feedback**:
+- Button changes to "⏳ Saving..." → "✅ Saved!"
+- Fields turn green when successfully saved
+- Success/error messages with animations
+
+#### 8. AI Resume Builder
+
+Upload and analyze documents with AI-powered summaries:
+- **Resume Upload**: Drag & drop or browse for resume files (PDF, DOCX, TXT)
+- **Job Description Input**: Paste text or upload file for job descriptions
+- **AI Summaries**: GPT-4 generates concise summaries of both documents
+- **Interview Details**: Add company name and job title for context
+- **Version History**: Track multiple document versions
+- **Document Management**: View, delete, and manage uploaded documents
+
 ### 🔐 Security Notes
 
 - **Never commit** `.env` files with API keys
@@ -417,9 +466,13 @@ AI Interview Co-pilot é um assistente inteligente em tempo real projetado para 
 - **🤖 Respostas com IA**: Respostas conscientes do contexto usando modelos GPT-4/GPT-4o
 - **🧠 Extração Inteligente de Perguntas**: Extrai automaticamente perguntas limpas de transcrições longas e poluídas
 - **📄 Análise de Currículo**: Análise detalhada e resumo do CV para respostas personalizadas
-- **🌐 Suporte Multi-idioma**: Suporta inglês, português, francês, espanhol e alemão
+- **🌐 Suporte Multi-idioma**: Detecção automática de múltiplos idiomas (inglês, português, francês, espanhol, alemão, etc.)
 - **🔄 Streaming em Tempo Real**: Entrega instantânea de respostas via WebSocket
 - **🎨 Interface Moderna**: Interface limpa e responsiva com espelhamento de transcrição ao vivo
+- **📊 Dashboard Analytics**: Gráficos interativos e métricas para acompanhar desempenho em entrevistas
+- **📅 Integração com Google Calendar**: Sincronize e visualize entrevistas futuras/passadas do Google Calendar
+- **⚙️ Gerenciamento de Configurações**: Configuração de chaves de API (OpenAI e Deepgram) no navegador
+- **📝 AI Resume Builder**: Upload e análise de currículos/descrições de vaga com resumos gerados por IA
 
 ### 🏗️ Arquitetura
 
@@ -687,6 +740,51 @@ Usa mensagens de grupo do Django Channels para transmitir transcrições ao vivo
 - Todos os clientes web conectados
 - Instâncias do overlay Electron
 - Mantém sincronização entre todas as interfaces
+
+#### 5. Dashboard Analytics
+
+Acompanhe seu desempenho em entrevistas com visualizações interativas:
+- **Gráfico de Atividade**: Histórico de 7 dias de sessões de entrevista
+- **Distribuição de Idiomas**: Gráfico de pizza dos idiomas usados
+- **Perguntas Respondidas**: Gráfico de barras rastreando quantidade de perguntas ao longo do tempo
+- **Desempenho dos Modelos AI**: Compare tempos de resposta entre diferentes modelos
+- **Métricas de Sessão**: Total de entrevistas, duração média, perguntas respondidas, tempo de resposta da IA
+
+Todos os dados são armazenados localmente no localStorage do navegador.
+
+#### 6. Integração com Google Calendar
+
+Sincronize automaticamente agendamentos de entrevistas do Google Calendar:
+- **Calendário Visual**: Blocos de dias com código de cores (🟩 verde para futuras, ⬜ cinza para passadas)
+- **Filtragem Inteligente**: Detecta automaticamente eventos relacionados a entrevistas usando palavras-chave multilíngues
+- **Detalhes do Evento**: Clique em qualquer dia para ver detalhes da entrevista (hora, descrição, local)
+- **Alcance de 60 Dias**: Mostra entrevistas de 60 dias atrás até 60 dias à frente
+
+**Palavras-chave Suportadas**: interview, entrevista, entretien, meeting, rencontre, discussion, échange, call, appel
+
+#### 7. Gerenciamento de Configurações
+
+Configure chaves de API diretamente no navegador (sem necessidade de backend):
+- **Chave API OpenAI**: Configure sua chave OpenAI para modelos GPT
+- **Chave API Deepgram**: Configure sua chave Deepgram para conversão de fala em texto
+- **Modelo AI Padrão**: Selecione o modelo GPT preferido (GPT-4o, GPT-4o Mini, GPT-4 Turbo, etc.)
+- **Detecção Automática de Idioma**: Sistema detecta e transcreve automaticamente múltiplos idiomas
+- **Armazenamento Local**: Todas as configurações armazenadas com segurança no localStorage do navegador
+
+**Feedback Visual**:
+- Botão muda para "⏳ Saving..." → "✅ Saved!"
+- Campos ficam verdes quando salvos com sucesso
+- Mensagens de sucesso/erro com animações
+
+#### 8. AI Resume Builder
+
+Upload e análise de documentos com resumos gerados por IA:
+- **Upload de Currículo**: Arraste e solte ou navegue por arquivos de currículo (PDF, DOCX, TXT)
+- **Entrada de Descrição da Vaga**: Cole texto ou faça upload de arquivo para descrições de vaga
+- **Resumos AI**: GPT-4 gera resumos concisos de ambos os documentos
+- **Detalhes da Entrevista**: Adicione nome da empresa e título da vaga para contexto
+- **Histórico de Versões**: Rastreie múltiplas versões de documentos
+- **Gerenciamento de Documentos**: Visualize, exclua e gerencie documentos enviados
 
 ### 🔐 Notas de Segurança
 

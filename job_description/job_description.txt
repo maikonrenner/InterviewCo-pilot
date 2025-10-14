@@ -1,25 +1,29 @@
-BI Developer 
-Montreal, Quebec, Canada · 1 week ago · Over 100 people clicked apply
-Promoted by hirer · Responses managed off LinkedIn
+Astek logo
+Astek
+Share
+Show more options
+Conseiller ingénierie données 
+Montreal, QC · 1 week ago · 79 applicants
+Promoted by hirer · Actively reviewing applicants
 
 
  Hybrid
 Matches your job preferences, workplace type is Hybrid.
 
- Full-time
-Matches your job preferences, job type is Full-time.
+ Contract
+Matches your job preferences, job type is Contract.
 
-Apply
-
-Save
-Save BI Developer  at Groupe Touchette
-BI Developer
-Groupe Touchette · Montreal, Quebec, Canada (Hybrid)
-
-Apply
+Easy Apply
 
 Save
-Save BI Developer  at Groupe Touchette
+Save Conseiller ingénierie données  at Astek
+Conseiller ingénierie données
+Astek · Montreal, QC (Hybrid)
+
+Easy Apply
+
+Save
+Save Conseiller ingénierie données  at Astek
 Show more options
 How your profile and resume fit this job
 Get AI-powered advice on this job and more exclusive features with Premium. Try Premium for CA$0
@@ -32,40 +36,104 @@ Am I a good fit for this job?
 
 How can I best position myself for this job?
 
+People you can reach out to
+
+
+
+Zaína and others in your network
+
+Show all
+Meet the hiring team
+amelie guiol
+amelie guiol  
+ 1st
+Recruteuse de talent TI chez Astek
+Job poster · 88 mutual connections
+
+Message
 About the job
-English follows
+Offre d'emploi : Conseiller ingénierie données 
 
-À Propos Du Poste:
+Localisation : Montréal
+Durée du mandat : 8 mois
+Mode de travail : Hybride
+Début : ASAP
 
-En tant que Développeur Power BI chez Groupe Touchette, vous jouerez un rôle central dans notre parcours de transformation analytique. Ce poste s’adresse à une personne minutieuse et proactive, qui s’épanouit dans un environnement dynamique. Vous serez responsable de la conception, du développement et de l’optimisation de rapports et tableaux de bord Power BI fournissant des informations exploitables et favorisant la prise de décisions fondées sur les données.
 
-Vous collaborerez étroitement avec divers intervenants afin de comprendre les processus métier, les besoins en données et les indicateurs clés de performance (KPI). Votre rôle consistera à créer et maintenir des rapports, à appliquer les meilleures pratiques en matière de visualisation de données, et à garantir l’intégration fluide des données issues de notre entrepôt de données. Grâce à votre expertise, vous contribuerez à révéler des tendances, des modèles et des informations qui soutiennent les objectifs stratégiques et améliorent l’efficacité opérationnelle.
+Pourquoi nous rejoindre ?
 
-Responsabilités Principales :
 
-Concevoir, développer et maintenir des modèles sémantiques, rapports et tableaux de bord Power BI répondant aux besoins de l’entreprise et améliorant la visibilité des données et de la performance.
-Optimiser et résoudre les problèmes des rapports et tableaux de bord existants afin d’en améliorer la performance et la convivialité.
-Collaborer avec les utilisateurs métier pour comprendre leurs besoins en données, recueillir des informations et les traduire en rapports et visualisations exploitables.
-Développer et partager les meilleures pratiques en matière de visualisation de données et de développement de rapports afin d’assurer la cohérence et la qualité des livrables à l’échelle de l’organisation.
-Assurer l’exactitude et l’intégrité des données en intégrant les données provenant de diverses sources, y compris l’entrepôt de données.
-Se tenir à jour des fonctionnalités, mises à jour et tendances de l’industrie liées à Power BI pour améliorer continuellement les capacités de reporting et les méthodologies.
-Fournir des formations et du soutien aux utilisateurs finaux pour renforcer leur compréhension de Power BI et de ses fonctionnalités.
-Documenter les processus, spécifications des rapports et modèles de données afin de maintenir la clarté et faciliter le transfert de connaissances ainsi que la gestion du changement.
 
-Qualifications:
+Astek est un leader mondial en conseil technologique. Avec 7 800 experts dans le monde, nous guidons nos clients dans leur transformation numérique en développant des solutions innovantes.
 
-Diplôme de baccalauréat en informatique, technologies de l’information, science des données ou dans un domaine connexe.
-Expérience avérée en tant que Développeur Power BI ou dans un rôle similaire, avec un solide portefeuille de rapports et tableaux de bord développés.
-Maîtrise de Power BI Desktop, Power BI Service, DAX et Power Query.
-Expérience en modélisation de données, processus ETL et concepts d’entreposage de données.
-Solide compréhension de SQL et MS SQL Server.
-Excellentes compétences analytiques et capacité à interpréter des données complexes et à les traduire en informations claires et exploitables.
-Excellentes compétences en communication, avec la capacité de présenter des résultats et des recommandations à des parties prenantes techniques et non techniques.
-Capacité à travailler de manière autonome et en collaboration au sein d’une équipe.
-Solides compétences en résolution de problèmes et grand souci du détail.
 
-Qualifications Souhaitées :
+Au Canada, nous excellons en TI et ingénierie. Nous collaborons avec des entreprises de premier plan pour relever des défis technologiques majeurs, en plaçant l’innovation, la collaboration et l’excellence au cœur de nos actions.
 
-Connaissance de Python pour la manipulation et l’analyse avancées des données.
-Connaissance des bonnes pratiques en matière de gouvernance et de qualité des données.
-Connaissance de SAP HANA, des vues CDS et de Business Objects.
+
+Rejoignez une équipe passionnée et engagée, prête à concrétiser vos idées.
+
+
+À propos du poste
+
+
+
+Pour le compte de notre client dans le secteur Bancaire, Astek Canada recherche un(e) Conseiller(ère) en Ingénierie Données motivé(e) et prêt(e) à relever de nouveaux défis.
+
+
+Vos responsabilités
+
+
+
+En tant que Conseiller(ère) en Ingénierie Données, vous serez amené(e) à :
+Recueillir les besoins analytiques exprimés par les utilisateurs.
+Effectuer des spécifications et documentations de mapping de données.
+Mettre en œuvre, surveiller, maintenir et optimiser des systèmes diversifiés répondant aux besoins d'affaires.
+Concevoir et réaliser de pipelines d'ingestion et transformation de données.
+Développer des algorithmes, des prototypes et des démonstrations de faisabilité à l'intérieur de projets.
+Identifier des opportunités d’optimisation des systèmes sur la base des tendances et des comportements et recommander des évolutions.
+Contribuer au développement des méthodes et documenter les solutions techniques.
+Mener des mandats d'ingénierie de données complexes en autonomie et apporter du soutien aux membres de votre équipe.
+
+
+Vos atouts pour réussir
+
+
+
+Formation/Expérience :
+Un minimum de six ans d’expérience pertinente en données et analytique.
+Expérience en pratique d'ingénierie de données.
+Expérience dans les outils ETL/ELT.
+
+
+Compétences clés :
+Connaissance des outils de transformation de données (dbt) (important).
+Connaissance des langages: SQL, T-SQL, procédures/fonctions stockées, python (important).
+Connaissance Azure (Synapse, Data Factory, Azure DevOps) (important).
+Connaissance outil orchestration Airflow.
+Connaissance architecture lakehouse, médaillions, data mesh.
+Connaissance de Framework de livraison en continue (CI/CD).
+Connaissance des bases de données multi-dimensionnelles.
+Connaissance en sécurité des données (ex.: modèle d'accès, protection des données).
+Connaissance d'Azure MLOPS et de l'analytique avancé.
+Expérience pertinente avec les méthodologies agiles (Scrum, Kanban).
+
+
+Qualités personnelles :
+Esprit analytique et orienté solutions.
+Collaboration et travail en équipe.
+Autonomie et rigueur dans la gestion des priorités.
+
+
+Les avantages Astek
+
+Plan CARE sur mesure pour nos employés
+Activités sociales (5@7, team buildings)
+Charte diversité & inclusion
+
+
+Prêt(e) à relever le défi ?
+
+Postulez dès maintenant et découvrez une carrière enrichissante chez Astek Canada.
+
+
+AO209907

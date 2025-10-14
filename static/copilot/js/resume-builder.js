@@ -1,3 +1,40 @@
+// Loading Spinner Helper Functions
+function showLoader(message) {
+    const overlay = document.getElementById('loadingOverlay');
+    const messageEl = document.getElementById('loadingMessage');
+    if (overlay && messageEl) {
+        messageEl.textContent = message || 'Processing...';
+        overlay.style.display = 'flex';
+    }
+}
+
+function hideLoader() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+// Language Storage Functions
+function saveDetectedLanguage(type, language, language_code) {
+    const languageData = JSON.parse(localStorage.getItem('detectedLanguage') || '{}');
+
+    if (type === 'resume') {
+        languageData.resume_language = language;
+        languageData.resume_language_code = language_code;
+    } else if (type === 'job') {
+        languageData.job_language = language;
+        languageData.job_language_code = language_code;
+    }
+
+    localStorage.setItem('detectedLanguage', JSON.stringify(languageData));
+    console.log('Language saved:', languageData);
+}
+
+function getDetectedLanguage() {
+    return JSON.parse(localStorage.getItem('detectedLanguage') || '{}');
+}
+
 // Resume Builder Controller
 document.addEventListener('DOMContentLoaded', function() {
     // Resume upload area
@@ -173,11 +210,11 @@ function uploadFile(file, type) {
     formData.append('file', file);
     formData.append('type', type);
 
-    // Show loading state
-    const summaryId = type === 'resume' ? 'builderResumeSummary' : 'builderJobSummary';
-    const summaryElement = document.getElementById(summaryId);
-    if (summaryElement) {
-        summaryElement.innerHTML = '<p class="empty-state">📤 Uploading and analyzing file...</p>';
+    // Show loader with appropriate message
+    if (type === 'resume') {
+        showLoader('Generating Resume Summary... (This may take up to 30 seconds)');
+    } else {
+        showLoader('Analyzing Job Description... (This may take up to 30 seconds)');
     }
 
     // Upload to server
@@ -187,8 +224,18 @@ function uploadFile(file, type) {
     })
     .then(response => response.json())
     .then(data => {
+        hideLoader();
         if (data.success) {
             console.log('File uploaded successfully:', data);
+
+            // Save detected language if present
+            if (data.language && data.language_code) {
+                saveDetectedLanguage(type, data.language, data.language_code);
+            }
+
+            // Show summary element
+            const summaryId = type === 'resume' ? 'builderResumeSummary' : 'builderJobSummary';
+            const summaryElement = document.getElementById(summaryId);
 
             // If resume with generated summary
             if (type === 'resume' && data.resume_summary) {
@@ -242,8 +289,13 @@ function uploadFile(file, type) {
         }
     })
     .catch(error => {
+        hideLoader();
         console.error('Upload error:', error);
-        summaryElement.innerHTML = '<p class="empty-state" style="color: #e74c3c;">❌ Upload failed: ' + error.message + '</p>';
+        const summaryId = type === 'resume' ? 'builderResumeSummary' : 'builderJobSummary';
+        const summaryElement = document.getElementById(summaryId);
+        if (summaryElement) {
+            summaryElement.innerHTML = '<p class="empty-state" style="color: #e74c3c;">❌ Upload failed: ' + error.message + '</p>';
+        }
     });
 }
 
@@ -273,8 +325,8 @@ function saveJobText() {
     const jobFiles = document.getElementById('jobFiles');
     const builderJobSummary = document.getElementById('builderJobSummary');
 
-    // Show loading
-    builderJobSummary.innerHTML = '<p class="empty-state">💾 Saving and analyzing job description...</p>';
+    // Show loader
+    showLoader('Analyzing Job Description... (This may take up to 30 seconds)');
 
     // Send to backend
     fetch('/save-job-text/', {
@@ -286,7 +338,13 @@ function saveJobText() {
     })
     .then(response => response.json())
     .then(data => {
+        hideLoader();
         if (data.success) {
+            // Save detected language if present
+            if (data.language && data.language_code) {
+                saveDetectedLanguage('job', data.language, data.language_code);
+            }
+
             // Show saved indicator
             jobFiles.innerHTML = `
                 <div class="file-item">
@@ -342,6 +400,7 @@ function saveJobText() {
         }
     })
     .catch(error => {
+        hideLoader();
         console.error('Save error:', error);
         builderJobSummary.innerHTML = '<p class="empty-state" style="color: #e74c3c;">❌ Save failed: ' + error.message + '</p>';
         alert('❌ Failed to save job description: ' + error.message);
@@ -375,6 +434,14 @@ function loadExistingSummaries() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Save detected languages if present
+            if (data.resume_language && data.resume_language_code) {
+                saveDetectedLanguage('resume', data.resume_language, data.resume_language_code);
+            }
+            if (data.job_language && data.job_language_code) {
+                saveDetectedLanguage('job', data.job_language, data.job_language_code);
+            }
+
             // Update builder summaries - only if they're not "No ... found" messages
             if (data.resume_summary &&
                 data.resume_summary !== 'Loading...' &&
@@ -612,9 +679,8 @@ function generateSummaries() {
     generateBtn.disabled = true;
     generateBtn.textContent = '⏳ Generating...';
 
-    // Update UI to show loading
-    document.getElementById('builderResumeSummary').innerHTML = '<p class="empty-state">🔄 Generating resume summary...</p>';
-    document.getElementById('builderJobSummary').innerHTML = '<p class="empty-state">🔄 Generating job description summary...</p>';
+    // Show loader
+    showLoader('Generating Summaries... (This may take up to 30 seconds)');
 
     fetch('/generate-summaries/', {
         method: 'POST',
@@ -624,7 +690,16 @@ function generateSummaries() {
     })
     .then(response => response.json())
     .then(data => {
+        hideLoader();
         if (data.success) {
+            // Save detected languages if present
+            if (data.resume_language && data.resume_language_code) {
+                saveDetectedLanguage('resume', data.resume_language, data.resume_language_code);
+            }
+            if (data.job_language && data.job_language_code) {
+                saveDetectedLanguage('job', data.job_language, data.job_language_code);
+            }
+
             // Update resume summary
             if (data.resume_summary) {
                 document.getElementById('builderResumeSummary').innerHTML =
@@ -651,6 +726,7 @@ function generateSummaries() {
         }
     })
     .catch(error => {
+        hideLoader();
         console.error('Generation error:', error);
         alert('❌ Failed to generate summaries: ' + error.message);
         document.getElementById('builderResumeSummary').innerHTML =

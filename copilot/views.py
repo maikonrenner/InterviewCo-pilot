@@ -115,11 +115,16 @@ def upload_document(request):
         if file_type == 'resume':
             try:
                 print('Generating resume summary automatically...')
-                resume_summary = get_resume_summary()
+                resume_summary, resume_language, resume_language_code = get_resume_summary()
                 if "not found" in resume_summary.lower() or "created" in resume_summary.lower():
                     resume_summary = None
+                else:
+                    # Store language info
+                    response_data['language'] = resume_language
+                    response_data['language_code'] = resume_language_code
             except Exception as e:
                 print(f"Error generating resume summary: {str(e)}")
+                resume_summary = None
                 # Continue even if summary generation fails
 
         # If job description file, extract company and position
@@ -134,9 +139,14 @@ def upload_document(request):
 
                 # Generate job description summary automatically
                 print('Generating job description summary...')
-                job_summary = get_job_description_summary()
+                job_summary, job_language, job_language_code = get_job_description_summary()
                 if "not found" in job_summary.lower() or "created" in job_summary.lower():
                     job_summary = None
+                else:
+                    # Store language info in response
+                    if 'language' not in response_data:
+                        response_data['language'] = job_language
+                        response_data['language_code'] = job_language_code
             except Exception as e:
                 print(f"Error processing job description: {str(e)}")
                 # Continue even if extraction fails
@@ -175,10 +185,14 @@ def generate_summaries(request):
     try:
         resume_summary = None
         job_summary = None
+        resume_language = None
+        resume_language_code = None
+        job_language = None
+        job_language_code = None
 
         # Generate resume summary
         try:
-            resume_summary = get_resume_summary()
+            resume_summary, resume_language, resume_language_code = get_resume_summary()
             if "not found" in resume_summary.lower() or "created" in resume_summary.lower():
                 resume_summary = None
         except Exception as e:
@@ -187,7 +201,7 @@ def generate_summaries(request):
 
         # Generate job summary
         try:
-            job_summary = get_job_description_summary()
+            job_summary, job_language, job_language_code = get_job_description_summary()
             if "not found" in job_summary.lower() or "created" in job_summary.lower():
                 job_summary = None
         except Exception as e:
@@ -203,7 +217,11 @@ def generate_summaries(request):
         return JsonResponse({
             'success': True,
             'resume_summary': resume_summary or 'No resume found',
-            'job_summary': job_summary or 'No job description found'
+            'job_summary': job_summary or 'No job description found',
+            'resume_language': resume_language,
+            'resume_language_code': resume_language_code,
+            'job_language': job_language,
+            'job_language_code': job_language_code
         })
 
     except Exception as e:
@@ -248,19 +266,23 @@ def save_job_text(request):
         # Generate job description summary automatically
         print('Generating job description summary...')
         try:
-            job_summary = get_job_description_summary()
+            job_summary, job_language, job_language_code = get_job_description_summary()
             if "not found" in job_summary.lower() or "created" in job_summary.lower():
                 job_summary = None
         except Exception as e:
             print(f"Job summary generation failed: {str(e)}")
             job_summary = None
+            job_language = None
+            job_language_code = None
 
         return JsonResponse({
             'success': True,
             'message': 'Job description saved and analyzed successfully',
             'company': company,
             'position': position,
-            'job_summary': job_summary
+            'job_summary': job_summary,
+            'language': job_language,
+            'language_code': job_language_code
         })
 
     except Exception as e:
@@ -274,10 +296,14 @@ def get_summaries(request):
     try:
         resume_summary = None
         job_summary = None
+        resume_language = None
+        resume_language_code = None
+        job_language = None
+        job_language_code = None
 
         # Get resume summary
         try:
-            resume_summary = get_resume_summary()
+            resume_summary, resume_language, resume_language_code = get_resume_summary()
             if "not found" in resume_summary.lower() or "created" in resume_summary.lower():
                 resume_summary = 'No resume found'
         except Exception as e:
@@ -286,7 +312,7 @@ def get_summaries(request):
 
         # Get job summary
         try:
-            job_summary = get_job_description_summary()
+            job_summary, job_language, job_language_code = get_job_description_summary()
             if "not found" in job_summary.lower() or "created" in job_summary.lower():
                 job_summary = 'No job description found'
         except Exception as e:
@@ -296,11 +322,88 @@ def get_summaries(request):
         return JsonResponse({
             'success': True,
             'resume_summary': resume_summary,
-            'job_summary': job_summary
+            'job_summary': job_summary,
+            'resume_language': resume_language,
+            'resume_language_code': resume_language_code,
+            'job_language': job_language,
+            'job_language_code': job_language_code
         })
 
     except Exception as e:
         return JsonResponse({
             'success': False,
             'message': f'Failed to get summaries: {str(e)}'
+        }, status=500)
+
+@csrf_exempt
+def get_calendar_interviews(request):
+    """Fetch interviews from Google Calendar using MCP server"""
+    try:
+        import sys
+        from datetime import datetime, timedelta
+
+        # Add the MCP directory to path
+        mcp_path = r'C:\Users\maikon.renner\Desktop\Claude\Synapse\interview-calendar-mcp'
+        if mcp_path not in sys.path:
+            sys.path.insert(0, mcp_path)
+
+        # Import and initialize MCP
+        from server import InterviewCalendarMCP
+
+        mcp = InterviewCalendarMCP()
+        mcp.authenticate()
+
+        # Get parameters from request
+        days_ahead = int(request.GET.get('days_ahead', 90))
+        days_back = int(request.GET.get('days_back', 30))
+
+        # Get upcoming interviews
+        upcoming = mcp.get_upcoming_interviews(days_ahead=days_ahead)
+
+        # Get past interviews
+        past = mcp.get_past_interviews(days_back=days_back)
+
+        # Combine and format interviews
+        all_interviews = []
+
+        for event in upcoming:
+            all_interviews.append({
+                'id': event['id'],
+                'title': event['summary'],
+                'description': event.get('description', ''),
+                'start': event['start'],
+                'location': event.get('location', ''),
+                'status': 'upcoming',
+                'link': event.get('link', '')
+            })
+
+        for event in past:
+            all_interviews.append({
+                'id': event['id'],
+                'title': event['summary'],
+                'description': event.get('description', ''),
+                'start': event['start'],
+                'location': event.get('location', ''),
+                'status': 'past',
+                'link': event.get('link', '')
+            })
+
+        return JsonResponse({
+            'success': True,
+            'interviews': all_interviews,
+            'count': len(all_interviews)
+        })
+
+    except FileNotFoundError as e:
+        return JsonResponse({
+            'success': False,
+            'message': 'Google Calendar credentials not found. Please configure MCP first.',
+            'error': str(e)
+        }, status=404)
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to fetch calendar interviews: {str(e)}',
+            'error': str(e)
         }, status=500)

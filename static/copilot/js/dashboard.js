@@ -365,3 +365,159 @@ function addSessionToAnalytics(sessionInfo) {
 
 // Make function available globally
 window.addSessionToAnalytics = addSessionToAnalytics;
+
+// Interview Details Section
+function loadInterviewDetails() {
+    const container = document.getElementById('interviewDetailsContainer');
+    if (!container) return;
+
+    // Get interview QA data from localStorage
+    const qaData = localStorage.getItem('interviewQAHistory');
+
+    if (!qaData) {
+        // Show sample data
+        container.innerHTML = getSampleInterviewDetails();
+        return;
+    }
+
+    try {
+        const questions = JSON.parse(qaData);
+        if (questions.length === 0) {
+            container.innerHTML = getSampleInterviewDetails();
+            return;
+        }
+
+        // Render actual QA data
+        container.innerHTML = '';
+        questions.forEach((qa, index) => {
+            const qaCard = createQACard(qa, index);
+            container.appendChild(qaCard);
+        });
+    } catch (e) {
+        console.error('Error loading interview details:', e);
+        container.innerHTML = getSampleInterviewDetails();
+    }
+}
+
+function createQACard(qa, index) {
+    const card = document.createElement('div');
+    card.className = 'interview-qa-card';
+
+    const timestamp = qa.timestamp ? new Date(qa.timestamp).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    }) : 'Hoje, ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    card.innerHTML = `
+        <div class="qa-timestamp">${timestamp}</div>
+        <div class="qa-question">
+            <div class="qa-question-label">Pergunta</div>
+            <p class="qa-question-text">${qa.question || 'N/A'}</p>
+        </div>
+        <div class="qa-responses">
+            <div class="qa-response-box ai-suggestion">
+                <div class="qa-response-label ai">Sugestão da IA</div>
+                <p class="qa-response-text">${qa.aiResponse || 'N/A'}</p>
+            </div>
+            <div class="qa-response-box candidate-answer">
+                <div class="qa-response-label candidate">Resposta do Candidato</div>
+                <p class="qa-response-text">${qa.candidateResponse || 'N/A'}</p>
+            </div>
+        </div>
+    `;
+
+    return card;
+}
+
+function getSampleInterviewDetails() {
+    return `
+        <div class="interview-qa-card">
+            <div class="qa-timestamp">Hoje, 14:32</div>
+            <div class="qa-question">
+                <div class="qa-question-label">Pergunta</div>
+                <p class="qa-question-text">Como você lidaria com registros duplicados em uma tabela SQL?</p>
+            </div>
+            <div class="qa-responses">
+                <div class="qa-response-box ai-suggestion">
+                    <div class="qa-response-label ai">Sugestão da IA</div>
+                    <p class="qa-response-text">Você pode usar uma consulta GROUP BY com HAVING COUNT(*) > 1 para identificar duplicatas, ou utilizar ROW_NUMBER() OVER (PARTITION BY) para deletar duplicatas mantendo apenas uma ocorrência. Também é importante considerar adicionar constraints UNIQUE para prevenir duplicatas no futuro.</p>
+                </div>
+                <div class="qa-response-box candidate-answer">
+                    <div class="qa-response-label candidate">Resposta do Candidato</div>
+                    <p class="qa-response-text">Eu usaria uma CTE com ROW_NUMBER() para identificar e remover duplicatas. Primeiro, criaria uma partição pelos campos que identificam a duplicata, numeraria as linhas, e depois deletaria onde o número da linha é maior que 1. Também adicionaria uma constraint UNIQUE para evitar o problema no futuro.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="interview-qa-card">
+            <div class="qa-timestamp">Hoje, 14:38</div>
+            <div class="qa-question">
+                <div class="qa-question-label">Pergunta</div>
+                <p class="qa-question-text">Explique a diferença entre Promise.all() e Promise.race() em JavaScript.</p>
+            </div>
+            <div class="qa-responses">
+                <div class="qa-response-box ai-suggestion">
+                    <div class="qa-response-label ai">Sugestão da IA</div>
+                    <p class="qa-response-text">Promise.all() espera que todas as promises sejam resolvidas e retorna um array com todos os resultados, ou rejeita se qualquer uma falhar. Promise.race() retorna assim que a primeira promise for resolvida ou rejeitada, ignorando as demais. Use all() quando precisa de todos os resultados, e race() quando quer o primeiro resultado disponível.</p>
+                </div>
+                <div class="qa-response-box candidate-answer">
+                    <div class="qa-response-label candidate">Resposta do Candidato</div>
+                    <p class="qa-response-text">Promise.all() aguarda todas as promises terminarem e retorna um array com os resultados de todas. Se uma falhar, rejeita imediatamente. Já Promise.race() retorna o resultado da primeira promise que resolver ou rejeitar, sendo útil para implementar timeouts ou quando você só precisa da resposta mais rápida.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="interview-qa-card">
+            <div class="qa-timestamp">Hoje, 14:45</div>
+            <div class="qa-question">
+                <div class="qa-question-label">Pergunta</div>
+                <p class="qa-question-text">Como você implementaria um sistema de cache distribuído?</p>
+            </div>
+            <div class="qa-responses">
+                <div class="qa-response-box ai-suggestion">
+                    <div class="qa-response-label ai">Sugestão da IA</div>
+                    <p class="qa-response-text">Sugiro usar Redis como camada de cache distribuído com estratégias como LRU (Least Recently Used) para invalidação. Implemente cache-aside pattern onde a aplicação verifica o cache primeiro, e se não encontrar, busca no banco de dados e popula o cache. Configure TTL apropriado e considere cache warming para dados frequentes. Para consistência, use pub/sub para invalidação de cache em múltiplas instâncias.</p>
+                </div>
+                <div class="qa-response-box candidate-answer">
+                    <div class="qa-response-label candidate">Resposta do Candidato</div>
+                    <p class="qa-response-text">Eu implementaria usando Redis como solução de cache. Usaria o padrão cache-aside onde primeiro verifico o cache, se não encontrar busco no DB e atualizo o cache. Configuraria TTL baseado na frequência de acesso dos dados. Para manter consistência entre instâncias, usaria Redis pub/sub para broadcast de invalidações quando dados forem atualizados.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Session filter handler
+document.addEventListener('DOMContentLoaded', function() {
+    const sessionFilter = document.getElementById('interviewSessionFilter');
+    if (sessionFilter) {
+        sessionFilter.addEventListener('change', function(e) {
+            if (e.target.value === 'recent') {
+                // Show only most recent session
+                // This would filter the localStorage data
+                loadInterviewDetails();
+            } else {
+                // Show all sessions
+                loadInterviewDetails();
+            }
+        });
+    }
+});
+
+// Load interview details when dashboard is active
+document.addEventListener('pageChanged', function(e) {
+    if (e.detail.page === 'dashboard') {
+        setTimeout(() => {
+            loadInterviewDetails();
+        }, 100);
+    }
+});
+
+// Initial load if dashboard is already active
+if (document.getElementById('dashboard-page')?.classList.contains('active')) {
+    setTimeout(() => {
+        loadInterviewDetails();
+    }, 100);
+}

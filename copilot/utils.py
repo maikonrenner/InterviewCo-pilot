@@ -41,30 +41,50 @@ def extract_text_from_file(file_path):
         return f"Error extracting text from file: {str(e)}"
 
 def get_resume_summary():
-    """Get a summary of the resume."""
+    """Get a summary of the resume with language detection."""
     resume_dir = settings.RESUME_DIR
 
     # Create directory if it doesn't exist
     if not os.path.exists(resume_dir):
         os.makedirs(resume_dir)
-        return "Resume directory created. Please add your resume PDF file."
+        return "Resume directory created. Please add your resume PDF file.", "English", "en"
 
     # Look for PDF or TXT files
     resume_files = [f for f in os.listdir(resume_dir) if f.endswith(('.pdf', '.txt', '.docx'))]
 
     if not resume_files:
-        return "No resume found in the resume directory."
+        return "No resume found in the resume directory.", "English", "en"
 
     # Use the first resume found
     resume_path = os.path.join(resume_dir, resume_files[0])
     resume_text = extract_text_from_file(resume_path)
-    
+
+    # Detect language
+    print('Detecting resume language...')
+    language, language_code = detect_language(resume_text)
+    print(f'Detected language: {language} ({language_code})')
+
+    # Language-specific instructions
+    language_instructions = {
+        'en': 'Write the summary in English.',
+        'pt': 'Escreva o resumo em Português.',
+        'fr': 'Rédigez le résumé en Français.',
+        'es': 'Escribe el resumen en Español.',
+        'de': 'Schreiben Sie die Zusammenfassung auf Deutsch.'
+    }
+
+    lang_instruction = language_instructions.get(language_code, 'Write the summary in English.')
+
     # Generate DETAILED summary using OpenAI
     response = openai.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are an assistant that creates detailed, structured summaries of resumes for interview preparation."},
-            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following resume. Include ALL relevant information:
+            {"role": "system", "content": f"You are an assistant that creates detailed, structured summaries of resumes for interview preparation. {lang_instruction}"},
+            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following resume. Include ALL relevant information.
+
+IMPORTANT: {lang_instruction}
+
+Resume text:
 
 **REQUIRED SECTIONS:**
 1. **Professional Profile**: Current role, years of experience, expertise areas
@@ -82,39 +102,58 @@ def get_resume_summary():
 - Use bullet points for clarity
 - DO NOT summarize or skip information - include EVERYTHING relevant
 
-Resume text:
 {resume_text}"""}
         ],
         max_tokens=2000  # Increased from 300 to 2000 for detailed summary
     )
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content, language, language_code
 
 def get_job_description_summary():
-    """Get a summary of the job description."""
+    """Get a summary of the job description with language detection."""
     job_dir = settings.JOB_DESCRIPTION_DIR
 
     # Create directory if it doesn't exist
     if not os.path.exists(job_dir):
         os.makedirs(job_dir)
-        return "Job description directory created. Please add your job description PDF file."
+        return "Job description directory created. Please add your job description PDF file.", "English", "en"
 
     # Look for PDF or TXT files
     job_files = [f for f in os.listdir(job_dir) if f.endswith(('.pdf', '.txt', '.docx'))]
 
     if not job_files:
-        return "No job description found in the job description directory."
+        return "No job description found in the job description directory.", "English", "en"
 
     # Use the first job description found
     job_path = os.path.join(job_dir, job_files[0])
     job_text = extract_text_from_file(job_path)
 
+    # Detect language
+    print('Detecting job description language...')
+    language, language_code = detect_language(job_text)
+    print(f'Detected language: {language} ({language_code})')
+
+    # Language-specific instructions
+    language_instructions = {
+        'en': 'Write the summary in English.',
+        'pt': 'Escreva o resumo em Português.',
+        'fr': 'Rédigez le résumé en Français.',
+        'es': 'Escribe el resumen en Español.',
+        'de': 'Schreiben Sie die Zusammenfassung auf Deutsch.'
+    }
+
+    lang_instruction = language_instructions.get(language_code, 'Write the summary in English.')
+
     # Generate DETAILED summary using OpenAI
     response = openai.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are an assistant that creates detailed, structured summaries of job descriptions for interview preparation."},
-            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following job description. Include ALL relevant information:
+            {"role": "system", "content": f"You are an assistant that creates detailed, structured summaries of job descriptions for interview preparation. {lang_instruction}"},
+            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following job description. Include ALL relevant information.
+
+IMPORTANT: {lang_instruction}
+
+Job description text:
 
 **REQUIRED SECTIONS:**
 1. **Position Overview**: Job title, level (Junior/Mid/Senior), employment type, location/remote
@@ -138,13 +177,49 @@ def get_job_description_summary():
 - DO NOT summarize or skip information - include EVERYTHING relevant
 - If some sections are not mentioned in the job description, note that clearly
 
-Job description text:
 {job_text}"""}
         ],
         max_tokens=2000  # Increased from 300 to 2000 for detailed summary
     )
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content, language, language_code
+
+def detect_language(text):
+    """Detect the primary language of the text using AI."""
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": """You are a language detection assistant.
+
+Detect the PRIMARY language of the text provided.
+
+Return ONLY a JSON object in this exact format (no additional text):
+{
+    "language": "English",
+    "language_code": "en"
+}
+
+Possible languages: English (en), Portuguese (pt), French (fr), Spanish (es), German (de)
+If uncertain, use English as default."""},
+                {"role": "user", "content": f"Detect the language of this text:\n\n{text[:1000]}"}
+            ],
+            max_tokens=50,
+            temperature=0.3
+        )
+
+        result = response.choices[0].message.content.strip()
+
+        try:
+            import json
+            data = json.loads(result)
+            return data.get('language', 'English'), data.get('language_code', 'en')
+        except:
+            return 'English', 'en'
+
+    except Exception as e:
+        print(f"Error detecting language: {str(e)}")
+        return 'English', 'en'
 
 def extract_company_and_position(job_text):
     """Extract company name and job position from job description text using AI."""

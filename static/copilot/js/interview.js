@@ -689,13 +689,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Save session data to localStorage
         if (sessionStartTime && sessionData.company) {
             const duration = Math.floor((Date.now() - sessionStartTime) / 1000 / 60); // minutes
+
+            // Get detected language from localStorage
+            const languageData = JSON.parse(localStorage.getItem('detectedLanguage') || '{}');
+            const detectedLanguage = languageData.resume_language || languageData.job_language || 'English';
+
             const session = {
                 company: sessionData.company,
                 position: sessionData.position,
                 date: sessionData.date || new Date().toISOString(),
                 duration: duration,
                 questions: 0, // TODO: Track questions count during interview
-                language: 'English', // TODO: Detect from transcription
+                language: detectedLanguage,
                 model: sessionData.model,
                 avgResponseTime: 0 // TODO: Calculate average response time
             };
