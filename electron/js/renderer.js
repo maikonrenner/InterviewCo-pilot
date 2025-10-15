@@ -5,6 +5,7 @@ let socket;
 
 // State variables
 let currentTranscript = '';
+let pendingQuestion = null; // Store pending question to display after answer starts
 
 // DOM Elements
 const opacitySlider = document.getElementById('opacitySlider');
@@ -44,15 +45,21 @@ function initWebSocket() {
                 break;
 
             case 'question':
-                // Display the transcribed question
+                // Store question to display AFTER answer starts
                 console.log('❓ Question received:', data.text);
-                addMessageToConversation('question', data.text, data.timestamp);
+                pendingQuestion = { text: data.text, timestamp: data.timestamp };
                 break;
 
             case 'answer_chunk':
                 // Handle streaming response chunks
                 console.log('💬 Answer chunk received:', data.text);
                 updateOrAddAnswer(data.text, data.timestamp);
+
+                // Add pending question after first answer chunk arrives
+                if (pendingQuestion) {
+                    addMessageToConversation('question', pendingQuestion.text, pendingQuestion.timestamp);
+                    pendingQuestion = null; // Clear after adding
+                }
                 break;
 
             case 'answer_complete':
@@ -151,13 +158,29 @@ function addMessageToConversation(type, text, timestamp) {
 
     if (type === 'answer') {
         messageDiv.id = 'current-answer';
+        // Insert answer at the TOP (after system message) so it's always visible first
+        const systemMessage = conversationContent.querySelector('.system-message');
+        if (systemMessage && systemMessage.nextSibling) {
+            conversationContent.insertBefore(messageDiv, systemMessage.nextSibling);
+        } else if (systemMessage) {
+            conversationContent.appendChild(messageDiv);
+        } else {
+            conversationContent.insertBefore(messageDiv, conversationContent.firstChild);
+        }
+    } else if (type === 'question') {
+        // Insert question AFTER the answer
+        const answerDiv = document.getElementById('current-answer');
+        if (answerDiv && answerDiv.nextSibling) {
+            conversationContent.insertBefore(messageDiv, answerDiv.nextSibling);
+        } else if (answerDiv) {
+            conversationContent.appendChild(messageDiv);
+        } else {
+            conversationContent.appendChild(messageDiv);
+        }
     }
 
-    // Append new message
-    conversationContent.appendChild(messageDiv);
-
-    // Auto-scroll to show the latest message
-    conversationContent.scrollTop = conversationContent.scrollHeight;
+    // Keep scroll at top to see the answer immediately
+    conversationContent.scrollTop = 0;
 }
 
 // Update or add answer
@@ -169,7 +192,8 @@ function updateOrAddAnswer(text, timestamp) {
     } else {
         const textParagraph = answerDiv.querySelector('p');
         textParagraph.textContent += text;
-        conversationContent.scrollTop = conversationContent.scrollHeight;
+        // Keep scroll at top to see the answer
+        conversationContent.scrollTop = 0;
     }
 }
 

@@ -1,7 +1,7 @@
 import json
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .utils import get_resume_summary, get_job_description_summary, generate_response, extract_question_from_transcript
+from .utils import get_resume_summary, get_job_description_summary, generate_response
 from datetime import datetime
 
 class InterviewConsumer(AsyncWebsocketConsumer):
@@ -62,12 +62,9 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             print(f"Received transcription: {transcribed_text}")
             print(f"Selected model: {selected_model}")
 
-            # Extract clean question from potentially long/polluted transcript
-            extracted_question = await asyncio.to_thread(
-                extract_question_from_transcript,
-                transcribed_text
-            )
-            print(f"Extracted question: {extracted_question}")
+            # Use transcript directly - no need for extraction (saves API call and time)
+            # Truncate only for display if very long, but keep full transcript for LLM context
+            display_question = transcribed_text if len(transcribed_text) <= 500 else transcribed_text[:500] + "..."
 
             # Add FULL transcript to conversation history for LLM context
             self.conversation_history.append({
@@ -80,7 +77,7 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {
                     'type': 'question_message',
-                    'text': extracted_question,
+                    'text': display_question,
                     'timestamp': timestamp
                 }
             )

@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let sessionStartTime = null; // Interview session start time
     let sessionData = {}; // Store session data (company, position, date)
     let timerInterval = null; // Timer interval for interview duration
+    let pendingQuestion = null; // Store pending question to display after answer starts
 
     // Update interview info when page is opened
     function updateInterviewInfo() {
@@ -144,15 +145,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     break;
 
                 case 'question':
-                    // Display the transcribed question
-                    addMessageToConversation('question', data.text, data.timestamp);
+                    // Store question to display AFTER answer starts
+                    pendingQuestion = { text: data.text, timestamp: data.timestamp };
                     break;
-                    
+
                 case 'answer_chunk':
                     // Handle streaming response chunks
                     updateOrAddAnswer(data.text, data.timestamp);
+
+                    // Add pending question after first answer chunk arrives
+                    if (pendingQuestion) {
+                        addMessageToConversation('question', pendingQuestion.text, pendingQuestion.timestamp);
+                        pendingQuestion = null; // Clear after adding
+                    }
                     break;
-                    
+
                 case 'answer_complete':
                     // Mark the current answer as complete
                     completeCurrentAnswer();
@@ -370,25 +377,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (type === 'answer') {
             messageDiv.id = 'current-answer';
+            // Insert answer at the TOP (beginning) so it's always visible first
+            conversationBox.insertBefore(messageDiv, conversationBox.firstChild);
+        } else if (type === 'question') {
+            // Insert question AFTER the answer (second position)
+            const answerDiv = document.getElementById('current-answer');
+            if (answerDiv && answerDiv.nextSibling) {
+                conversationBox.insertBefore(messageDiv, answerDiv.nextSibling);
+            } else if (answerDiv) {
+                // If there's an answer but no next sibling, insert after answer
+                conversationBox.insertBefore(messageDiv, answerDiv.nextSibling);
+            } else {
+                // If no answer yet, insert at top
+                conversationBox.insertBefore(messageDiv, conversationBox.firstChild);
+            }
         }
 
-        // Append new messages at the end (bottom)
-        conversationBox.appendChild(messageDiv);
-
-        // Auto-scroll to show the latest message
-        conversationBox.scrollTop = conversationBox.scrollHeight;
+        // Keep scroll at top to see the answer immediately
+        conversationBox.scrollTop = 0;
     }
     
     // Update or add answer
     function updateOrAddAnswer(text, timestamp) {
         let answerDiv = document.getElementById('current-answer');
-        
+
         if (!answerDiv) {
             addMessageToConversation('answer', text, timestamp);
         } else {
             const textParagraph = answerDiv.querySelector('p');
             textParagraph.textContent += text;
-            conversationBox.scrollTop = conversationBox.scrollHeight;
+            // Keep scroll at top to see the answer
+            conversationBox.scrollTop = 0;
         }
     }
     
