@@ -7,8 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const liveTranscriptBox = document.getElementById('liveTranscriptBox');
     const transcriptInput = document.getElementById('transcriptInput');
     const videoPreview = document.getElementById('videoPreview');
-    const resumeSummary = document.getElementById('resumeSummary');
-    const jobSummary = document.getElementById('jobSummary');
     const modelSelector = document.getElementById('modelSelector');
     const microphoneButton = document.getElementById('microphoneButton');
 
@@ -139,14 +137,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            
+
             switch(data.type) {
                 case 'initialization':
-                    // Update summaries
-                    resumeSummary.textContent = data.resume_summary;
-                    jobSummary.textContent = data.job_summary;
+                    // Summaries removed - no longer needed
                     break;
-                    
+
                 case 'question':
                     // Display the transcribed question
                     addMessageToConversation('question', data.text, data.timestamp);

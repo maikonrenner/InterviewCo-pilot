@@ -16,7 +16,7 @@ const transcriptInput = document.getElementById('transcriptInput');
 
 // Initialize WebSocket connection to Django server
 function initWebSocket() {
-    const wsUrl = `ws://127.0.0.1:8004/ws/interview/`;
+    const wsUrl = `ws://127.0.0.1:8000/ws/interview/`;
 
     socket = new WebSocket(wsUrl);
 
@@ -29,32 +29,40 @@ function initWebSocket() {
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        console.log('📨 Electron received message:', data.type, data);
 
         switch(data.type) {
             case 'initialization':
                 // Summaries loaded
-                console.log('Initialization data received');
+                console.log('✅ Initialization data received');
                 break;
 
-            case 'live_transcript':
+            case 'live_transcript_update':
                 // Receive live transcript from web interface
+                console.log('📝 Live transcript update:', data.text, 'is_final:', data.is_final);
                 updateLiveTranscript(data.text, data.is_final);
                 break;
 
             case 'question':
                 // Display the transcribed question
+                console.log('❓ Question received:', data.text);
                 addMessageToConversation('question', data.text, data.timestamp);
                 break;
 
             case 'answer_chunk':
                 // Handle streaming response chunks
+                console.log('💬 Answer chunk received:', data.text);
                 updateOrAddAnswer(data.text, data.timestamp);
                 break;
 
             case 'answer_complete':
                 // Mark the current answer as complete
+                console.log('✅ Answer complete');
                 completeCurrentAnswer();
                 break;
+
+            default:
+                console.log('⚠️ Unknown message type:', data.type);
         }
     };
 

@@ -75,12 +75,15 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                 "content": transcribed_text
             })
 
-            # Send only EXTRACTED QUESTION for display (clean, not polluted)
-            await self.send(text_data=json.dumps({
-                'type': 'question',
-                'text': extracted_question,
-                'timestamp': timestamp
-            }))
+            # Broadcast question to all connected clients (web + electron)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'question_message',
+                    'text': extracted_question,
+                    'timestamp': timestamp
+                }
+            )
 
             # Generate response with selected model
             response_stream = await asyncio.to_thread(
@@ -94,29 +97,34 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             # Collect the full response for history
             full_response = ""
             
-            # Process and send streaming response
+            # Process and send streaming response to all clients
             async for chunk in self._process_openai_stream(response_stream):
                 if chunk:
                     full_response += chunk
-                    await self.send(text_data=json.dumps({
-                        'type': 'answer_chunk',
-                        'text': chunk,
-                        'timestamp': timestamp
-                    }))
-                    # Small delay to simulate natural typing speed
-                    await asyncio.sleep(0.01)
-            
+                    # Broadcast to all connected clients (web + electron)
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'answer_chunk_message',
+                            'text': chunk,
+                            'timestamp': timestamp
+                        }
+                    )
+
             # Add AI response to conversation history
             self.conversation_history.append({
                 "role": "assistant",
                 "content": full_response
             })
-            
-            # Send end of response marker
-            await self.send(text_data=json.dumps({
-                'type': 'answer_complete',
-                'timestamp': timestamp
-            }))
+
+            # Broadcast end of response marker to all clients
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'answer_complete_message',
+                    'timestamp': timestamp
+                }
+            )
     
     async def _process_openai_stream(self, response_stream):
         """Process OpenAI streaming response and yield content chunks"""
@@ -125,14 +133,38 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                 content = chunk.choices[0].delta.content
                 if content:
                     yield content
-            # Add a small delay between chunks to prevent overwhelming the client
-            await asyncio.sleep(0.1)
 
     # Handler for live transcript messages from the group
     async def live_transcript_message(self, event):
         """Send live transcript to WebSocket"""
         await self.send(text_data=json.dumps({
-            'type': 'live_transcript',
+            'type': 'live_transcript_update',
             'text': event['text'],
             'is_final': event['is_final']
+        }))
+
+    # Handler for question messages from the group
+    async def question_message(self, event):
+        """Send question to WebSocket"""
+        await self.send(text_data=json.dumps({
+            'type': 'question',
+            'text': event['text'],
+            'timestamp': event['timestamp']
+        }))
+
+    # Handler for answer chunk messages from the group
+    async def answer_chunk_message(self, event):
+        """Send answer chunk to WebSocket"""
+        await self.send(text_data=json.dumps({
+            'type': 'answer_chunk',
+            'text': event['text'],
+            'timestamp': event['timestamp']
+        }))
+
+    # Handler for answer complete messages from the group
+    async def answer_complete_message(self, event):
+        """Send answer complete marker to WebSocket"""
+        await self.send(text_data=json.dumps({
+            'type': 'answer_complete',
+            'timestamp': event['timestamp']
         }))
