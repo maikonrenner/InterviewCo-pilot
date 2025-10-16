@@ -18,7 +18,9 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 - **🎙️ Dual Audio Capture**: Simultaneously captures system audio (screen sharing) and microphone with automatic speaker identification
 - **👥 Speaker Diarization**: Automatically distinguishes between Interviewer and Candidate voices with color-coded labels
 - **🖥️ Electron Overlay**: Transparent, always-on-top overlay window for seamless interview experience
-- **🤖 AI-Powered Responses**: Context-aware answers using GPT-4/GPT-4o models
+- **🤖 AI-Powered Responses**: Context-aware answers using GPT-4/GPT-4o-mini or local Ollama models
+- **🏠 Local LLM Support**: Run completely offline with Ollama (llama3.2, qwen2.5, deepseek-r1, etc.)
+- **⚡ FAQ Cache System**: Instant responses for frequently asked questions with hit tracking
 - **🧠 Smart Question Extraction**: Automatically extracts clean questions from long, cluttered transcripts
 - **📄 Resume Analysis**: Detailed CV parsing and summarization for personalized responses
 - **🌐 Multi-language Support**: Automatic multi-language detection (English, Portuguese, French, Spanish, German, etc.)
@@ -92,7 +94,8 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 - Django 5.1.2
 - Django Channels 4.1.0 (WebSocket support)
 - Daphne 4.1.2 (ASGI server)
-- OpenAI API (GPT-4, GPT-4o, GPT-3.5-turbo)
+- OpenAI API (GPT-4, GPT-4o, GPT-4o-mini, GPT-3.5-turbo)
+- Ollama (Local LLM support - llama3.2, qwen2.5, deepseek-r1, etc.)
 - Deepgram Nova-3 API (Speech-to-Text)
 - PyPDF2 (Resume parsing)
 
@@ -177,8 +180,15 @@ pip install --upgrade openai
 Create a `.env` file in the `interview_copilot/` directory:
 
 ```env
-# OpenAI Configuration
+# LLM Provider Configuration
+LLM_PROVIDER=openai  # Options: 'openai' or 'ollama'
+
+# OpenAI Configuration (if using OpenAI)
 OPENAI_API_KEY=your_openai_api_key_here
+
+# Ollama Configuration (if using local LLM)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2  # Options: llama3.2, qwen2.5:14b, deepseek-r1:14b, etc.
 
 # Deepgram Configuration
 DEEPGRAM_API_KEY=your_deepgram_api_key_here
@@ -192,6 +202,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 **Get API Keys:**
 - OpenAI: [https://platform.openai.com/signup/](https://platform.openai.com/signup/) ([Tutorial](https://youtu.be/OB99E7Y1cMA?si=uEbJeVK5w8UYrHlw))
 - Deepgram: [https://console.deepgram.com/signup](https://console.deepgram.com/signup) (Free $200 credits)
+- Ollama Setup: See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for complete installation guide
 
 #### Step 4: Set Up Resume and Job Description
 
@@ -267,16 +278,32 @@ model: 'gpt-4o' // Options: 'gpt-4', 'gpt-4o'
 Edit `copilot/utils.py`:
 
 ```python
-# Line 70: Resume summary tokens
-max_tokens=2000
+# Line 290: Resume summary tokens
+max_tokens=3000
 
-# Line 122: Question extraction tokens
-max_tokens=300
+# Line 567: AI response tokens (OpenAI)
+max_tokens=450
+
+# Line 626: AI response tokens (Ollama)
+'num_predict': 450
+```
+
+#### Switch Between OpenAI and Ollama
+
+Edit `interview_copilot/.env`:
+
+```env
+# Use OpenAI (cloud)
+LLM_PROVIDER=openai
+
+# OR use Ollama (local)
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=llama3.2
 ```
 
 #### Customize System Prompt
 
-Edit `copilot/utils.py` starting at line 132 to modify the AI persona and response format.
+Edit `copilot/utils.py` starting at line 525 to modify the AI persona and response format. The current prompt is optimized for concise, context-aware responses (2-4 sentences, 450 tokens max).
 
 ### 🧪 Key Features Explained
 
@@ -398,6 +425,26 @@ Upload and analyze documents with AI-powered summaries:
 - **Interview Details**: Add company name and job title for context
 - **Version History**: Track multiple document versions
 - **Document Management**: View, delete, and manage uploaded documents
+
+#### 9. FAQ Cache System
+
+Pre-load frequently asked questions for instant responses:
+- **Auto-Load**: Automatically loads FAQ from `faq_data_eng.json` on startup
+- **Instant Responses**: Cached answers returned in <50ms (no LLM call)
+- **Hit Tracking**: Monitors which questions are most frequently asked
+- **Cache Management**: Upload new FAQ files via Settings page
+- **Stats Dashboard**: View cache hit rate and most popular questions
+- **Smart Matching**: Normalizes questions for fuzzy matching (case-insensitive, punctuation-agnostic)
+
+#### 10. Local LLM with Ollama
+
+Run the entire system offline with local models:
+- **Privacy-First**: All data stays on your machine
+- **Cost-Free**: No API costs after initial setup
+- **Fast Inference**: Optimized for M-series Macs and NVIDIA GPUs
+- **Model Options**: llama3.2 (fast), qwen2.5:14b (balanced), deepseek-r1:14b (quality)
+- **Easy Switch**: Toggle between OpenAI and Ollama in settings
+- **Complete Guide**: See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for installation
 
 ### 🔐 Security Notes
 

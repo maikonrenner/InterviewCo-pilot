@@ -3,9 +3,163 @@ import json
 import PyPDF2
 from django.conf import settings
 import openai
+from openai import AsyncOpenAI
+import ollama
+import hashlib
+from datetime import datetime, timedelta
 
 # Configure OpenAI
-openai.api_key = settings.OPENAI_API_KEY
+openai.api_key = settings.OPENAI_API_KEY if settings.OPENAI_API_KEY else None
+
+# Create async client for better performance
+async_openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
+
+# Configure Ollama client
+ollama_client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+
+# Cache for summaries to improve performance
+_resume_cache = {
+    'hash': None,
+    'summary': None,
+    'language': None,
+    'language_code': None,
+    'timestamp': None
+}
+
+_job_cache = {
+    'hash': None,
+    'summary': None,
+    'language': None,
+    'language_code': None,
+    'timestamp': None
+}
+
+# FAQ Cache: Store frequently asked questions and their answers for instant responses
+_faq_cache = {}  # Key: normalized question hash, Value: {'question': str, 'answer': str, 'timestamp': datetime, 'hit_count': int}
+
+def normalize_question(question):
+    """Normalize a question for cache lookup (remove punctuation, lowercase, trim)."""
+    import re
+    # Convert to lowercase
+    normalized = question.lower()
+    # Remove punctuation except spaces
+    normalized = re.sub(r'[^\w\s]', '', normalized)
+    # Remove extra whitespace
+    normalized = ' '.join(normalized.split())
+    return normalized
+
+def get_question_hash(question):
+    """Get a hash for a normalized question."""
+    normalized = normalize_question(question)
+    return hashlib.md5(normalized.encode()).hexdigest()
+
+def get_cached_answer(question):
+    """Get cached answer for a question if it exists."""
+    question_hash = get_question_hash(question)
+
+    if question_hash in _faq_cache:
+        cached_entry = _faq_cache[question_hash]
+        # Update hit count
+        cached_entry['hit_count'] += 1
+        print(f"[FAQ Cache HIT] Question: '{question[:50]}...' (hits: {cached_entry['hit_count']})")
+        return cached_entry['answer']
+
+    print(f"[FAQ Cache MISS] Question: '{question[:50]}...'")
+    return None
+
+def cache_answer(question, answer):
+    """Cache an answer for future use."""
+    question_hash = get_question_hash(question)
+
+    _faq_cache[question_hash] = {
+        'question': question,
+        'answer': answer,
+        'timestamp': datetime.now(),
+        'hit_count': 0
+    }
+
+    print(f"[FAQ Cache SAVED] Question: '{question[:50]}...' (Total cached: {len(_faq_cache)})")
+
+def get_faq_cache_stats():
+    """Get statistics about the FAQ cache."""
+    if not _faq_cache:
+        return "FAQ Cache is empty"
+
+    total_questions = len(_faq_cache)
+    total_hits = sum(entry['hit_count'] for entry in _faq_cache.values())
+    most_asked = max(_faq_cache.values(), key=lambda x: x['hit_count'])
+
+    return {
+        'total_questions': total_questions,
+        'total_hits': total_hits,
+        'most_asked_question': most_asked['question'],
+        'most_asked_hits': most_asked['hit_count']
+    }
+
+def load_faq_from_file():
+    """Load FAQ questions and answers from faq_data_eng.json file into cache."""
+    faq_file_path = os.path.join(settings.BASE_DIR, 'faq_data_eng.json')
+
+    if not os.path.exists(faq_file_path):
+        print('[FAQ Loader] faq_data_eng.json not found - skipping preload')
+        return 0
+
+    try:
+        with open(faq_file_path, 'r', encoding='utf-8') as f:
+            faq_data = json.load(f)
+
+        faqs = faq_data.get('faqs', [])
+        loaded_count = 0
+
+        for faq in faqs:
+            question = faq.get('question', '').strip()
+            answer = faq.get('answer', '').strip()
+
+            if question and answer:
+                # Use cache_answer to populate the cache
+                cache_answer(question, answer)
+                loaded_count += 1
+
+        print(f'[FAQ Loader] Successfully loaded {loaded_count} FAQ entries into cache')
+        return loaded_count
+
+    except Exception as e:
+        print(f'[FAQ Loader] Error loading FAQ file: {str(e)}')
+        return 0
+
+def reload_faq_cache():
+    """Reload FAQ cache from file - clears existing cache and reloads."""
+    global _faq_cache
+
+    # Clear existing cache
+    old_count = len(_faq_cache)
+    _faq_cache.clear()
+    print(f'[FAQ Reload] Cleared {old_count} entries from cache')
+
+    # Reload from file
+    new_count = load_faq_from_file()
+
+    # Reset the consumer flag to force reload on next connection
+    try:
+        from copilot.consumers import InterviewConsumer
+        InterviewConsumer._faq_loaded = False
+        print(f'[FAQ Reload] Reset consumer flag for next connection')
+    except Exception as e:
+        print(f'[FAQ Reload] Warning: Could not reset consumer flag: {str(e)}')
+
+    return {
+        'old_count': old_count,
+        'new_count': new_count,
+        'success': True
+    }
+
+def clear_faq_cache():
+    """Clear all FAQ cache entries."""
+    global _faq_cache
+    count = len(_faq_cache)
+    _faq_cache.clear()
+    print(f'[FAQ Clear] Cleared {count} entries from cache')
+    return count
 
 def extract_text_from_pdf(file_path):
     """Extract text from a PDF file."""
@@ -41,7 +195,7 @@ def extract_text_from_file(file_path):
         return f"Error extracting text from file: {str(e)}"
 
 def get_resume_summary():
-    """Get a summary of the resume with language detection."""
+    """Get a summary of ALL resume documents with language detection and caching."""
     resume_dir = settings.RESUME_DIR
 
     # Create directory if it doesn't exist
@@ -49,15 +203,42 @@ def get_resume_summary():
         os.makedirs(resume_dir)
         return "Resume directory created. Please add your resume PDF file.", "English", "en"
 
-    # Look for PDF or TXT files
-    resume_files = [f for f in os.listdir(resume_dir) if f.endswith(('.pdf', '.txt', '.docx'))]
+    # Look for ALL PDF, TXT, and DOCX files (including versions)
+    resume_files = sorted([f for f in os.listdir(resume_dir) if f.endswith(('.pdf', '.txt', '.docx'))])
 
     if not resume_files:
         return "No resume found in the resume directory.", "English", "en"
 
-    # Use the first resume found
-    resume_path = os.path.join(resume_dir, resume_files[0])
-    resume_text = extract_text_from_file(resume_path)
+    # Calculate hash of all files to detect changes
+    file_hashes = []
+    for resume_file in resume_files:
+        resume_path = os.path.join(resume_dir, resume_file)
+        # Use file modification time + name as hash
+        mtime = os.path.getmtime(resume_path)
+        file_hashes.append(f"{resume_file}:{mtime}")
+
+    current_hash = hashlib.md5("_".join(file_hashes).encode()).hexdigest()
+
+    # Check cache
+    if _resume_cache['hash'] == current_hash and _resume_cache['summary']:
+        print(f'[Resume Cache HIT] Using cached resume summary (hash: {current_hash[:8]}...)')
+        return _resume_cache['summary'], _resume_cache['language'], _resume_cache['language_code']
+
+    print(f'[Resume Cache MISS] Generating summaries... (hash: {current_hash[:8]}...)')
+
+    # Extract text from ALL documents and combine them
+    print(f'Found {len(resume_files)} resume document(s): {resume_files}')
+    combined_resume_text = ""
+
+    for i, resume_file in enumerate(resume_files, 1):
+        resume_path = os.path.join(resume_dir, resume_file)
+        text = extract_text_from_file(resume_path)
+
+        # Add document separator for clarity
+        combined_resume_text += f"\n\n=== DOCUMENT {i}: {resume_file} ===\n\n{text}"
+        print(f'Extracted {len(text)} characters from {resume_file}')
+
+    resume_text = combined_resume_text
 
     # Detect language
     print('Detecting resume language...')
@@ -80,11 +261,12 @@ def get_resume_summary():
         model="gpt-4",
         messages=[
             {"role": "system", "content": f"You are an assistant that creates detailed, structured summaries of resumes for interview preparation. {lang_instruction}"},
-            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following resume. Include ALL relevant information.
+            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following resume documents. Include ALL relevant information from ALL documents.
 
 IMPORTANT: {lang_instruction}
 
-Resume text:
+Resume documents:
+{resume_text}
 
 **REQUIRED SECTIONS:**
 1. **Professional Profile**: Current role, years of experience, expertise areas
@@ -97,20 +279,32 @@ Resume text:
 
 **IMPORTANT:**
 - Be VERY specific about technologies, tools, and methodologies
-- Include ALL companies and roles
+- Include ALL companies and roles from ALL documents
 - Include metrics and achievements (percentages, amounts, timeframes)
 - Use bullet points for clarity
-- DO NOT summarize or skip information - include EVERYTHING relevant
+- DO NOT summarize or skip information - include EVERYTHING relevant from ALL documents
+- If documents have overlapping information, consolidate intelligently
 
 {resume_text}"""}
         ],
-        max_tokens=2000  # Increased from 300 to 2000 for detailed summary
+        max_tokens=3000  # Increased to 3000 for multiple documents
     )
 
-    return response.choices[0].message.content, language, language_code
+    summary = response.choices[0].message.content
+
+    # Update cache
+    _resume_cache['hash'] = current_hash
+    _resume_cache['summary'] = summary
+    _resume_cache['language'] = language
+    _resume_cache['language_code'] = language_code
+    _resume_cache['timestamp'] = datetime.now()
+
+    print(f'[Resume Cache SAVED] Resume summary generated and cached')
+
+    return summary, language, language_code
 
 def get_job_description_summary():
-    """Get a summary of the job description with language detection."""
+    """Get a summary of the job description with language detection and caching."""
     job_dir = settings.JOB_DESCRIPTION_DIR
 
     # Create directory if it doesn't exist
@@ -119,10 +313,27 @@ def get_job_description_summary():
         return "Job description directory created. Please add your job description PDF file.", "English", "en"
 
     # Look for PDF or TXT files
-    job_files = [f for f in os.listdir(job_dir) if f.endswith(('.pdf', '.txt', '.docx'))]
+    job_files = sorted([f for f in os.listdir(job_dir) if f.endswith(('.pdf', '.txt', '.docx'))])
 
     if not job_files:
         return "No job description found in the job description directory.", "English", "en"
+
+    # Calculate hash of all files to detect changes
+    file_hashes = []
+    for job_file in job_files:
+        job_path = os.path.join(job_dir, job_file)
+        # Use file modification time + name as hash
+        mtime = os.path.getmtime(job_path)
+        file_hashes.append(f"{job_file}:{mtime}")
+
+    current_hash = hashlib.md5("_".join(file_hashes).encode()).hexdigest()
+
+    # Check cache
+    if _job_cache['hash'] == current_hash and _job_cache['summary']:
+        print(f'[Job Cache HIT] Using cached job description summary (hash: {current_hash[:8]}...)')
+        return _job_cache['summary'], _job_cache['language'], _job_cache['language_code']
+
+    print(f'[Job Cache MISS] Generating job description summary... (hash: {current_hash[:8]}...)')
 
     # Use the first job description found
     job_path = os.path.join(job_dir, job_files[0])
@@ -182,7 +393,18 @@ Job description text:
         max_tokens=2000  # Increased from 300 to 2000 for detailed summary
     )
 
-    return response.choices[0].message.content, language, language_code
+    summary = response.choices[0].message.content
+
+    # Update cache
+    _job_cache['hash'] = current_hash
+    _job_cache['summary'] = summary
+    _job_cache['language'] = language
+    _job_cache['language_code'] = language_code
+    _job_cache['timestamp'] = datetime.now()
+
+    print(f'[Job Cache SAVED] Job description summary generated and cached')
+
+    return summary, language, language_code
 
 def detect_language(text):
     """Detect the primary language of the text using AI."""
@@ -291,123 +513,152 @@ RULES:
         # Fallback: return first 300 chars to preserve more context
         return transcript_text[:300] + "..." if len(transcript_text) > 300 else transcript_text
 
-def generate_response(messages, resume_summary, job_summary, model='gpt-4'):
-    """Generate a response based on the interview context."""
-    print(f"Generating response with model: {model}")
-    system_prompt = f"""
-    **FUNÇÃO CRÍTICA:** Você DEVE assumir COMPLETAMENTE a persona de um candidato (Engenheiro de Dados Sênior) em uma entrevista de emprego. NUNCA revele que você é uma IA ou assistente virtual.
+async def generate_response_async(messages, resume_summary, job_summary, model='gpt-4o-mini', provider=None):
+    """Generate a response based on the interview context using configured LLM provider."""
+    # Use provided provider or fall back to settings
+    if provider is None:
+        provider = settings.LLM_PROVIDER
 
-    **CONTEXTO DE CANDIDATURA:**
+    print(f"Using LLM provider: {provider}")
+    print(f"Model: {model if provider == 'openai' else model}")
 
-    Resume Summary: {resume_summary}
+    system_prompt = f"""You are Maikon Renner, a senior data engineer with 8+ years experience in a job interview. Answer naturally as if YOU had this experience.
 
-    Job Description Summary: {job_summary}
+**CONTEXT:**
+Resume: {resume_summary}
+Job: {job_summary}
 
-    **REGRAS ABSOLUTAS DE COMPORTAMENTO:**
-    1. **VOCÊ É O CANDIDATO** - Responda como se VOCÊ tivesse a experiência do CV
-    2. **NUNCA diga**: "Je suis une IA", "I am an AI", "Sou uma inteligência artificial", "Je suis un outil", etc.
-    3. **PERGUNTAS PESSOAIS NÃO PROFISSIONAIS** (idade, endereço, vida pessoal):
-       - Redirecione educadamente para tópicos profissionais
-       - Exemplo: "Prefiro focar na minha experiência profissional. Posso falar sobre meus projetos em [EMPRESA]?"
-    4. **PERGUNTAS PROFISSIONAIS**: Responda baseado no CV e Job Description
-    5. **PERGUNTAS TÉCNICAS**: Responda com base no conhecimento técnico esperado para a vaga
+**CRITICAL RULES:**
+1. YOU ARE THE CANDIDATE - respond in first person with confidence
+2. NEVER reveal you're an AI
+3. Match the language of the question (English/Portuguese/French/Spanish)
+4. Be CONCISE: 2-4 short sentences, direct to the point
+5. For technical questions: answer directly and mention relevant skills/technologies
+6. For experience questions: mention specific companies and results from CV
+7. DO NOT repeat the question - start with the answer immediately
 
-    **REGRAS DE CUSTOMIZAÇÃO NAS RESPOSTAS:**
-    1. **IMPORTANTE - Quando mencionar empresas do CV:**
-       - **Perguntas técnicas gerais** (ex: "Qual a diferença entre X e Y?", "O que é X?"): Responda DIRETAMENTE sem mencionar empresas
-       - **Perguntas sobre experiência** (ex: "Conte sobre sua experiência com X", "O que você fez na empresa Y?"): Mencione a empresa relevante
-       - Só use exemplos do CV quando a pergunta PEDIR explicitamente sobre experiência prática
-    2. **Prioridade:** Use as **ferramentas mencionadas no seu CV** apenas quando relevante ao contexto da pergunta
-    3. **NÃO reescreva ou repita a pergunta** - comece direto com a resposta
+**EXAMPLES:**
+Q: "What are SQL command categories?"
+A: "SQL has five main categories: DDL (CREATE, ALTER, DROP) for schemas; DML (INSERT, UPDATE, DELETE) for data; DCL (GRANT, REVOKE) for permissions; TCL (COMMIT, ROLLBACK) for transactions; and DQL (SELECT) for querying."
 
-    **MULTI-LANGUAGE SUPPORT (CRITICAL RULE):**
-    - Você deve **identificar o idioma da pergunta do usuário** (English, Portuguese, French, Spanish, or German)
-    - Você **deve responder inteiramente no idioma da pergunta** para manter o fluxo
+Q: "Tell me about your ETL experience"
+A: "At Gexel Telecom, I built PySpark ETL pipelines processing 50GB daily. I implemented automated validation that reduced errors by 80% and improved reliability through incremental loading."
+"""
 
-    **DIRETRIZES DE RESPOSTA TÉCNICA:**
-    1. **Tom e Profundidade:** Profissional, MUITO CONCISO (máximo 3-4 frases), nível Sênior
-    2. **IMPORTANTE: RESPOSTAS CURTAS E DIRETAS - máximo 50 palavras + código pequeno se necessário**
-    3. **Obrigatoriedade de Exemplos:**
-       - **SQL/Python:** Para comandos ou funções, **gere código MÍNIMO (3-5 linhas máximo)**
-       - **Power BI/DAX:** Para cálculos ou modelagem, **forneça uma fórmula DAX CURTA**
-       - **Engenharia/Arquitetura:** Para conceitos (ETL, OLAP), seja BREVE e DIRETO
-
-    **FORMATO DAS RESPOSTAS (SEM REESCREVER A PERGUNTA):**
-
-    TIPO 1 - Para perguntas TÉCNICAS GERAIS (sem contexto de experiência):
-    Responda DIRETAMENTE a pergunta técnica, sem mencionar empresas.
-
-    TIPO 2 - Para perguntas sobre EXPERIÊNCIA:
-    "At [EMPRESA DO CV], when [CONTEXTO], I utilized [FERRAMENTA/TECNOLOGIA]. This [BENEFÍCIO]."
-
-    TIPO 3 - Para perguntas PESSOAIS NÃO PROFISSIONAIS:
-    Redirecione educadamente para tópicos profissionais relacionados à vaga.
-
-    **EXEMPLOS DE RESPOSTAS CURTAS:**
-
-    EXEMPLO 1 (Français - Perguntas Pessoais):
-    Pergunta: "Quel âge avez-vous? D'où venez-vous? Où habitez-vous?"
-    Resposta: "Je préfère me concentrer sur mon expérience professionnelle et mes compétences techniques pour ce poste. Puis-je vous parler de mes projets en ingénierie de données?"
-
-    EXEMPLO 2 (Français - Idiomas/Habilidades):
-    Pergunta: "Parlez-vous anglais? Quelle heure est-il?"
-    Resposta: "Oui, je parle couramment anglais, portugais et français. J'ai travaillé dans des environnements multilingues tout au long de ma carrière."
-
-    EXEMPLO 3 (Português - Pergunta Técnica Geral):
-    Pergunta: "Qual a diferença entre Pandas e PySpark?"
-    Resposta: "Pandas processa dados em memória de um único servidor (ideal até 10GB). PySpark distribui processamento em clusters (ideal para Big Data). Use Pandas para análises rápidas e PySpark para ETL em larga escala."
-
-    EXEMPLO 4 (English - Pergunta Técnica Geral):
-    Pergunta: "What is Star Schema?"
-    Resposta: "Star Schema organizes data with a central fact table connected to dimension tables. It optimizes query performance for analytical workloads."
-
-    EXEMPLO 5 (English - Pergunta sobre Experiência):
-    Pergunta: "Tell me about your ETL experience"
-    Resposta: "At Gexel Telecom, I built ETL pipelines with PySpark processing 50GB daily. Automated data validation reduced errors by 80%."
-    """
-    
     full_messages = [
         {"role": "system", "content": system_prompt}
     ]
-    
+
     # Add conversation history
     for message in messages:
         full_messages.append(message)
-    
-    # Generate response using OpenAI with streaming enabled
+
+    # Generate response based on provider
     try:
-        print(f"Calling OpenAI API with model: {model}")
-        response = openai.chat.completions.create(
-            model=model,
-            messages=full_messages,
-            stream=True
-        )
-        return response
+        if provider == 'ollama':
+            # Use Ollama local model with the specified model
+            ollama_model = model if model else settings.OLLAMA_MODEL
+            return await generate_ollama_response(full_messages, ollama_model)
+        else:
+            # Use OpenAI
+            response = await async_openai_client.chat.completions.create(
+                model=model,
+                messages=full_messages,
+                max_tokens=450,
+                temperature=0.3,
+                stream=True
+            )
+            return response
     except Exception as e:
         print(f"Error generating response: {str(e)}")
-        # Return a simple iterator with an error message if OpenAI fails
+        # Return a simple iterator with an error message if LLM fails
         class ErrorResponse:
             def __init__(self, error_message):
                 self.error_message = error_message
                 self.sent = False
-                
+
             def __iter__(self):
                 return self
-                
+
             def __next__(self):
                 if not self.sent:
                     self.sent = True
-                    
+
                     class Choice:
                         def __init__(self, content):
                             self.delta = type('obj', (object,), {'content': content})
-                    
+
                     class FakeResponse:
                         def __init__(self, content):
                             self.choices = [Choice(content)]
-                    
+
                     return FakeResponse(f"Sorry, I encountered an error: {self.error_message}")
                 else:
                     raise StopIteration
-        
+
         return ErrorResponse(str(e))
+
+async def generate_ollama_response(messages, model):
+    """Generate streaming response from Ollama."""
+    import asyncio
+
+    class OllamaStreamResponse:
+        def __init__(self, messages, model):
+            self.messages = messages
+            self.model = model
+            self.stream = None
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            if self.stream is None:
+                # Start streaming
+                loop = asyncio.get_event_loop()
+                self.stream = await loop.run_in_executor(
+                    None,
+                    lambda: ollama_client.chat(
+                        model=self.model,
+                        messages=self.messages,
+                        stream=True,
+                        options={
+                            'temperature': 0.3,
+                            'num_predict': 450
+                        }
+                    )
+                )
+                self.iterator = iter(self.stream)
+
+            try:
+                loop = asyncio.get_event_loop()
+
+                def get_next():
+                    try:
+                        return next(self.iterator), False
+                    except StopIteration:
+                        return None, True
+
+                chunk, is_done = await loop.run_in_executor(None, get_next)
+
+                if is_done:
+                    raise StopAsyncIteration
+
+                # Convert Ollama format to OpenAI-like format
+                class Choice:
+                    def __init__(self, content):
+                        self.delta = type('obj', (object,), {'content': content})
+
+                class FakeResponse:
+                    def __init__(self, content):
+                        self.choices = [Choice(content)]
+
+                content = chunk.get('message', {}).get('content', '')
+                return FakeResponse(content)
+
+            except StopAsyncIteration:
+                raise
+            except Exception as e:
+                print(f"Error in Ollama streaming: {e}")
+                raise StopAsyncIteration
+
+    return OllamaStreamResponse(messages, model)
