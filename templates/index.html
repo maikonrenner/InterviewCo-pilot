@@ -28,6 +28,10 @@
                     <span class="nav-icon">📄</span>
                     <span class="nav-text">AI Resume Builder</span>
                 </li>
+                <li class="nav-item" data-page="playground">
+                    <span class="nav-icon">🎮</span>
+                    <span class="nav-text">Playground</span>
+                </li>
                 <li class="nav-item" data-page="settings">
                     <span class="nav-icon">⚙️</span>
                     <span class="nav-text">Settings</span>
@@ -183,32 +187,46 @@
 
             <!-- Interview Page -->
             <div id="interview-page" class="page-content">
-                <header class="page-header">
-                    <div class="interview-header-left">
-                        <h1>Live Interview</h1>
-                        <div class="interview-info">
-                            <span id="interviewCompanyPosition" class="company-position">-</span>
-                            <span class="separator">•</span>
-                            <span id="interviewDate" class="interview-date">-</span>
-                            <span class="separator">•</span>
-                            <span id="interviewTimer" class="interview-timer">00:00:00</span>
+                <header class="interview-header-modern">
+                    <!-- Left Section: Status, Model, Date -->
+                    <div class="header-left">
+                        <div class="status-indicator">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Ready</span>
+                        </div>
+                        <div class="model-info">
+                            <span id="activeModelBadge" class="model-name">
+                                <span class="model-icon">🤖</span>
+                                <span class="model-text">GPT-4o Mini</span>
+                            </span>
+                        </div>
+                        <div class="date-info">
+                            <span id="interviewDate" class="date-text">Oct 22, 2025</span>
                         </div>
                     </div>
-                    <div class="status-container">
-                        <select id="modelSelector" class="model-selector">
-                            <option value="gpt-4o">GPT-4o (Recomendado)</option>
-                            <option value="gpt-4o-mini">GPT-4o Mini (Rápido)</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                            <option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gpt-4-32k">GPT-4 32K</option>
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                            <option value="gpt-3.5-turbo-16k">GPT-3.5 Turbo 16K</option>
-                            <option value="gpt-3.5-turbo-0125">GPT-3.5 Turbo 0125</option>
-                        </select>
-                        <p id="status">Not Connected</p>
-                        <button id="overlayButton" class="btn btn-overlay">🖥️ Open Overlay</button>
-                        <button id="dualAudioButton" class="btn btn-dual" title="Capture both system audio and microphone with speaker identification">🎙️ Iniciar Entrevista</button>
+
+                    <!-- Center Section: Title and Subtitle -->
+                    <div class="header-center">
+                        <h1 id="interviewCompanyPosition" class="header-title">No interview details set</h1>
+                        <p class="header-subtitle">Configure in Resume Builder</p>
+                    </div>
+
+                    <!-- Right Section: Timer and Buttons -->
+                    <div class="header-right">
+                        <div class="timer-display">
+                            <span class="timer-icon">⏱</span>
+                            <span id="interviewTimer" class="timer-text">00:00:00</span>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="overlayButton" class="btn-pill btn-secondary">
+                                <span class="btn-icon">🖥️</span>
+                                <span class="btn-text">Overlay</span>
+                            </button>
+                            <button id="dualAudioButton" class="btn-pill btn-primary">
+                                <span class="btn-icon">🎙️</span>
+                                <span class="btn-text">Iniciar</span>
+                            </button>
+                        </div>
                     </div>
                 </header>
         
@@ -244,7 +262,12 @@
             </div>
 
             <div class="conversation-container">
-                <h2>Interview Conversation</h2>
+                <div class="conversation-header">
+                    <h2>Interview Conversation</h2>
+                    <button id="clearConversationBtn" class="btn-clear-conversation" title="Clear conversation history">
+                        🗑️ Clear
+                    </button>
+                </div>
                 <div id="conversationBox">
                     <div class="system-message">
                         <p>Welcome to Interview Co-pilot! Click "Start Interview" to begin.</p>
@@ -331,6 +354,34 @@
                     </div>
                 </div>
 
+                <!-- Knowledge Base (FAQ) Upload Section -->
+                <div class="upload-section">
+                    <h3>🧠 Knowledge Base (FAQ)</h3>
+                    <p class="section-description">Upload FAQ JSON file to provide instant answers to common questions</p>
+
+                    <div class="faq-upload-area" id="faqUploadArea">
+                        <div class="upload-placeholder">
+                            <span class="upload-icon">📚</span>
+                            <p class="upload-text">Drag & Drop FAQ JSON file here</p>
+                            <p class="upload-subtext">or click to browse</p>
+                            <p class="upload-formats">Supports: .json files only</p>
+                        </div>
+                        <input type="file" id="faqFileInput" accept=".json" hidden>
+                    </div>
+
+                    <div class="faq-stats" id="faqStats" style="display: none;">
+                        <div class="faq-stat-item">
+                            <span class="stat-label">📊 Questions Loaded:</span>
+                            <span class="stat-value" id="faqCount">0</span>
+                        </div>
+                        <div class="faq-stat-item">
+                            <span class="stat-label">🕒 Last Updated:</span>
+                            <span class="stat-value" id="faqLastUpdate">Never</span>
+                        </div>
+                        <button class="btn btn-sm btn-danger" id="clearFaqBtn">🗑️ Clear FAQ</button>
+                    </div>
+                </div>
+
                 <!-- Resume Summary Section -->
                 <div class="summary-section">
                     <div class="summary-card">
@@ -398,6 +449,138 @@
                 </div>
             </div>
 
+            <!-- Playground Page -->
+            <div id="playground-page" class="page-content">
+                <header class="page-header">
+                    <h1>🎮 LLM Playground - Compare Models</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="compareBtn">⚡ Compare Models</button>
+                    </div>
+                </header>
+
+                <!-- Question Input (Centralized) -->
+                <div class="playground-question-section">
+                    <h3>📝 Your Question</h3>
+                    <textarea
+                        id="playgroundQuestion"
+                        class="playground-question-input"
+                        placeholder="Enter your question here to compare responses from different LLMs...
+Example: 'Explain the difference between Python generators and iterators with code examples.'"
+                        rows="4"
+                    ></textarea>
+                </div>
+
+                <!-- Comparison Grid (2 Columns) -->
+                <div class="playground-comparison-grid">
+                    <!-- LLM 1 Column -->
+                    <div class="playground-column">
+                        <div class="playground-column-header llm1-header">
+                            <h3>🤖 LLM 1</h3>
+                        </div>
+
+                        <!-- Provider Selection LLM 1 -->
+                        <div class="playground-selector-group">
+                            <label for="llm1Provider">Provider</label>
+                            <select id="llm1Provider" class="playground-select">
+                                <option value="openai">OpenAI (Cloud)</option>
+                                <option value="ollama">Ollama (Local)</option>
+                            </select>
+                        </div>
+
+                        <!-- Model Selection LLM 1 -->
+                        <div class="playground-selector-group">
+                            <label for="llm1Model">Model</label>
+                            <select id="llm1Model" class="playground-select">
+                                <option value="gpt-4o-mini" selected>GPT-4o Mini ⚡ (Fastest)</option>
+                                <option value="gpt-4o">GPT-4o (Balanced)</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                <option value="gpt-4">GPT-4 (Best)</option>
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            </select>
+                        </div>
+
+                        <!-- Ollama Models (Hidden by default) -->
+                        <div class="playground-selector-group" id="llm1OllamaGroup" style="display: none;">
+                            <label for="llm1OllamaModel">Ollama Model</label>
+                            <select id="llm1OllamaModel" class="playground-select">
+                                <option value="gemma3:4b">Gemma 3:4b (3.3GB)</option>
+                                <option value="gemma3:1b">Gemma 3:1b (2GB)</option>
+                                <option value="gemma3:12b">Gemma 3:12b (7GB)</option>
+                                <option value="llama3:8b">Llama 3:8b (4.7GB)</option>
+                                <option value="mistral:7b">Mistral 7b (4.1GB)</option>
+                            </select>
+                        </div>
+
+                        <!-- Response Area LLM 1 -->
+                        <div class="playground-response-container">
+                            <div class="playground-response-header">
+                                <span class="response-status" id="llm1Status">⏸️ Ready</span>
+                                <span class="response-time" id="llm1Time">0.0s</span>
+                            </div>
+                            <div class="playground-response-box" id="llm1Response">
+                                <p class="response-placeholder">Response will appear here...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VS Separator -->
+                    <div class="playground-vs-separator">
+                        <div class="vs-badge">VS</div>
+                    </div>
+
+                    <!-- LLM 2 Column -->
+                    <div class="playground-column">
+                        <div class="playground-column-header llm2-header">
+                            <h3>🦙 LLM 2</h3>
+                        </div>
+
+                        <!-- Provider Selection LLM 2 -->
+                        <div class="playground-selector-group">
+                            <label for="llm2Provider">Provider</label>
+                            <select id="llm2Provider" class="playground-select">
+                                <option value="openai">OpenAI (Cloud)</option>
+                                <option value="ollama" selected>Ollama (Local)</option>
+                            </select>
+                        </div>
+
+                        <!-- Model Selection LLM 2 -->
+                        <div class="playground-selector-group" id="llm2OpenaiGroup" style="display: none;">
+                            <label for="llm2Model">Model</label>
+                            <select id="llm2Model" class="playground-select">
+                                <option value="gpt-4o-mini">GPT-4o Mini ⚡ (Fastest)</option>
+                                <option value="gpt-4o">GPT-4o (Balanced)</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                <option value="gpt-4">GPT-4 (Best)</option>
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            </select>
+                        </div>
+
+                        <!-- Ollama Models LLM 2 -->
+                        <div class="playground-selector-group" id="llm2OllamaGroup">
+                            <label for="llm2OllamaModel">Ollama Model</label>
+                            <select id="llm2OllamaModel" class="playground-select">
+                                <option value="gemma3:4b" selected>Gemma 3:4b (3.3GB)</option>
+                                <option value="gemma3:1b">Gemma 3:1b (2GB)</option>
+                                <option value="gemma3:12b">Gemma 3:12b (7GB)</option>
+                                <option value="llama3:8b">Llama 3:8b (4.7GB)</option>
+                                <option value="mistral:7b">Mistral 7b (4.1GB)</option>
+                            </select>
+                        </div>
+
+                        <!-- Response Area LLM 2 -->
+                        <div class="playground-response-container">
+                            <div class="playground-response-header">
+                                <span class="response-status" id="llm2Status">⏸️ Ready</span>
+                                <span class="response-time" id="llm2Time">0.0s</span>
+                            </div>
+                            <div class="playground-response-box" id="llm2Response">
+                                <p class="response-placeholder">Response will appear here...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Settings Page -->
             <div id="settings-page" class="page-content">
                 <header class="page-header">
@@ -460,19 +643,63 @@
                         </div>
 
                         <div class="settings-grid">
-                            <!-- Default AI Model -->
+                            <!-- LLM Provider Selection -->
                             <div class="setting-group">
-                                <label for="defaultModel" class="setting-label">
-                                    <span class="label-icon">🧠</span>
-                                    <span class="label-text">Default AI Model</span>
+                                <label for="llmProvider" class="setting-label">
+                                    <span class="label-icon">⚡</span>
+                                    <span class="label-text">LLM Provider</span>
                                 </label>
-                                <select id="defaultModel" class="setting-select">
-                                    <option value="gpt-4o">GPT-4o (Recommended)</option>
-                                    <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
+                                <select id="llmProvider" class="setting-select">
+                                    <option value="openai">OpenAI (Cloud - Paid)</option>
+                                    <option value="ollama">Ollama (Local - Free)</option>
+                                </select>
+                                <p class="setting-hint">Choose between cloud-based OpenAI or local Ollama models</p>
+                            </div>
+
+                            <!-- OpenAI Model Selection (shown when provider is openai) -->
+                            <div class="setting-group" id="openaiModelGroup">
+                                <label for="openaiModel" class="setting-label">
+                                    <span class="label-icon">🤖</span>
+                                    <span class="label-text">OpenAI Model</span>
+                                </label>
+                                <select id="openaiModel" class="setting-select">
+                                    <option value="gpt-4o-mini">GPT-4o Mini ⚡ (Fastest - Recommended)</option>
+                                    <option value="gpt-4o">GPT-4o (Balanced)</option>
                                     <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                    <option value="gpt-4">GPT-4 (Slowest)</option>
                                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                                 </select>
-                                <p class="setting-hint">Select the OpenAI model to use for generating interview responses</p>
+                                <p class="setting-hint">Select the OpenAI model for interview responses</p>
+                            </div>
+
+                            <!-- Ollama Model Selection (shown when provider is ollama) -->
+                            <div class="setting-group" id="ollamaModelGroup" style="display: none;">
+                                <label for="ollamaModel" class="setting-label">
+                                    <span class="label-icon">🦙</span>
+                                    <span class="label-text">Ollama Model</span>
+                                </label>
+                                <select id="ollamaModel" class="setting-select">
+                                    <option value="gemma3:4b">Gemma 3:4b (Recommended - 3.3GB)</option>
+                                    <option value="gemma3:1b">Gemma 3:1b (Faster - 2GB)</option>
+                                    <option value="gemma3:12b">Gemma 3:12b (Better Quality - 7GB)</option>
+                                    <option value="llama3:8b">Llama 3:8b (4.7GB)</option>
+                                    <option value="mistral:7b">Mistral 7b (4.1GB)</option>
+                                </select>
+                                <p class="setting-hint">Select local Ollama model (must be installed with <code>ollama pull</code>)</p>
+                            </div>
+
+                            <!-- Ollama Server Status (shown when provider is ollama) -->
+                            <div class="setting-group" id="ollamaStatusGroup" style="display: none;">
+                                <label class="setting-label">
+                                    <span class="label-icon">📡</span>
+                                    <span class="label-text">Ollama Server Status</span>
+                                </label>
+                                <div class="setting-info-box" id="ollamaStatusBox">
+                                    <p class="setting-info-text" id="ollamaStatusText">
+                                        <strong>Checking connection...</strong>
+                                    </p>
+                                </div>
+                                <button class="btn btn-sm btn-outline" id="checkOllamaBtn">🔄 Check Connection</button>
                             </div>
 
                             <!-- Auto Language Detection -->
@@ -521,6 +748,7 @@
     <script src="/static/copilot/js/dashboard.js"></script>
     <script src="/static/copilot/js/resume-builder.js"></script>
     <script src="/static/copilot/js/interview.js"></script>
+    <script src="/static/copilot/js/playground.js"></script>
     <script src="/static/copilot/js/settings.js"></script>
 </body>
 </html>

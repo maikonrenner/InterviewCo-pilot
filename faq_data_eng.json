@@ -1,0 +1,84 @@
+{
+  "faqs": [
+    {
+      "question": "What is ETL?",
+      "answer": "ETL stands for Extract, Transform, Load. It's a data integration process where data is extracted from source systems, transformed to meet business requirements, and loaded into a target database or data warehouse. I've built ETL pipelines using tools like Apache Airflow, PySpark, and Python to process large volumes of data efficiently."
+    },
+    {
+      "question": "Explain the difference between SQL and NoSQL databases",
+      "answer": "SQL databases are relational, use structured schemas, and support ACID transactions - great for complex queries and data integrity. NoSQL databases are non-relational, schema-flexible, and horizontally scalable - ideal for unstructured data and high-volume applications. I've worked with both: PostgreSQL and MySQL for transactional systems, and MongoDB and Cassandra for big data and real-time analytics."
+    },
+    {
+      "question": "What are the main SQL command categories?",
+      "answer": "SQL has five main categories: DDL (CREATE, ALTER, DROP) for defining schemas; DML (INSERT, UPDATE, DELETE) for manipulating data; DCL (GRANT, REVOKE) for controlling permissions; TCL (COMMIT, ROLLBACK) for managing transactions; and DQL (SELECT) for querying data. I use these daily for database operations and optimization."
+    },
+    {
+      "question": "What is Apache Spark?",
+      "answer": "Apache Spark is a distributed computing framework for big data processing. It provides in-memory computation which makes it significantly faster than Hadoop MapReduce. I've used PySpark to build ETL pipelines processing terabytes of data, implementing transformations, aggregations, and machine learning workflows at scale."
+    },
+    {
+      "question": "Explain data normalization",
+      "answer": "Data normalization organizes database tables to reduce redundancy and improve data integrity. The main normal forms are 1NF (atomic values), 2NF (remove partial dependencies), 3NF (remove transitive dependencies), and BCNF (stricter 3NF). I apply normalization principles to design efficient database schemas while balancing with denormalization for read-heavy workloads."
+    },
+    {
+      "question": "What is a data warehouse?",
+      "answer": "A data warehouse is a centralized repository that stores integrated data from multiple sources for analysis and reporting. It uses dimensional modeling (star/snowflake schemas) and is optimized for OLAP queries. I've worked with cloud data warehouses like Snowflake and BigQuery, implementing data models, ETL processes, and optimizing query performance."
+    },
+    {
+      "question": "What is the difference between OLTP and OLAP?",
+      "answer": "OLTP (Online Transaction Processing) handles day-to-day operational transactions - fast, short queries with frequent updates. OLAP (Online Analytical Processing) handles complex analytical queries on historical data - slower, read-heavy, with aggregations. I've designed systems for both: PostgreSQL for OLTP and Snowflake/BigQuery for OLAP workloads."
+    },
+    {
+      "question": "Explain data partitioning",
+      "answer": "Data partitioning divides large tables into smaller, manageable pieces based on a key like date or region. It improves query performance by scanning only relevant partitions and enables parallel processing. I've implemented partitioning strategies in Spark, Hive, and cloud data warehouses to optimize big data processing and reduce costs."
+    },
+    {
+      "question": "What is Apache Airflow?",
+      "answer": "Apache Airflow is a workflow orchestration platform for scheduling and monitoring data pipelines. It uses DAGs (Directed Acyclic Graphs) to define task dependencies and execution order. I've built complex ETL workflows with Airflow, implementing retry logic, SLA monitoring, and integration with Spark, Python, and cloud services."
+    },
+    {
+      "question": "What are data lakes?",
+      "answer": "A data lake is a centralized repository that stores raw, unstructured, and structured data at scale. Unlike data warehouses, it stores data in its native format without predefined schemas. I've worked with AWS S3 and Azure Data Lake Storage to build data lakes, implementing data ingestion, cataloging, and governance using tools like AWS Glue and Delta Lake."
+    },
+    {
+      "question": "Explain the CAP theorem",
+      "answer": "CAP theorem states that distributed systems can only guarantee two of three properties: Consistency (all nodes see same data), Availability (system remains operational), and Partition Tolerance (system works despite network failures). I consider CAP when designing distributed data systems, choosing consistency for financial systems and availability for real-time analytics."
+    },
+    {
+      "question": "What is data modeling?",
+      "answer": "Data modeling defines how data is structured, stored, and accessed. Key approaches include relational (ER diagrams, normalization), dimensional (star/snowflake schemas for analytics), and NoSQL (document, key-value, graph models). I've designed data models for OLTP systems, data warehouses, and big data platforms, balancing performance, scalability, and maintainability."
+    },
+    {
+      "question": "What are the SQL JOIN types?",
+      "answer": "SQL has four main JOIN types: INNER JOIN (matching rows from both tables), LEFT JOIN (all rows from left table plus matches), RIGHT JOIN (all rows from right table plus matches), and FULL OUTER JOIN (all rows from both tables). I use these extensively for complex queries, choosing the right join type based on data relationships and business requirements."
+    },
+    {
+      "question": "Explain indexing in databases",
+      "answer": "Database indexes are data structures that improve query performance by providing fast lookup paths. Common types include B-tree indexes (default for most databases), hash indexes (for equality searches), and bitmap indexes (for low-cardinality columns). I create and optimize indexes to speed up queries while balancing the write performance overhead."
+    },
+    {
+      "question": "What is data quality?",
+      "answer": "Data quality measures accuracy, completeness, consistency, and timeliness of data. Key dimensions include validity (correct format), accuracy (correct values), completeness (no missing data), and consistency (uniform across systems). I implement data quality checks using Great Expectations, custom validations, and monitoring dashboards to ensure reliable analytics."
+    },
+    {
+      "question": "What is a primary key?",
+      "answer": "A primary key is a unique identifier for each record in a database table. It must be unique, not null, and unchanging. I design primary keys using natural keys (business identifiers) or surrogate keys (auto-incrementing IDs) based on the use case, ensuring data integrity and efficient joins."
+    },
+    {
+      "question": "What is a foreign key?",
+      "answer": "A foreign key is a column that creates a relationship between two tables by referencing the primary key of another table. It enforces referential integrity, ensuring data consistency across related tables. I use foreign keys to model relationships in OLTP systems while sometimes denormalizing in data warehouses for query performance."
+    },
+    {
+      "question": "Explain database transactions",
+      "answer": "Database transactions are sequences of operations that must complete as a single unit, following ACID properties: Atomicity (all or nothing), Consistency (valid state), Isolation (concurrent execution), and Durability (permanent changes). I use transactions to ensure data integrity in critical operations like financial transfers and order processing."
+    },
+    {
+      "question": "What is data pipeline orchestration?",
+      "answer": "Data pipeline orchestration manages the scheduling, execution, and monitoring of data workflows. Tools like Apache Airflow, Prefect, and Dagster define task dependencies, handle failures, and ensure data flows correctly from source to destination. I build orchestrated pipelines with retry logic, alerting, and SLA monitoring for production reliability."
+    },
+    {
+      "question": "What is dimensional modeling?",
+      "answer": "Dimensional modeling organizes data for analytical queries using fact tables (metrics) and dimension tables (descriptive attributes). Star schemas have denormalized dimensions for simplicity, while snowflake schemas normalize dimensions for space efficiency. I design dimensional models for data warehouses, optimizing for query performance and business understanding."
+    }
+  ]
+}

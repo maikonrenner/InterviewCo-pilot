@@ -1,10 +1,18 @@
 import json
 import asyncio
+import time
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .utils import get_resume_summary, get_job_description_summary, generate_response
+from .utils import get_resume_summary, get_job_description_summary, generate_response_async, get_cached_answer, cache_answer, load_faq_from_file
 from datetime import datetime
 
 class InterviewConsumer(AsyncWebsocketConsumer):
+    # Class-level cache (shared across all WebSocket instances)
+    _resume_cache = None
+    _job_cache = None
+    _cache_timestamp = None
+    CACHE_TTL = 3600  # 1 hour cache
+    _faq_loaded = False  # Flag to track if FAQ has been preloaded
+
     async def connect(self):
         # Join room group
         self.room_group_name = 'interview_room'
@@ -20,9 +28,30 @@ class InterviewConsumer(AsyncWebsocketConsumer):
         # Store conversation history
         self.conversation_history = []
 
-        # Get summaries of resume and job description
-        self.resume_summary = await asyncio.to_thread(get_resume_summary)
-        self.job_summary = await asyncio.to_thread(get_job_description_summary)
+        # Load FAQ from file on first connection (automatic preload for instant responses)
+        if not InterviewConsumer._faq_loaded:
+            await asyncio.to_thread(load_faq_from_file)
+            InterviewConsumer._faq_loaded = True
+
+        # Check cache first for massive performance boost
+        current_time = time.time()
+        cache_expired = (
+            self._cache_timestamp is None or
+            current_time - self._cache_timestamp > self.CACHE_TTL
+        )
+
+        if self._resume_cache is None or self._job_cache is None or cache_expired:
+            # Cache miss - fetch and cache
+            print("Cache miss - generating summaries...")
+            self._resume_cache = await asyncio.to_thread(get_resume_summary)
+            self._job_cache = await asyncio.to_thread(get_job_description_summary)
+            self._cache_timestamp = current_time
+        else:
+            print("Cache hit - using cached summaries (instant!)")
+
+        # Use cached values
+        self.resume_summary = self._resume_cache
+        self.job_summary = self._job_cache
 
         # Send initialization message
         await self.send(text_data=json.dumps({
@@ -54,12 +83,14 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             )
 
         elif message_type == 'transcription':
-            # Get the transcribed text and selected model
+            # Get the transcribed text, provider, and selected model
             transcribed_text = text_data_json.get('text', '')
-            selected_model = text_data_json.get('model', 'gpt-4')  # Default to gpt-4
+            llm_provider = text_data_json.get('provider', 'openai')  # Default to openai
+            selected_model = text_data_json.get('model', 'gpt-4o-mini')  # Default to gpt-4o-mini (faster)
             timestamp = datetime.now().strftime("%H:%M:%S")
 
             print(f"Received transcription: {transcribed_text}")
+            print(f"LLM Provider: {llm_provider}")
             print(f"Selected model: {selected_model}")
 
             # Use transcript directly - no need for extraction (saves API call and time)
@@ -82,31 +113,57 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            # Generate response with selected model
-            response_stream = await asyncio.to_thread(
-                generate_response,
-                self.conversation_history,
-                self.resume_summary,
-                self.job_summary,
-                selected_model
-            )
-            
-            # Collect the full response for history
+            # Check FAQ cache first for instant response
+            cached_answer = await asyncio.to_thread(get_cached_answer, transcribed_text)
+
             full_response = ""
-            
-            # Process and send streaming response to all clients
-            async for chunk in self._process_openai_stream(response_stream):
-                if chunk:
-                    full_response += chunk
-                    # Broadcast to all connected clients (web + electron)
+
+            if cached_answer:
+                # Use cached answer (INSTANT response!)
+                full_response = cached_answer
+
+                # Send cached answer as if it was streaming (for UX consistency)
+                # Split into words for smooth display
+                words = cached_answer.split()
+                word_chunks = [' '.join(words[i:i+3]) for i in range(0, len(words), 3)]
+
+                for chunk in word_chunks:
                     await self.channel_layer.group_send(
                         self.room_group_name,
                         {
                             'type': 'answer_chunk_message',
-                            'text': chunk,
+                            'text': chunk + ' ',
                             'timestamp': timestamp
                         }
                     )
+                    # Small delay to simulate streaming (for better UX)
+                    await asyncio.sleep(0.05)
+            else:
+                # Generate response with selected provider and model using async client (no thread blocking!)
+                response_stream = await generate_response_async(
+                    self.conversation_history,
+                    self.resume_summary,
+                    self.job_summary,
+                    selected_model,
+                    llm_provider
+                )
+
+                # Process and send streaming response to all clients
+                async for chunk in self._process_openai_stream(response_stream):
+                    if chunk:
+                        full_response += chunk
+                        # Broadcast to all connected clients (web + electron)
+                        await self.channel_layer.group_send(
+                            self.room_group_name,
+                            {
+                                'type': 'answer_chunk_message',
+                                'text': chunk,
+                                'timestamp': timestamp
+                            }
+                        )
+
+                # Cache the answer for future use
+                await asyncio.to_thread(cache_answer, transcribed_text, full_response)
 
             # Add AI response to conversation history
             self.conversation_history.append({
@@ -124,12 +181,22 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             )
     
     async def _process_openai_stream(self, response_stream):
-        """Process OpenAI streaming response and yield content chunks"""
-        for chunk in response_stream:
-            if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
+        """Process LLM streaming response (OpenAI or Ollama) and yield content chunks"""
+        # Handle both sync (OpenAI) and async (Ollama) iterators
+        if hasattr(response_stream, '__aiter__'):
+            # Async iterator (Ollama)
+            async for chunk in response_stream:
+                if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content
+        else:
+            # Sync iterator (OpenAI)
+            for chunk in response_stream:
+                if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content
 
     # Handler for live transcript messages from the group
     async def live_transcript_message(self, event):

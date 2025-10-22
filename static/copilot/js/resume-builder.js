@@ -81,6 +81,22 @@ document.addEventListener('DOMContentLoaded', function() {
         setupUploadArea(jobUploadArea, jobFileInput, jobFiles, 'job');
     }
 
+    // Setup FAQ upload
+    const faqUploadArea = document.getElementById('faqUploadArea');
+    const faqFileInput = document.getElementById('faqFileInput');
+    if (faqUploadArea && faqFileInput) {
+        setupFaqUploadArea(faqUploadArea, faqFileInput);
+    }
+
+    // Load FAQ stats on page load
+    loadFaqStats();
+
+    // Setup clear FAQ button
+    const clearFaqBtn = document.getElementById('clearFaqBtn');
+    if (clearFaqBtn) {
+        clearFaqBtn.addEventListener('click', clearFaqCache);
+    }
+
     // Setup toggle buttons
     toggleButtons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -771,5 +787,151 @@ document.addEventListener('pageChanged', function(e) {
         updateVersionsDisplay();
         loadInterviewDetails();
         updateInterviewsTable();
+        loadFaqStats(); // Load FAQ stats when switching to page
     }
 });
+
+// FAQ Upload Functions
+function setupFaqUploadArea(uploadArea, fileInput) {
+    // Click to browse
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFaqFile(e.target.files[0]);
+        }
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+            handleFaqFile(e.dataTransfer.files[0]);
+        }
+    });
+}
+
+function handleFaqFile(file) {
+    // Validate file type
+    if (!file.name.endsWith('.json')) {
+        alert('Invalid file type. Please upload a .json file.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Show loader
+    showLoader('Uploading FAQ... Validating JSON structure...');
+
+    // Upload to server
+    fetch('/upload-faq/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoader();
+        if (data.success) {
+            console.log('FAQ uploaded successfully:', data);
+
+            // Update FAQ stats display
+            const faqStats = document.getElementById('faqStats');
+            const faqCount = document.getElementById('faqCount');
+            const faqLastUpdate = document.getElementById('faqLastUpdate');
+
+            if (faqStats) faqStats.style.display = 'flex';
+            if (faqCount) faqCount.textContent = data.faq_count;
+            if (faqLastUpdate) {
+                const date = new Date(data.timestamp);
+                faqLastUpdate.textContent = date.toLocaleString();
+            }
+
+            alert(`✅ ${data.message}\n\n📊 Questions loaded: ${data.faq_count}\n🔄 Replaced: ${data.old_count} questions`);
+        } else {
+            throw new Error(data.message || 'Upload failed');
+        }
+    })
+    .catch(error => {
+        hideLoader();
+        console.error('FAQ upload error:', error);
+        alert('❌ Failed to upload FAQ: ' + error.message);
+    });
+}
+
+function loadFaqStats() {
+    // Load FAQ cache statistics from server
+    fetch('/get-faq-stats/')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && !data.cache_empty) {
+            const faqStats = document.getElementById('faqStats');
+            const faqCount = document.getElementById('faqCount');
+
+            if (faqStats) faqStats.style.display = 'flex';
+            if (faqCount) faqCount.textContent = data.total_questions;
+
+            console.log('FAQ Stats loaded:', data);
+        } else {
+            // Cache is empty
+            const faqStats = document.getElementById('faqStats');
+            if (faqStats) faqStats.style.display = 'none';
+        }
+    })
+    .catch(error => {
+        console.log('Could not load FAQ stats:', error);
+    });
+}
+
+function clearFaqCache() {
+    if (!confirm('Are you sure you want to clear the FAQ cache? This will remove all cached questions and answers.')) {
+        return;
+    }
+
+    showLoader('Clearing FAQ cache...');
+
+    fetch('/clear-faq/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoader();
+        if (data.success) {
+            console.log('FAQ cache cleared:', data);
+
+            // Hide FAQ stats
+            const faqStats = document.getElementById('faqStats');
+            const faqCount = document.getElementById('faqCount');
+            const faqLastUpdate = document.getElementById('faqLastUpdate');
+
+            if (faqStats) faqStats.style.display = 'none';
+            if (faqCount) faqCount.textContent = '0';
+            if (faqLastUpdate) faqLastUpdate.textContent = 'Never';
+
+            alert(`✅ ${data.message}`);
+        } else {
+            throw new Error(data.message || 'Clear failed');
+        }
+    })
+    .catch(error => {
+        hideLoader();
+        console.error('FAQ clear error:', error);
+        alert('❌ Failed to clear FAQ cache: ' + error.message);
+    });
+}

@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // ⚡ Performance: Conditional logging (set to false in production)
+    const DEBUG = false;
+    const logger = {
+        log: (...args) => DEBUG && console.log(...args),
+        error: (...args) => console.error(...args), // Always log errors
+        warn: (...args) => DEBUG && console.warn(...args)
+    };
+
     // DOM Elements
     const dualAudioButton = document.getElementById('dualAudioButton');
     const overlayButton = document.getElementById('overlayButton');
@@ -7,8 +15,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const liveTranscriptBox = document.getElementById('liveTranscriptBox');
     const transcriptInput = document.getElementById('transcriptInput');
     const videoPreview = document.getElementById('videoPreview');
-    const modelSelector = document.getElementById('modelSelector');
     const microphoneButton = document.getElementById('microphoneButton');
+
+    // Helper function to update status indicator
+    function updateStatusIndicator(isActive) {
+        const statusDot = document.querySelector('.status-dot');
+        const statusText = document.querySelector('.status-text');
+
+        if (statusDot && statusText) {
+            if (isActive) {
+                statusDot.style.backgroundColor = '#ef4444'; // Red when recording
+                statusText.textContent = 'RECORDING';
+                statusText.style.color = '#ef4444';
+            } else {
+                statusDot.style.backgroundColor = '#10b981'; // Green when ready
+                statusText.textContent = 'READY';
+                statusText.style.color = '#10b981';
+            }
+        }
+    }
 
     // WebSocket connection
     let socket;
@@ -35,12 +60,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const companyPositionElement = document.getElementById('interviewCompanyPosition');
         const dateElement = document.getElementById('interviewDate');
 
-        // Update company and position
+        // Update company and position (header title)
         if (companyPositionElement) {
             if (interviewDetails.company && interviewDetails.position) {
                 companyPositionElement.textContent = `${interviewDetails.company}: ${interviewDetails.position}`;
             } else {
-                companyPositionElement.textContent = 'No interview details set. Configure in Resume Builder.';
+                companyPositionElement.textContent = 'No interview details set';
             }
         }
 
@@ -54,12 +79,99 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             dateElement.textContent = formattedDate;
         }
+
+        // Update active model badge
+        updateActiveModelBadge();
+    }
+
+    // Update active model badge based on Settings
+    function updateActiveModelBadge() {
+        const badge = document.getElementById('activeModelBadge');
+        if (!badge) {
+            logger.warn('activeModelBadge element not found');
+            return;
+        }
+
+        const provider = window.getLLMProvider ? window.getLLMProvider() : 'openai';
+        const model = window.getCurrentModel ? window.getCurrentModel() : 'gpt-4o-mini';
+
+        const iconSpan = badge.querySelector('.model-icon');
+        const textSpan = badge.querySelector('.model-text');
+
+        if (!iconSpan || !textSpan) {
+            logger.warn('Model badge icon or text span not found');
+            return;
+        }
+
+        // Model display names (compact for new design)
+        const modelNames = {
+            // OpenAI models
+            'gpt-4o-mini': 'GPT-4o Mini ⚡',
+            'gpt-4o': 'GPT-4o',
+            'gpt-4-turbo': 'GPT-4 Turbo',
+            'gpt-4': 'GPT-4',
+            'gpt-3.5-turbo': 'GPT-3.5',
+            // Ollama models
+            'gemma3:4b': 'Gemma 4B',
+            'gemma3:1b': 'Gemma 1B',
+            'gemma3:12b': 'Gemma 12B',
+            'llama3:8b': 'Llama 8B',
+            'mistral:7b': 'Mistral 7B'
+        };
+
+        const displayName = modelNames[model] || model;
+        const modelInfo = badge.closest('.model-info');
+
+        if (provider === 'ollama') {
+            iconSpan.textContent = '🦙';
+            textSpan.textContent = `${displayName}`;
+            if (modelInfo) {
+                modelInfo.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            }
+        } else {
+            iconSpan.textContent = '🤖';
+            textSpan.textContent = displayName;
+            if (modelInfo) {
+                modelInfo.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+            }
+        }
+    }
+
+    // Export function for use by other modules
+    window.updateActiveModelBadge = updateActiveModelBadge;
+
+    // Setup clear conversation button
+    function setupClearButton() {
+        const clearBtn = document.getElementById('clearConversationBtn');
+        if (clearBtn) {
+            // Remove any existing listener first
+            clearBtn.replaceWith(clearBtn.cloneNode(true));
+            const newClearBtn = document.getElementById('clearConversationBtn');
+
+            newClearBtn.addEventListener('click', () => {
+                logger.log('Clear button clicked');
+                // Confirm before clearing
+                if (confirm('Tem certeza que deseja limpar o histórico da conversa? Esta ação não pode ser desfeita.')) {
+                    // Clear conversation box except for system message
+                    conversationBox.innerHTML = `
+                        <div class="system-message">
+                            <p>Conversa limpa. Continue sua entrevista!</p>
+                        </div>
+                    `;
+                    logger.log('Conversation cleared by user');
+                }
+            });
+            logger.log('Clear button listener registered');
+        } else {
+            logger.warn('Clear button not found in DOM');
+        }
     }
 
     // Listen for page changes to update interview info
     document.addEventListener('pageChanged', function(e) {
         if (e.detail.page === 'interview') {
             updateInterviewInfo();
+            setupClearButton(); // Setup clear button when page becomes active
         }
     });
 
@@ -71,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // First speaker detected is usually Interviewer (from screen sharing)
             // Second speaker is You (from microphone)
             speakerMap[speakerId] = speakerCount === 0 ? 'Interviewer' : 'You';
-            console.log(`🎯 Speaker ${speakerId} mapped to: ${speakerMap[speakerId]}`);
+            logger.log(`🎯 Speaker ${speakerId} mapped to: ${speakerMap[speakerId]}`);
         }
         return speakerMap[speakerId];
     }
@@ -79,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Combine system audio and microphone audio using Web Audio API
     async function combineMicrophoneAndSystemAudio(systemStream, microphoneStream) {
         try {
-            console.log('🎛️ Combining audio streams...');
+            logger.log('🎛️ Combining audio streams...');
 
             // Create audio context
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -95,10 +207,10 @@ document.addEventListener('DOMContentLoaded', function() {
             systemSource.connect(destination);
             micSource.connect(destination);
 
-            console.log('✅ Audio streams combined successfully');
+            logger.log('✅ Audio streams combined successfully');
             return destination.stream;
         } catch (error) {
-            console.error('❌ Error combining audio streams:', error);
+            logger.error('❌ Error combining audio streams:', error);
             throw error;
         }
     }
@@ -133,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         socket.onopen = () => {
             statusElement.textContent = 'Connected to server';
-            console.log('WebSocket connection established');
+            logger.log('WebSocket connection established');
         };
         
         socket.onmessage = (event) => {
@@ -169,12 +281,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         socket.onclose = () => {
             statusElement.textContent = 'Disconnected from server';
-            console.log('WebSocket connection closed');
+            logger.log('WebSocket connection closed');
         };
         
         socket.onerror = (error) => {
             statusElement.textContent = 'Error: ' + error;
-            console.error('WebSocket error:', error);
+            logger.error('WebSocket error:', error);
         };
     }
     
@@ -193,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add diarization for dual audio mode (speaker separation)
         if (isDualAudioMode) {
             params['diarize'] = 'true';  // Enable speaker diarization
-            console.log('🎙️ Dual audio mode: Diarization enabled');
+            logger.log('🎙️ Dual audio mode: Diarization enabled');
         }
 
         const deepgramUrl = 'wss://api.deepgram.com/v1/listen?' + new URLSearchParams(params);
@@ -206,8 +318,8 @@ document.addEventListener('DOMContentLoaded', function() {
         deepgramSocket.onopen = () => {
             const sourceText = isMicrophoneMode ? 'Microphone Audio' : 'System Audio';
             statusElement.textContent = `Connected - Transcribing ${sourceText}`;
-            console.log('Deepgram WebSocket connection established');
-            console.log('Source type:', sourceText);
+            logger.log('Deepgram WebSocket connection established');
+            logger.log('Source type:', sourceText);
 
             // Enable transcript input
             transcriptInput.disabled = false;
@@ -217,10 +329,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // For screen audio, add event listener here (if not already added)
             if (!isMicrophoneMode) {
-                console.log('Setting up screen audio recording...');
+                logger.log('Setting up screen audio recording...');
                 mediaRecorder.addEventListener('dataavailable', async (event) => {
                     if (event.data.size > 0 && deepgramSocket.readyState == 1) {
-                        console.log('Screen audio data available:', event.data.size, 'bytes');
+                        logger.log('Screen audio data available:', event.data.size, 'bytes');
                         deepgramSocket.send(event.data);
                     }
                 });
@@ -228,25 +340,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Safari may need smaller data chunks
             const timeslice = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? 500 : 1000;
-            console.log('Starting MediaRecorder with timeslice:', timeslice, 'ms');
+            logger.log('Starting MediaRecorder with timeslice:', timeslice, 'ms');
             mediaRecorder.start(timeslice);
         };
         
         deepgramSocket.onmessage = (message) => {
-            console.log('Deepgram message received');
+            logger.log('Deepgram message received');
             const received = JSON.parse(message.data);
-            console.log('Deepgram response:', received);
+            logger.log('Deepgram response:', received);
 
             const alternative = received.channel.alternatives[0];
             const transcript = alternative.transcript;
-            console.log('Transcript:', transcript, 'is_final:', received.is_final);
+            logger.log('Transcript:', transcript, 'is_final:', received.is_final);
 
             // Process speaker information if diarization is enabled
             let speakerLabel = '';
             if (isDualAudioMode && alternative.words && alternative.words.length > 0) {
                 const speakerId = alternative.words[0].speaker;
                 speakerLabel = getSpeakerLabel(speakerId);
-                console.log('Speaker detected:', speakerId, '→', speakerLabel);
+                logger.log('Speaker detected:', speakerId, '→', speakerLabel);
             }
 
             // Clear previous timeout to avoid early submission while still speaking
@@ -254,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (transcript) {
                 if (received.is_final) {
-                    console.log('Final transcript received:', transcript);
+                    logger.log('Final transcript received:', transcript);
 
                     // Add speaker label if dual audio mode with color coding
                     let labeledTranscript;
@@ -284,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Don't auto-send anymore - user will press ENTER when ready
                 } else {
-                    console.log('Interim transcript received:', transcript);
+                    logger.log('Interim transcript received:', transcript);
                     // Real-time interim results
                     interimTranscript = transcript;
 
@@ -303,12 +415,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             } else {
-                console.log('Empty transcript received');
+                logger.log('Empty transcript received');
             }
         };
         
         deepgramSocket.onclose = () => {
-            console.log('Deepgram WebSocket connection closed');
+            logger.log('Deepgram WebSocket connection closed');
             statusElement.textContent = 'Disconnected from transcription service';
 
             // Disable transcript input
@@ -320,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         deepgramSocket.onerror = (error) => {
-            console.error('Deepgram WebSocket error:', error);
+            logger.error('Deepgram WebSocket error:', error);
             statusElement.textContent = 'Transcription Error: ' + error;
         };
     }
@@ -334,28 +446,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Send transcription to server
     function sendTranscriptionToServer(text) {
-        console.log('sendTranscriptionToServer called with text:', text);
-        console.log('socket exists?', !!socket);
-        console.log('socket readyState:', socket ? socket.readyState : 'N/A');
-        console.log('WebSocket.OPEN =', WebSocket.OPEN);
+        logger.log('sendTranscriptionToServer called with text:', text);
+        logger.log('socket exists?', !!socket);
+        logger.log('socket readyState:', socket ? socket.readyState : 'N/A');
+        logger.log('WebSocket.OPEN =', WebSocket.OPEN);
 
-        const selectedModel = modelSelector.value;
-        console.log('Selected model:', selectedModel);
+        // Get LLM settings from Settings page (provider + model)
+        const llmProvider = window.getLLMProvider ? window.getLLMProvider() : 'openai';
+        const currentModel = window.getCurrentModel ? window.getCurrentModel() : 'gpt-4o-mini';
+
+        logger.log('LLM Provider:', llmProvider);
+        logger.log('Current Model:', currentModel);
 
         // Strip HTML tags before sending to server
         const cleanText = stripHtmlTags(text);
-        console.log('Clean text (without HTML):', cleanText);
+        logger.log('Clean text (without HTML):', cleanText);
 
         if (socket && socket.readyState === WebSocket.OPEN) {
-            console.log('Sending to WebSocket...');
+            logger.log('Sending to WebSocket...');
             socket.send(JSON.stringify({
                 type: 'transcription',
                 text: cleanText,
-                model: selectedModel
+                provider: llmProvider,
+                model: currentModel
             }));
-            console.log('Message sent to WebSocket!');
+            logger.log('Message sent to WebSocket!');
         } else {
-            console.error('WebSocket is not open! Cannot send message.');
+            logger.error('WebSocket is not open! Cannot send message.');
         }
     }
     
@@ -418,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const textParagraph = answerDiv.querySelector('p');
             const fullText = textParagraph.textContent;
 
-            console.log('Rendering markdown for answer:', fullText);
+            logger.log('Rendering markdown for answer:', fullText);
 
             // Replace the paragraph with rendered markdown
             const markdownDiv = document.createElement('div');
@@ -426,9 +543,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (typeof marked !== 'undefined') {
                 markdownDiv.innerHTML = marked.parse(fullText);
-                console.log('Markdown rendered successfully');
+                logger.log('Markdown rendered successfully');
             } else {
-                console.error('Marked.js not loaded');
+                logger.error('Marked.js not loaded');
                 markdownDiv.textContent = fullText;
             }
 
@@ -462,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            console.log('🎙️ Starting dual audio capture (System + Microphone)...');
+            logger.log('🎙️ Starting dual audio capture (System + Microphone)...');
 
             // Load interview details from localStorage (saved by Resume Builder)
             const interviewDetails = JSON.parse(localStorage.getItem('interviewDetails') || '{}');
@@ -471,10 +588,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 company: interviewDetails.company || 'Not specified',
                 position: interviewDetails.position || 'Not specified',
                 date: new Date().toISOString().split('T')[0],
-                model: modelSelector.value
+                model: window.getCurrentModel ? window.getCurrentModel() : 'gpt-4o-mini'
             };
             sessionStartTime = Date.now();
-            console.log('📋 Session data captured:', sessionData);
+            logger.log('📋 Session data captured:', sessionData);
 
             // Start timer
             startInterviewTimer();
@@ -506,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            console.log('✅ Both audio sources captured');
+            logger.log('✅ Both audio sources captured');
 
             // Show video preview
             videoPreview.srcObject = stream;
@@ -547,7 +664,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mediaRecorder = new MediaRecorder(audioStream, options);
             } catch (e) {
                 // Fallback without specifying mimeType
-                console.warn('Failed to create MediaRecorder with specified options, trying with defaults', e);
+                logger.warn('Failed to create MediaRecorder with specified options, trying with defaults', e);
                 mediaRecorder = new MediaRecorder(audioStream);
             }
 
@@ -558,12 +675,18 @@ document.addEventListener('DOMContentLoaded', function() {
             initDeepgramSocket();
 
             // Change button to stop mode
-            dualAudioButton.textContent = '⏹️ Parar Entrevista';
+            const btnIcon = dualAudioButton.querySelector('.btn-icon');
+            const btnText = dualAudioButton.querySelector('.btn-text');
+            if (btnIcon) btnIcon.textContent = '⏹️';
+            if (btnText) btnText.textContent = 'Parar';
             dualAudioButton.classList.add('btn-stop');
             microphoneButton.disabled = true;
 
+            // Update status indicator to recording
+            updateStatusIndicator(true);
+
         } catch (error) {
-            console.error('Error accessing dual audio:', error);
+            logger.error('Error accessing dual audio:', error);
             statusElement.textContent = 'Error: ' + error.message;
 
             // Clean up streams if error occurs
@@ -635,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mediaRecorder = new MediaRecorder(audioStream, options);
             } catch (e) {
                 // Fallback without specifying mimeType
-                console.warn('Failed to create MediaRecorder with specified options, trying with defaults', e);
+                logger.warn('Failed to create MediaRecorder with specified options, trying with defaults', e);
                 mediaRecorder = new MediaRecorder(audioStream);
             }
 
@@ -647,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
             microphoneButton.disabled = true;
 
         } catch (error) {
-            console.error('Error accessing screen audio:', error);
+            logger.error('Error accessing screen audio:', error);
             statusElement.textContent = 'Error: ' + error.message;
 
             // Provide more helpful error messages for screen sharing
@@ -720,14 +843,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 avgResponseTime: 0 // TODO: Calculate average response time
             };
 
-            console.log('💾 Saving session data:', session);
+            logger.log('💾 Saving session data:', session);
 
             // Call global function from dashboard.js
             if (typeof window.addSessionToAnalytics === 'function') {
                 window.addSessionToAnalytics(session);
-                console.log('✅ Session saved to analytics');
+                logger.log('✅ Session saved to analytics');
             } else {
-                console.error('❌ addSessionToAnalytics function not found');
+                logger.error('❌ addSessionToAnalytics function not found');
             }
 
             // Reset session data
@@ -788,32 +911,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Reset button to start mode
-        dualAudioButton.textContent = '🎙️ Iniciar Entrevista';
+        const btnIcon = dualAudioButton.querySelector('.btn-icon');
+        const btnText = dualAudioButton.querySelector('.btn-text');
+        if (btnIcon) btnIcon.textContent = '🎙️';
+        if (btnText) btnText.textContent = 'Iniciar';
         dualAudioButton.classList.remove('btn-stop');
         microphoneButton.disabled = false;
+
+        // Update status indicator to ready
+        updateStatusIndicator(false);
     }
     
     // Event listener for ENTER key on transcript input
     transcriptInput.addEventListener('keypress', (e) => {
-        console.log('Key pressed:', e.key);
-        console.log('Input value:', transcriptInput.value);
-        console.log('Current transcript:', currentTranscript);
+        logger.log('Key pressed:', e.key);
+        logger.log('Input value:', transcriptInput.value);
+        logger.log('Current transcript:', currentTranscript);
 
         if (e.key === 'Enter') {
-            console.log('ENTER pressed');
+            logger.log('ENTER pressed');
 
             // Check if user typed something manually
             const manualText = transcriptInput.value.trim();
-            console.log('Manual text:', manualText);
+            logger.log('Manual text:', manualText);
 
             // If there's manual text, send it; otherwise send the live transcript
             const textToSend = manualText || currentTranscript;
-            console.log('Text to send:', textToSend);
+            logger.log('Text to send:', textToSend);
 
             if (textToSend) {
-                console.log('Sending text:', textToSend);
-                console.log('Source:', manualText ? 'Manual input' : 'Live transcript');
-                console.log('WebSocket state:', socket ? socket.readyState : 'socket not initialized');
+                logger.log('Sending text:', textToSend);
+                logger.log('Source:', manualText ? 'Manual input' : 'Live transcript');
+                logger.log('WebSocket state:', socket ? socket.readyState : 'socket not initialized');
 
                 // Send to server
                 sendTranscriptionToServer(textToSend);
@@ -829,7 +958,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Clear current transcript
                 currentTranscript = '';
             } else {
-                console.log('No text to send!');
+                logger.log('No text to send!');
             }
         }
     });
@@ -840,14 +969,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Activate microphone and start capturing
             isMicrophoneMode = true;
             microphoneButton.classList.add('active');
-            console.log('Starting microphone capture...');
+            logger.log('Starting microphone capture...');
 
             await startMicrophoneCapture();
         } else {
             // Deactivate microphone and stop capturing
             isMicrophoneMode = false;
             microphoneButton.classList.remove('active');
-            console.log('Stopping microphone capture...');
+            logger.log('Stopping microphone capture...');
 
             stopCapturing();
         }
@@ -885,8 +1014,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create audio stream
             const audioStream = new MediaStream(audioTracks);
 
-            console.log('Microphone audio stream created:', audioStream);
-            console.log('Audio tracks:', audioTracks);
+            logger.log('Microphone audio stream created:', audioStream);
+            logger.log('Audio tracks:', audioTracks);
 
             // Get supported MIME type
             const mimeType = getSupportedMimeType();
@@ -898,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            console.log('Using MIME type:', mimeType);
+            logger.log('Using MIME type:', mimeType);
 
             // Set options based on supported MIME type
             const options = {
@@ -909,33 +1038,33 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create MediaRecorder with supported options
             try {
                 mediaRecorder = new MediaRecorder(audioStream, options);
-                console.log('MediaRecorder created successfully for microphone');
+                logger.log('MediaRecorder created successfully for microphone');
             } catch (e) {
                 // Fallback without specifying mimeType
-                console.warn('Failed to create MediaRecorder with specified options, trying with defaults', e);
+                logger.warn('Failed to create MediaRecorder with specified options, trying with defaults', e);
                 mediaRecorder = new MediaRecorder(audioStream);
             }
 
             // Add event handler for MediaRecorder data
             mediaRecorder.ondataavailable = (event) => {
-                console.log('MediaRecorder data available:', event.data.size, 'bytes');
+                logger.log('MediaRecorder data available:', event.data.size, 'bytes');
                 if (event.data.size > 0 && deepgramSocket && deepgramSocket.readyState === 1) {
-                    console.log('Sending audio data to Deepgram...');
+                    logger.log('Sending audio data to Deepgram...');
                     deepgramSocket.send(event.data);
                 } else {
-                    console.warn('Cannot send data. Deepgram ready state:', deepgramSocket ? deepgramSocket.readyState : 'null');
+                    logger.warn('Cannot send data. Deepgram ready state:', deepgramSocket ? deepgramSocket.readyState : 'null');
                 }
             };
 
             // Initialize Deepgram for transcription
-            console.log('Initializing Deepgram socket for microphone...');
+            logger.log('Initializing Deepgram socket for microphone...');
             initDeepgramSocket();
 
             // Disable dual audio button when microphone is active
             dualAudioButton.disabled = true;
 
         } catch (error) {
-            console.error('Error accessing microphone:', error);
+            logger.error('Error accessing microphone:', error);
             statusElement.textContent = 'Error: ' + error.message;
 
             // Provide more helpful error messages
@@ -955,29 +1084,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     // Dual Audio button - Capture both system audio and microphone (toggle)
     if (dualAudioButton) {
-        console.log('✅ Dual Audio button found, adding event listener...');
+        logger.log('✅ Dual Audio button found, adding event listener...');
         dualAudioButton.addEventListener('click', () => {
-            console.log('🎙️ Dual Audio button clicked!');
+            logger.log('🎙️ Dual Audio button clicked!');
 
             // If interview is active, stop it
             if (isDualAudioMode) {
-                console.log('⏹️ Stopping interview...');
+                logger.log('⏹️ Stopping interview...');
                 stopCapturing();
             } else {
                 // Otherwise, start the interview
-                console.log('▶️ Starting interview...');
+                logger.log('▶️ Starting interview...');
                 startCapturingDualAudio();
             }
         });
     } else {
-        console.error('❌ Dual Audio button NOT found in DOM!');
+        logger.error('❌ Dual Audio button NOT found in DOM!');
     }
 
     // Overlay button - Open Electron app
     overlayButton.addEventListener('click', async () => {
         // Disable button while launching
         overlayButton.disabled = true;
-        overlayButton.textContent = '🚀 Launching...';
+        const btnIcon = overlayButton.querySelector('.btn-icon');
+        const btnText = overlayButton.querySelector('.btn-text');
+        if (btnIcon) btnIcon.textContent = '🚀';
+        if (btnText) btnText.textContent = 'Loading...';
 
         try {
             const response = await fetch('/launch-overlay/', {
@@ -992,21 +1124,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset button after 3 seconds
                 setTimeout(() => {
                     overlayButton.disabled = false;
-                    overlayButton.textContent = '🖥️ Open Overlay';
+                    if (btnIcon) btnIcon.textContent = '🖥️';
+                    if (btnText) btnText.textContent = 'Overlay';
                 }, 3000);
             } else {
                 // Show error message
                 alert('❌ Error: ' + data.message);
                 overlayButton.disabled = false;
-                overlayButton.textContent = '🖥️ Open Overlay';
+                if (btnIcon) btnIcon.textContent = '🖥️';
+                if (btnText) btnText.textContent = 'Overlay';
             }
         } catch (error) {
-            console.error('Error launching overlay:', error);
+            logger.error('Error launching overlay:', error);
             alert('❌ Failed to launch overlay. Check console for details.');
             overlayButton.disabled = false;
-            overlayButton.textContent = '🖥️ Open Overlay';
+            if (btnIcon) btnIcon.textContent = '🖥️';
+            if (btnText) btnText.textContent = 'Overlay';
         }
     });
+
+    // Initialize clear button on initial load (if on Interview page)
+    setupClearButton();
 
     // Initialize WebSocket connection on page load
     initWebSocket();

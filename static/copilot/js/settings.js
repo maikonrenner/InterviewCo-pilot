@@ -8,6 +8,8 @@ document.addEventListener('pageChanged', function(e) {
     if (e.detail.page === 'settings') {
         loadSettings();
         attachSaveButtonListener();
+        attachProviderToggle();
+        attachOllamaCheckButton();
     }
 });
 
@@ -17,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadSettings();
     }
     attachSaveButtonListener();
+    attachProviderToggle();
+    attachOllamaCheckButton();
 });
 
 /**
@@ -29,13 +33,30 @@ function loadSettings() {
     const openaiApiKey = localStorage.getItem('openai_api_key') || '';
     const deepgramApiKey = localStorage.getItem('deepgram_api_key') || '';
 
-    // Load Application Settings
-    const defaultModel = localStorage.getItem('default_model') || 'gpt-4o';
+    // Load LLM Settings
+    const llmProvider = localStorage.getItem('llm_provider') || 'openai';
+    const openaiModel = localStorage.getItem('openai_model') || 'gpt-4o-mini';
+    const ollamaModel = localStorage.getItem('ollama_model') || 'gemma3:4b';
 
     // Populate form fields
     document.getElementById('openaiApiKey').value = openaiApiKey;
     document.getElementById('deepgramApiKey').value = deepgramApiKey;
-    document.getElementById('defaultModel').value = defaultModel;
+
+    const llmProviderSelect = document.getElementById('llmProvider');
+    const openaiModelSelect = document.getElementById('openaiModel');
+    const ollamaModelSelect = document.getElementById('ollamaModel');
+
+    if (llmProviderSelect) llmProviderSelect.value = llmProvider;
+    if (openaiModelSelect) openaiModelSelect.value = openaiModel;
+    if (ollamaModelSelect) ollamaModelSelect.value = ollamaModel;
+
+    // Show/hide appropriate model selection based on provider
+    toggleProviderFields(llmProvider);
+
+    // Check Ollama status if provider is ollama
+    if (llmProvider === 'ollama') {
+        checkOllamaStatus();
+    }
 
     console.log('Settings loaded successfully');
 }
@@ -57,7 +78,9 @@ function saveSettings() {
         // Get form values
         const openaiApiKey = document.getElementById('openaiApiKey').value.trim();
         const deepgramApiKey = document.getElementById('deepgramApiKey').value.trim();
-        const defaultModel = document.getElementById('defaultModel').value;
+        const llmProvider = document.getElementById('llmProvider').value;
+        const openaiModel = document.getElementById('openaiModel').value;
+        const ollamaModel = document.getElementById('ollamaModel').value;
 
         // Validate API keys format
         if (openaiApiKey && !openaiApiKey.startsWith('sk-')) {
@@ -80,13 +103,15 @@ function saveSettings() {
             localStorage.removeItem('deepgram_api_key');
         }
 
-        localStorage.setItem('default_model', defaultModel);
+        localStorage.setItem('llm_provider', llmProvider);
+        localStorage.setItem('openai_model', openaiModel);
+        localStorage.setItem('ollama_model', ollamaModel);
 
         // Show success feedback on button
         saveBtn.innerHTML = '✅ Saved!';
 
         // Add visual feedback to saved fields
-        const savedFields = ['openaiApiKey', 'deepgramApiKey', 'defaultModel'];
+        const savedFields = ['openaiApiKey', 'deepgramApiKey', 'llmProvider', 'openaiModel', 'ollamaModel'];
         savedFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field) {
@@ -99,15 +124,16 @@ function saveSettings() {
             }
         });
 
-        // Show success message
-        showSettingsStatus('success', '✅ Settings saved successfully! Your API keys and preferences have been stored locally.');
+        // Show success message with provider info
+        const providerName = llmProvider === 'openai' ? 'OpenAI' : 'Ollama';
+        const modelName = llmProvider === 'openai' ? openaiModel : ollamaModel;
+        showSettingsStatus('success', `✅ Settings saved! Using ${providerName} with model ${modelName}`);
 
         console.log('Settings saved successfully');
 
-        // If the model selector exists on interview page, update it
-        const modelSelector = document.getElementById('modelSelector');
-        if (modelSelector) {
-            modelSelector.value = defaultModel;
+        // Update active model badge on interview page if it exists
+        if (typeof updateActiveModelBadge === 'function') {
+            updateActiveModelBadge();
         }
 
         // Reset button after 2 seconds
@@ -221,5 +247,130 @@ function attachSaveButtonListener() {
         console.log('Save button listener attached successfully');
     }
 }
+
+/**
+ * Toggle visibility of provider-specific fields
+ */
+function toggleProviderFields(provider) {
+    const openaiModelGroup = document.getElementById('openaiModelGroup');
+    const ollamaModelGroup = document.getElementById('ollamaModelGroup');
+    const ollamaStatusGroup = document.getElementById('ollamaStatusGroup');
+
+    if (provider === 'openai') {
+        if (openaiModelGroup) openaiModelGroup.style.display = 'block';
+        if (ollamaModelGroup) ollamaModelGroup.style.display = 'none';
+        if (ollamaStatusGroup) ollamaStatusGroup.style.display = 'none';
+    } else {
+        if (openaiModelGroup) openaiModelGroup.style.display = 'none';
+        if (ollamaModelGroup) ollamaModelGroup.style.display = 'block';
+        if (ollamaStatusGroup) ollamaStatusGroup.style.display = 'block';
+    }
+}
+
+/**
+ * Attach provider toggle event listener
+ */
+function attachProviderToggle() {
+    const llmProviderSelect = document.getElementById('llmProvider');
+    if (llmProviderSelect && !llmProviderSelect.hasAttribute('data-listener-attached')) {
+        llmProviderSelect.addEventListener('change', function() {
+            const provider = this.value;
+            toggleProviderFields(provider);
+
+            // Check Ollama status when switching to ollama
+            if (provider === 'ollama') {
+                checkOllamaStatus();
+            }
+        });
+        llmProviderSelect.setAttribute('data-listener-attached', 'true');
+    }
+}
+
+/**
+ * Check Ollama server status
+ */
+async function checkOllamaStatus() {
+    const statusBox = document.getElementById('ollamaStatusBox');
+    const statusText = document.getElementById('ollamaStatusText');
+
+    if (!statusBox || !statusText) return;
+
+    // Set checking state
+    statusBox.className = 'setting-info-box checking';
+    statusText.innerHTML = '<strong>⏳ Checking Ollama connection...</strong>';
+
+    try {
+        const response = await fetch('http://localhost:11434/api/tags', {
+            method: 'GET',
+            timeout: 3000
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const models = data.models || [];
+
+            if (models.length === 0) {
+                statusBox.className = 'setting-info-box warning';
+                statusText.innerHTML = `
+                    <strong>⚠️ Ollama running, but no models found</strong><br>
+                    Install a model with: <code>ollama pull gemma3:4b</code>
+                `;
+            } else {
+                const modelNames = models.map(m => m.name).join(', ');
+                statusBox.className = 'setting-info-box success';
+                statusText.innerHTML = `
+                    <strong>✅ Ollama connected!</strong><br>
+                    Server: <code>http://localhost:11434</code><br>
+                    Models installed: <code>${modelNames}</code>
+                `;
+            }
+        } else {
+            throw new Error('Ollama server not responding');
+        }
+    } catch (error) {
+        statusBox.className = 'setting-info-box error';
+        statusText.innerHTML = `
+            <strong>❌ Ollama not running</strong><br>
+            Please start Ollama with: <code>ollama serve</code><br>
+            <small>Make sure Ollama is installed from <a href="https://ollama.com" target="_blank">ollama.com</a></small>
+        `;
+    }
+}
+
+/**
+ * Attach Ollama check button event listener
+ */
+function attachOllamaCheckButton() {
+    const checkBtn = document.getElementById('checkOllamaBtn');
+    if (checkBtn && !checkBtn.hasAttribute('data-listener-attached')) {
+        checkBtn.addEventListener('click', function() {
+            checkOllamaStatus();
+        });
+        checkBtn.setAttribute('data-listener-attached', 'true');
+    }
+}
+
+/**
+ * Get current LLM provider (for use by other modules)
+ */
+function getLLMProvider() {
+    return localStorage.getItem('llm_provider') || 'openai';
+}
+
+/**
+ * Get current model based on provider (for use by other modules)
+ */
+function getCurrentModel() {
+    const provider = getLLMProvider();
+    if (provider === 'openai') {
+        return localStorage.getItem('openai_model') || 'gpt-4o-mini';
+    } else {
+        return localStorage.getItem('ollama_model') || 'gemma3:4b';
+    }
+}
+
+// Export functions for use in other modules
+window.getLLMProvider = getLLMProvider;
+window.getCurrentModel = getCurrentModel;
 
 console.log('Settings module loaded');

@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 import subprocess
 import os
 import json
-from .utils import get_resume_summary, get_job_description_summary, extract_text_from_pdf, extract_company_and_position, extract_text_from_file
+import asyncio
+from .utils import get_resume_summary, get_job_description_summary, extract_text_from_pdf, extract_company_and_position, extract_text_from_file, generate_response_async, reload_faq_cache, clear_faq_cache, get_faq_cache_stats
 import PyPDF2
 
 def index(request):
@@ -406,4 +407,237 @@ def get_calendar_interviews(request):
             'success': False,
             'message': f'Failed to fetch calendar interviews: {str(e)}',
             'error': str(e)
+        }, status=500)
+
+@csrf_exempt
+def compare_llms(request):
+    """Compare LLMs endpoint - streams response from selected provider/model"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        provider = data.get('provider', 'openai')
+        model = data.get('model', 'gpt-4o-mini')
+        question = data.get('question', '').strip()
+
+        if not question:
+            return JsonResponse({'error': 'Question is required'}, status=400)
+
+        print(f"[Playground] Provider: {provider}, Model: {model}, Question: {question[:50]}...")
+
+        # Get resume and job summaries for context
+        resume_summary = ""
+        job_summary = ""
+
+        try:
+            resume_summary, _, _ = get_resume_summary()
+            if "not found" in resume_summary.lower() or "created" in resume_summary.lower():
+                resume_summary = ""
+        except Exception as e:
+            print(f"[Playground] Resume summary error: {str(e)}")
+            resume_summary = ""
+
+        try:
+            job_summary, _, _ = get_job_description_summary()
+            if "not found" in job_summary.lower() or "created" in job_summary.lower():
+                job_summary = ""
+        except Exception as e:
+            print(f"[Playground] Job summary error: {str(e)}")
+            job_summary = ""
+
+        print(f"[Playground] Context loaded - Resume: {len(resume_summary)} chars, Job: {len(job_summary)} chars")
+
+        # Create streaming generator
+        async def stream_response():
+            try:
+                # Create simple message history with CV/Job context
+                messages = [
+                    {"role": "user", "content": question}
+                ]
+
+                # Generate response using async function with context
+                response_stream = await generate_response_async(
+                    messages=messages,
+                    resume_summary=resume_summary,
+                    job_summary=job_summary,
+                    model=model,
+                    provider=provider
+                )
+
+                # Stream chunks
+                if hasattr(response_stream, '__aiter__'):
+                    # Async iterator (Ollama)
+                    async for chunk in response_stream:
+                        if hasattr(chunk, 'choices') and len(chunk.choices) > 0:
+                            if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
+                                content = chunk.choices[0].delta.content
+                                if content:
+                                    yield content.encode('utf-8')
+                else:
+                    # Sync iterator (OpenAI)
+                    for chunk in response_stream:
+                        if hasattr(chunk, 'choices') and len(chunk.choices) > 0:
+                            if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
+                                content = chunk.choices[0].delta.content
+                                if content:
+                                    yield content.encode('utf-8')
+
+            except Exception as e:
+                error_msg = f"Error generating response: {str(e)}"
+                print(f"[Playground Error] {error_msg}")
+                yield error_msg.encode('utf-8')
+
+        # Convert async generator to sync generator for StreamingHttpResponse
+        def sync_stream():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                async_gen = stream_response()
+                while True:
+                    try:
+                        chunk = loop.run_until_complete(async_gen.__anext__())
+                        yield chunk
+                    except StopAsyncIteration:
+                        break
+            finally:
+                loop.close()
+
+        response = StreamingHttpResponse(
+            sync_stream(),
+            content_type='text/plain; charset=utf-8'
+        )
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'
+        return response
+
+    except Exception as e:
+        print(f"[Playground Error] {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def upload_faq(request):
+    """Upload FAQ JSON file and reload cache"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+    try:
+        if 'file' not in request.FILES:
+            return JsonResponse({'success': False, 'message': 'No file uploaded'}, status=400)
+
+        uploaded_file = request.FILES['file']
+
+        # Validate file extension
+        if not uploaded_file.name.endswith('.json'):
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid file type. Only .json files are allowed'
+            }, status=400)
+
+        # Read and validate JSON structure
+        try:
+            file_content = uploaded_file.read().decode('utf-8')
+            faq_data = json.loads(file_content)
+
+            # Validate structure
+            if 'faqs' not in faq_data:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid JSON structure. Expected {"faqs": [{"question": "...", "answer": "..."}]}'
+                }, status=400)
+
+            faqs = faq_data.get('faqs', [])
+            if not isinstance(faqs, list) or len(faqs) == 0:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'FAQ list is empty or invalid'
+                }, status=400)
+
+            # Validate each FAQ entry
+            for i, faq in enumerate(faqs):
+                if not isinstance(faq, dict) or 'question' not in faq or 'answer' not in faq:
+                    return JsonResponse({
+                        'success': False,
+                        'message': f'Invalid FAQ entry at index {i}. Each entry must have "question" and "answer" fields'
+                    }, status=400)
+
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Invalid JSON format: {str(e)}'
+            }, status=400)
+
+        # Save to faq_data_eng.json
+        faq_file_path = os.path.join(settings.BASE_DIR, 'faq_data_eng.json')
+
+        with open(faq_file_path, 'w', encoding='utf-8') as f:
+            f.write(file_content)
+
+        print(f'[FAQ Upload] Saved {len(faqs)} FAQ entries to file')
+
+        # Reload cache
+        reload_result = reload_faq_cache()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'FAQ uploaded successfully! {reload_result["new_count"]} questions loaded into cache',
+            'faq_count': reload_result['new_count'],
+            'old_count': reload_result['old_count'],
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Upload failed: {str(e)}'
+        }, status=500)
+
+@csrf_exempt
+def get_faq_stats(request):
+    """Get FAQ cache statistics"""
+    try:
+        stats = get_faq_cache_stats()
+
+        if isinstance(stats, str):
+            # Cache is empty
+            return JsonResponse({
+                'success': True,
+                'cache_empty': True,
+                'message': stats
+            })
+
+        return JsonResponse({
+            'success': True,
+            'cache_empty': False,
+            'total_questions': stats['total_questions'],
+            'total_hits': stats['total_hits'],
+            'most_asked_question': stats['most_asked_question'],
+            'most_asked_hits': stats['most_asked_hits']
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to get stats: {str(e)}'
+        }, status=500)
+
+@csrf_exempt
+def clear_faq(request):
+    """Clear FAQ cache"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+    try:
+        count = clear_faq_cache()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'FAQ cache cleared! {count} entries removed',
+            'cleared_count': count
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to clear cache: {str(e)}'
         }, status=500)
