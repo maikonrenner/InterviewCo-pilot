@@ -14,22 +14,78 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 
 ### ✨ Key Features
 
+#### 🎨 **Modern UI & UX**
+- **✨ NEW: 64px Compact Header**: Elegant gradient design with animated status indicators, model badges, and pill-style buttons
+- **🎯 Enhanced Conversation UI**: Clear visual separation between questions (orange) and answers (blue) with hover effects
+- **🗑️ Clear Chat Button**: One-click conversation history clearing with confirmation
+- **📱 Responsive Design**: Mobile-optimized header that adapts to smaller screens
+- **🎨 Modern Animations**: Smooth transitions, hover effects, and pulsing status indicators
+
+#### 🎤 **Audio & Transcription**
 - **🎤 Live Transcription**: Real-time speech-to-text using Deepgram Nova-3 API
 - **🎙️ Dual Audio Capture**: Simultaneously captures system audio (screen sharing) and microphone with automatic speaker identification
-- **👥 Speaker Diarization**: Automatically distinguishes between Interviewer and Candidate voices with color-coded labels
-- **🖥️ Electron Overlay**: Transparent, always-on-top overlay window for seamless interview experience
+- **👥 Speaker Diarization**: Automatically distinguishes between Interviewer and Candidate voices with color-coded labels (🟥 Red for Interviewer, 🟩 Green for You)
+- **🌐 Multi-language Support**: Automatic multi-language detection (English, Portuguese, French, Spanish, German, Hindi, Russian, Japanese, Italian, Dutch)
+
+#### 🤖 **AI Models & Intelligence**
 - **🤖 AI-Powered Responses**: Context-aware answers using GPT-4/GPT-4o-mini or local Ollama models
-- **🏠 Local LLM Support**: Run completely offline with Ollama (llama3.2, qwen2.5, deepseek-r1, etc.)
-- **⚡ FAQ Cache System**: Instant responses for frequently asked questions with hit tracking
+- **🏠 Local LLM Support**: Run completely offline with Ollama (Gemma, Llama, Mistral models)
+- **🎮 Playground Mode**: Side-by-side model comparison (OpenAI vs Ollama) with real-time performance metrics
+- **⚡ FAQ Cache System**: Instant responses (<50ms) for frequently asked questions with smart matching
 - **🧠 Smart Question Extraction**: Automatically extracts clean questions from long, cluttered transcripts
-- **📄 Resume Analysis**: Detailed CV parsing and summarization for personalized responses
-- **🌐 Multi-language Support**: Automatic multi-language detection (English, Portuguese, French, Spanish, German, etc.)
 - **🔄 Real-time Streaming**: WebSocket-based streaming for instant response delivery
+
+#### 📊 **Analytics & Management**
+- **📊 Dashboard Analytics**: Interactive charts (activity, languages, questions, model performance) with 7-day history
+- **📅 Google Calendar Integration**: Color-coded calendar with automatic interview detection (60-day range)
+- **⚙️ Settings Management**: Browser-based configuration with visual feedback and model switching
+- **📝 AI Resume Builder**: Drag & drop upload with AI-powered summaries and version history
+
+#### 🛠️ **Developer Features**
+- **🖥️ Electron Overlay**: Transparent, always-on-top overlay window for seamless interview experience
+- **📄 Resume Analysis**: Detailed CV parsing and summarization for personalized responses
 - **🎨 Modern UI**: Clean, responsive interface with live transcript mirroring
-- **📊 Dashboard Analytics**: Interactive charts and metrics to track interview performance
-- **📅 Google Calendar Integration**: Sync and view upcoming/past interviews from Google Calendar
-- **⚙️ Settings Management**: Browser-based configuration for API keys (OpenAI and Deepgram)
-- **📝 AI Resume Builder**: Upload and analyze resumes/job descriptions with AI-powered summaries
+- **🔐 Secure Storage**: API keys stored in browser localStorage (never committed to git)
+
+### 🆕 Recent Updates (v2.0)
+
+**Major UI/UX Overhaul:**
+- ✨ **Modern 64px Compact Header**: New elegant design with gradient background, rounded corners, and soft shadows
+  - Left: Animated status dot (green = ready, red = recording), model badge with gradient, date display
+  - Center: Interview title/subtitle with ellipsis overflow
+  - Right: Timer with icon, pill-style action buttons (Overlay, Iniciar/Parar)
+  - 50% less vertical space, 100% more elegant
+
+- 🎨 **Enhanced Conversation Interface**:
+  - Clear button (🗑️) with confirmation dialog
+  - Distinct color-coded borders: Questions (orange, 4px left border), Answers (blue, 4px left border)
+  - Hover effects with elevation animation
+  - Better spacing (20px between messages) and shadows
+
+- 🎮 **New Playground Page**: Compare LLM responses side-by-side
+  - OpenAI vs Ollama head-to-head comparison
+  - Real-time response streaming
+  - Performance metrics (response time, tokens)
+  - Easy provider/model switching
+
+- ⚙️ **Settings Page Enhancements**:
+  - Visual feedback (green borders on save)
+  - Model switching with instant badge updates
+  - Ollama connection checker
+  - Modern toggle design
+
+- 📊 **Dashboard Improvements**:
+  - Session tracking with localStorage persistence
+  - Interview details visualization
+  - Compact calendar integration
+  - FAQ statistics
+
+**Performance & Technical:**
+- SPA-aware event handlers for seamless navigation
+- Dynamic model badge updates (blue for OpenAI, green for Ollama)
+- Status indicator state management (READY → RECORDING)
+- Improved error handling and logging
+- CSS organization with clear commented sections
 
 ### 🏗️ Architecture
 
@@ -115,9 +171,9 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 ```
 ai-interview-copilot/
 ├── copilot/                    # Main Django app
-│   ├── consumers.py           # WebSocket consumer
-│   ├── utils.py               # Helper functions (question extraction, response generation)
-│   ├── views.py               # HTTP views
+│   ├── consumers.py           # WebSocket consumer (live transcription broadcast)
+│   ├── utils.py               # Helper functions (question extraction, response generation, FAQ cache)
+│   ├── views.py               # HTTP views (summaries, calendar, FAQ upload)
 │   └── urls.py                # URL routing
 ├── electron/                   # Electron overlay app
 │   ├── main.js                # Electron main process
@@ -125,18 +181,31 @@ ai-interview-copilot/
 │   ├── css/style.css          # Overlay styles
 │   └── js/renderer.js         # Renderer process
 ├── static/copilot/            # Static files
-│   ├── css/style.css          # Web interface styles
-│   ├── js/interview.js        # Web interface logic
+│   ├── css/style.css          # Web interface styles (modern 64px header, conversation UI)
+│   ├── js/
+│   │   ├── interview.js       # Interview page logic (dual audio, transcription, WebSocket)
+│   │   ├── dashboard.js       # Dashboard analytics (charts, metrics, session tracking)
+│   │   ├── resume-builder.js  # Resume upload & AI summaries
+│   │   ├── playground.js      # Model comparison (OpenAI vs Ollama)
+│   │   ├── settings.js        # Settings management (API keys, model selection)
+│   │   ├── calendar.js        # Google Calendar integration
+│   │   └── navigation.js      # SPA navigation system
 │   └── images/                # Assets
 ├── templates/                  # Django templates
-│   └── index.html             # Main interview interface
+│   └── index.html             # Main SPA (all pages in one file)
 ├── resume/                     # Resume PDFs (gitignored)
-├── job_description/           # Job description PDFs (gitignored)
+├── job_description/           # Job description files (gitignored)
+│   └── job_description.txt    # Processed job description text
 ├── interview_copilot/         # Django project settings
 │   ├── settings.py            # Project configuration
-│   ├── asgi.py                # ASGI configuration
+│   ├── asgi.py                # ASGI configuration (Daphne)
 │   └── routing.py             # WebSocket routing
+├── faq_data_eng.json          # Example FAQ knowledge base (Data Engineering)
+├── .env.example               # Environment variables template
+├── OLLAMA_SETUP.md           # Complete Ollama installation guide
+├── TEST_OLLAMA_INTEGRATION.md # Ollama integration testing guide
 ├── manage.py                  # Django management script
+├── requirements.txt           # Python dependencies
 ├── .gitignore                 # Git ignore rules
 └── README.md                  # This file
 ```
@@ -445,6 +514,57 @@ Run the entire system offline with local models:
 - **Model Options**: llama3.2 (fast), qwen2.5:14b (balanced), deepseek-r1:14b (quality)
 - **Easy Switch**: Toggle between OpenAI and Ollama in settings
 - **Complete Guide**: See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for installation
+
+#### 11. Playground - Model Comparison
+
+Compare different LLM responses side-by-side in real-time:
+- **Dual Panel Interface**: Left panel (LLM 1) vs Right panel (LLM 2)
+- **Flexible Selection**: Choose any combination:
+  - OpenAI GPT-4o vs Ollama Gemma 3:4b
+  - GPT-4o-mini vs GPT-4
+  - Llama 3:8b vs Mistral 7b
+- **Centralized Question Input**: Ask once, get answers from both models simultaneously
+- **Real-time Streaming**: Watch responses generate character-by-character
+- **Performance Metrics**: Compare response times and quality
+- **Easy Provider Switching**: Toggle between OpenAI and Ollama per panel
+- **Perfect for**: Testing prompts, evaluating models, choosing the best LLM for your needs
+
+**How to Access**: Click "🎮 Playground" in the sidebar navigation
+
+#### 12. Modern Header Design
+
+The new 64px compact header provides maximum screen space while maintaining full functionality:
+- **Animated Status Indicator**: Pulsing green dot (READY) → Solid red dot (RECORDING)
+- **Dynamic Model Badge**:
+  - Blue gradient for OpenAI models (🤖)
+  - Green gradient for Ollama models (🦙)
+  - Auto-updates when switching in Settings
+- **Timer Display**: Gray background box with icon (⏱) and tabular numbers
+- **Pill-Style Buttons**:
+  - Purple gradient "Overlay" button
+  - Green gradient "Iniciar" button (changes to red "Parar" when recording)
+  - Smooth hover effects with elevation
+- **Responsive Behavior**: On screens <1024px:
+  - Date hidden
+  - Button text hidden (icons only)
+  - Reduced spacing
+  - Maintains 64px height
+
+#### 13. Enhanced Conversation UI
+
+Improved visual organization for better readability:
+- **Clear Button**: Red "🗑️ Clear" button in conversation header
+  - Confirmation dialog before clearing
+  - Preserves conversation system message
+- **Color-Coded Messages**:
+  - 🟧 **Questions**: Orange background (#fff3e0) with orange left border (#ff9800)
+  - 🔵 **Answers**: Blue background (#e3f2fd) with blue left border (#2196F3)
+- **Interactive Elements**:
+  - Hover: Messages elevate with shadow increase
+  - Smooth transitions (0.3s)
+  - Rounded corners (10px)
+- **Better Spacing**: 20px between messages (was 15px)
+- **Shadows**: Subtle depth with layered shadows
 
 ### 🔐 Security Notes
 
