@@ -114,17 +114,29 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             )
 
             # Check FAQ cache first for instant response
-            cached_answer = await asyncio.to_thread(get_cached_answer, transcribed_text)
+            cached_result = await asyncio.to_thread(get_cached_answer, transcribed_text)
 
             full_response = ""
+            is_from_cache = False
 
-            if cached_answer:
+            if cached_result:
                 # Use cached answer (INSTANT response!)
-                full_response = cached_answer
+                full_response = cached_result['answer']
+                is_from_cache = True
+
+                # Send cache indicator FIRST
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'cache_indicator_message',
+                        'cached': True,
+                        'hit_count': cached_result.get('hit_count', 0)
+                    }
+                )
 
                 # Send cached answer as if it was streaming (for UX consistency)
                 # Split into words for smooth display
-                words = cached_answer.split()
+                words = cached_result['answer'].split()
                 word_chunks = [' '.join(words[i:i+3]) for i in range(0, len(words), 3)]
 
                 for chunk in word_chunks:
@@ -139,6 +151,17 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                     # Small delay to simulate streaming (for better UX)
                     await asyncio.sleep(0.05)
             else:
+                # Send LLM indicator FIRST
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'cache_indicator_message',
+                        'cached': False,
+                        'model': selected_model,
+                        'provider': llm_provider
+                    }
+                )
+
                 # Generate response with selected provider and model using async client (no thread blocking!)
                 response_stream = await generate_response_async(
                     self.conversation_history,
@@ -231,4 +254,15 @@ class InterviewConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'answer_complete',
             'timestamp': event['timestamp']
+        }))
+
+    # Handler for cache indicator messages
+    async def cache_indicator_message(self, event):
+        """Send cache indicator to WebSocket"""
+        await self.send(text_data=json.dumps({
+            'type': 'cache_indicator',
+            'cached': event['cached'],
+            'hit_count': event.get('hit_count', 0),
+            'model': event.get('model', ''),
+            'provider': event.get('provider', '')
         }))

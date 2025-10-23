@@ -54,7 +54,10 @@ def get_question_hash(question):
     return hashlib.md5(normalized.encode()).hexdigest()
 
 def get_cached_answer(question):
-    """Get cached answer for a question if it exists."""
+    """
+    Get cached answer for a question if it exists.
+    Returns dict with 'answer' and 'cached' flag, or None if not found.
+    """
     question_hash = get_question_hash(question)
 
     if question_hash in _faq_cache:
@@ -62,7 +65,11 @@ def get_cached_answer(question):
         # Update hit count
         cached_entry['hit_count'] += 1
         print(f"[FAQ Cache HIT] Question: '{question[:50]}...' (hits: {cached_entry['hit_count']})")
-        return cached_entry['answer']
+        return {
+            'answer': cached_entry['answer'],
+            'cached': True,
+            'hit_count': cached_entry['hit_count']
+        }
 
     print(f"[FAQ Cache MISS] Question: '{question[:50]}...'")
     return None

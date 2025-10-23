@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let sessionData = {}; // Store session data (company, position, date)
     let timerInterval = null; // Timer interval for interview duration
     let pendingQuestion = null; // Store pending question to display after answer starts
+    let pendingBadge = null; // Store badge info to display when answer starts
 
     // Update interview info when page is opened
     function updateInterviewInfo() {
@@ -275,6 +276,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'answer_complete':
                     // Mark the current answer as complete
                     completeCurrentAnswer();
+                    break;
+
+                case 'cache_indicator':
+                    // Store badge info to display when answer starts
+                    pendingBadge = {
+                        cached: data.cached,
+                        hitCount: data.hit_count,
+                        model: data.model,
+                        provider: data.provider
+                    };
+                    logger.log('Badge info stored:', pendingBadge);
                     break;
             }
         };
@@ -520,6 +532,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!answerDiv) {
             addMessageToConversation('answer', text, timestamp);
+
+            // Add badge if we have pending badge info
+            if (pendingBadge) {
+                displayCacheIndicator(pendingBadge.cached, pendingBadge.hitCount, pendingBadge.model, pendingBadge.provider);
+                pendingBadge = null; // Clear after adding
+            }
         } else {
             const textParagraph = answerDiv.querySelector('p');
             textParagraph.textContent += text;
@@ -552,6 +570,42 @@ document.addEventListener('DOMContentLoaded', function() {
             answerDiv.replaceChild(markdownDiv, textParagraph);
             answerDiv.removeAttribute('id');
         }
+    }
+
+    // Display cache/LLM indicator badge
+    function displayCacheIndicator(isCached, hitCount, model, provider) {
+        const answerDiv = document.getElementById('current-answer');
+        if (!answerDiv) {
+            logger.warn('No current answer div found for cache indicator');
+            return;
+        }
+
+        // Remove existing badge if present
+        const existingBadge = answerDiv.querySelector('.response-source-badge');
+        if (existingBadge) {
+            existingBadge.remove();
+        }
+
+        // Create badge element
+        const badge = document.createElement('div');
+        badge.className = 'response-source-badge';
+
+        if (isCached) {
+            // Cache badge (green)
+            badge.classList.add('cache-badge');
+            badge.innerHTML = `<span class="badge-icon">⚡</span> <span class="badge-text">CACHE</span> <span class="badge-count">(${hitCount}x)</span>`;
+        } else {
+            // LLM badge (blue)
+            badge.classList.add('llm-badge');
+            const modelDisplay = model || 'GPT-4o Mini';
+            const providerIcon = provider === 'ollama' ? '🦙' : '🤖';
+            badge.innerHTML = `<span class="badge-icon">${providerIcon}</span> <span class="badge-text">${modelDisplay}</span>`;
+        }
+
+        // Insert badge at the top of the answer div
+        answerDiv.insertBefore(badge, answerDiv.firstChild);
+
+        logger.log(`Cache indicator displayed: ${isCached ? 'CACHE' : 'LLM'}`);
     }
     
     // Get supported MIME type for recording

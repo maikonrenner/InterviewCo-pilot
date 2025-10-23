@@ -602,7 +602,7 @@ main {
 .question, .answer {
     padding: 18px;
     border-radius: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     position: relative;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     clear: both;
@@ -623,6 +623,19 @@ main {
     line-height: 1.6;
     margin-left: 0;
     margin-right: auto;
+    margin-bottom: 30px;
+}
+
+/* Add visual separator after each question */
+.question::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #e1e8ed 50%, transparent 100%);
 }
 
 .answer {
@@ -633,6 +646,61 @@ main {
     font-size: 17px;
     margin-left: auto;
     margin-right: 0;
+    margin-bottom: 12px;
+}
+
+/* Response Source Badge - Cache/LLM Indicator */
+.response-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    animation: badge-appear 0.3s ease-out;
+}
+
+@keyframes badge-appear {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cache-badge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.llm-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.badge-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.badge-text {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.badge-count {
+    font-size: 10px;
+    opacity: 0.9;
+    font-weight: 600;
+    line-height: 1;
 }
 
 /* Markdown content styles */
