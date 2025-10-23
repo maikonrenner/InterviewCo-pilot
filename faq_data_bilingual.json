@@ -1,0 +1,620 @@
+{
+  "faqs": [
+    {
+      "question": "What is ETL?",
+      "answer": "ETL stands for Extract, Transform, Load. It's a data integration process that extracts data from various sources, transforms it into a usable format, and loads it into a target database or data warehouse."
+    },
+    {
+      "question": "Qu'est-ce que l'ETL?",
+      "answer": "ETL signifie Extract, Transform, Load (Extraire, Transformer, Charger). C'est un processus d'intégration de données qui extrait les données de diverses sources, les transforme en un format utilisable et les charge dans une base de données ou un entrepôt de données cible."
+    },
+    {
+      "question": "What is ELT and how does it differ from ETL?",
+      "answer": "ELT stands for Extract, Load, Transform. Unlike ETL, ELT loads raw data directly into the target system first, then performs transformations. This approach leverages the processing power of modern data warehouses like Snowflake and is more suitable for big data."
+    },
+    {
+      "question": "Qu'est-ce que l'ELT et en quoi diffère-t-il de l'ETL?",
+      "answer": "ELT signifie Extract, Load, Transform (Extraire, Charger, Transformer). Contrairement à l'ETL, l'ELT charge d'abord les données brutes directement dans le système cible, puis effectue les transformations. Cette approche exploite la puissance de traitement des entrepôts de données modernes comme Snowflake et convient mieux au big data."
+    },
+    {
+      "question": "What is a Data Lake?",
+      "answer": "A Data Lake is a centralized repository that stores structured, semi-structured, and unstructured data at any scale. It allows you to store data in its raw format without having to first structure it, enabling various analytics including big data processing, real-time analytics, and machine learning."
+    },
+    {
+      "question": "Qu'est-ce qu'un Data Lake?",
+      "answer": "Un Data Lake est un référentiel centralisé qui stocke des données structurées, semi-structurées et non structurées à n'importe quelle échelle. Il permet de stocker les données dans leur format brut sans avoir à les structurer au préalable, permettant diverses analyses incluant le traitement de big data, l'analyse en temps réel et l'apprentissage automatique."
+    },
+    {
+      "question": "What is the difference between a Data Lake and a Data Warehouse?",
+      "answer": "Data Lakes store raw, unstructured data in native formats for future processing, while Data Warehouses store processed, structured data optimized for querying. Data Lakes are schema-on-read (flexible), whereas Data Warehouses are schema-on-write (rigid structure). Data Lakes support all data types, while Data Warehouses typically handle structured data."
+    },
+    {
+      "question": "Quelle est la différence entre un Data Lake et un Data Warehouse?",
+      "answer": "Les Data Lakes stockent des données brutes et non structurées dans des formats natifs pour un traitement ultérieur, tandis que les Data Warehouses stockent des données traitées et structurées optimisées pour les requêtes. Les Data Lakes sont schema-on-read (flexibles), alors que les Data Warehouses sont schema-on-write (structure rigide). Les Data Lakes supportent tous les types de données, tandis que les Data Warehouses gèrent généralement des données structurées."
+    },
+    {
+      "question": "What is Databricks?",
+      "answer": "Databricks is a unified analytics platform built on Apache Spark. It provides collaborative notebooks, automated cluster management, production pipelines, and integrates with cloud storage. It's designed to simplify big data processing and machine learning workflows."
+    },
+    {
+      "question": "Qu'est-ce que Databricks?",
+      "answer": "Databricks est une plateforme d'analyse unifiée construite sur Apache Spark. Elle fournit des notebooks collaboratifs, une gestion automatisée des clusters, des pipelines de production et s'intègre avec le stockage cloud. Elle est conçue pour simplifier le traitement du big data et les flux de travail d'apprentissage automatique."
+    },
+    {
+      "question": "What is Delta Lake in Databricks?",
+      "answer": "Delta Lake is an open-source storage layer that brings ACID transactions to Apache Spark and big data workloads. It provides time travel (data versioning), schema enforcement, unified batch and streaming, and improves data reliability and performance in data lakes."
+    },
+    {
+      "question": "Qu'est-ce que Delta Lake dans Databricks?",
+      "answer": "Delta Lake est une couche de stockage open-source qui apporte les transactions ACID à Apache Spark et aux charges de travail big data. Il fournit le time travel (versioning des données), l'application de schéma, le traitement unifié batch et streaming, et améliore la fiabilité et la performance des données dans les data lakes."
+    },
+    {
+      "question": "What is Snowflake?",
+      "answer": "Snowflake is a cloud-based data warehouse platform that separates compute and storage, enabling independent scaling. It supports multi-cloud deployment (AWS, Azure, GCP), provides automatic scaling, supports semi-structured data natively, and offers pay-per-use pricing."
+    },
+    {
+      "question": "Qu'est-ce que Snowflake?",
+      "answer": "Snowflake est une plateforme d'entrepôt de données basée sur le cloud qui sépare le calcul et le stockage, permettant une mise à l'échelle indépendante. Elle supporte le déploiement multi-cloud (AWS, Azure, GCP), fournit une mise à l'échelle automatique, supporte nativement les données semi-structurées et offre une tarification à l'utilisation."
+    },
+    {
+      "question": "What are Snowflake Virtual Warehouses?",
+      "answer": "Virtual Warehouses in Snowflake are clusters of compute resources that execute queries. They can be started, stopped, and scaled independently without affecting data storage. Multiple virtual warehouses can run concurrently without impacting each other's performance."
+    },
+    {
+      "question": "Qu'est-ce que les Virtual Warehouses Snowflake?",
+      "answer": "Les Virtual Warehouses dans Snowflake sont des clusters de ressources de calcul qui exécutent les requêtes. Ils peuvent être démarrés, arrêtés et mis à l'échelle indépendamment sans affecter le stockage des données. Plusieurs virtual warehouses peuvent fonctionner simultanément sans impacter les performances les uns des autres."
+    },
+    {
+      "question": "What is Power BI?",
+      "answer": "Power BI is Microsoft's business intelligence platform that enables users to visualize data, create interactive reports and dashboards, and share insights across organizations. It includes Power BI Desktop (authoring), Power BI Service (cloud sharing), and Power BI Mobile."
+    },
+    {
+      "question": "Qu'est-ce que Power BI?",
+      "answer": "Power BI est la plateforme d'intelligence d'affaires de Microsoft qui permet aux utilisateurs de visualiser les données, créer des rapports et tableaux de bord interactifs, et partager des insights à travers les organisations. Elle inclut Power BI Desktop (création), Power BI Service (partage cloud) et Power BI Mobile."
+    },
+    {
+      "question": "What is DAX in Power BI?",
+      "answer": "DAX (Data Analysis Expressions) is a formula language used in Power BI for creating custom calculations, measures, and calculated columns. It includes functions for aggregation, filtering, time intelligence, and statistical analysis."
+    },
+    {
+      "question": "Qu'est-ce que DAX dans Power BI?",
+      "answer": "DAX (Data Analysis Expressions) est un langage de formules utilisé dans Power BI pour créer des calculs personnalisés, des mesures et des colonnes calculées. Il inclut des fonctions pour l'agrégation, le filtrage, l'intelligence temporelle et l'analyse statistique."
+    },
+    {
+      "question": "What is Power Query in Power BI?",
+      "answer": "Power Query is the data transformation and preparation engine in Power BI. It provides a graphical interface to clean, reshape, and combine data from multiple sources before loading it into the data model. It uses M language behind the scenes."
+    },
+    {
+      "question": "Qu'est-ce que Power Query dans Power BI?",
+      "answer": "Power Query est le moteur de transformation et de préparation des données dans Power BI. Il fournit une interface graphique pour nettoyer, remodeler et combiner des données de multiples sources avant de les charger dans le modèle de données. Il utilise le langage M en arrière-plan."
+    },
+    {
+      "question": "What are the different SQL JOIN types?",
+      "answer": "INNER JOIN returns matching rows from both tables. LEFT JOIN returns all rows from left table and matching rows from right. RIGHT JOIN returns all rows from right table and matching rows from left. FULL OUTER JOIN returns all rows from both tables. CROSS JOIN returns Cartesian product of both tables."
+    },
+    {
+      "question": "Quels sont les différents types de JOIN SQL?",
+      "answer": "INNER JOIN retourne les lignes correspondantes des deux tables. LEFT JOIN retourne toutes les lignes de la table de gauche et les lignes correspondantes de droite. RIGHT JOIN retourne toutes les lignes de la table de droite et les lignes correspondantes de gauche. FULL OUTER JOIN retourne toutes les lignes des deux tables. CROSS JOIN retourne le produit cartésien des deux tables."
+    },
+    {
+      "question": "What is normalization in databases?",
+      "answer": "Normalization is the process of organizing database tables to reduce redundancy and dependency. It involves dividing large tables into smaller ones and defining relationships. Common forms are 1NF (atomic values), 2NF (no partial dependencies), 3NF (no transitive dependencies), and BCNF (Boyce-Codd Normal Form)."
+    },
+    {
+      "question": "Qu'est-ce que la normalisation dans les bases de données?",
+      "answer": "La normalisation est le processus d'organisation des tables de base de données pour réduire la redondance et les dépendances. Elle implique de diviser les grandes tables en plus petites et de définir les relations. Les formes courantes sont 1NF (valeurs atomiques), 2NF (pas de dépendances partielles), 3NF (pas de dépendances transitives) et BCNF (Forme Normale de Boyce-Codd)."
+    },
+    {
+      "question": "What is denormalization and when should it be used?",
+      "answer": "Denormalization is intentionally introducing redundancy into database design to improve read performance. It's used in data warehouses, OLAP systems, and when query performance is more critical than storage space. It reduces the need for complex joins but increases storage and update complexity."
+    },
+    {
+      "question": "Qu'est-ce que la dénormalisation et quand doit-elle être utilisée?",
+      "answer": "La dénormalisation consiste à introduire intentionnellement de la redondance dans la conception de base de données pour améliorer les performances de lecture. Elle est utilisée dans les entrepôts de données, les systèmes OLAP et lorsque la performance des requêtes est plus critique que l'espace de stockage. Elle réduit le besoin de jointures complexes mais augmente le stockage et la complexité de mise à jour."
+    },
+    {
+      "question": "What is a primary key?",
+      "answer": "A primary key is a unique identifier for each record in a database table. It must contain unique values, cannot contain NULL values, and each table can have only one primary key. It's used to establish relationships between tables."
+    },
+    {
+      "question": "Qu'est-ce qu'une clé primaire?",
+      "answer": "Une clé primaire est un identifiant unique pour chaque enregistrement dans une table de base de données. Elle doit contenir des valeurs uniques, ne peut pas contenir de valeurs NULL, et chaque table ne peut avoir qu'une seule clé primaire. Elle est utilisée pour établir des relations entre les tables."
+    },
+    {
+      "question": "What is a foreign key?",
+      "answer": "A foreign key is a column or set of columns in one table that references the primary key in another table. It establishes and enforces a link between the data in two tables, ensuring referential integrity by preventing actions that would destroy links between tables."
+    },
+    {
+      "question": "Qu'est-ce qu'une clé étrangère?",
+      "answer": "Une clé étrangère est une colonne ou un ensemble de colonnes dans une table qui fait référence à la clé primaire d'une autre table. Elle établit et applique un lien entre les données de deux tables, assurant l'intégrité référentielle en empêchant les actions qui détruiraient les liens entre les tables."
+    },
+    {
+      "question": "What is indexing in databases?",
+      "answer": "Indexing is a data structure technique to efficiently retrieve records from database tables. It creates a separate structure (B-tree, hash, bitmap) that stores column values and pointers to rows. Indexes speed up SELECT queries but slow down INSERT, UPDATE, and DELETE operations."
+    },
+    {
+      "question": "Qu'est-ce que l'indexation dans les bases de données?",
+      "answer": "L'indexation est une technique de structure de données pour récupérer efficacement les enregistrements des tables de base de données. Elle crée une structure séparée (B-tree, hash, bitmap) qui stocke les valeurs de colonnes et les pointeurs vers les lignes. Les index accélèrent les requêtes SELECT mais ralentissent les opérations INSERT, UPDATE et DELETE."
+    },
+    {
+      "question": "What is Apache Spark?",
+      "answer": "Apache Spark is a unified analytics engine for large-scale data processing. It provides high-level APIs in Java, Scala, Python, and R, and supports SQL queries, streaming data, machine learning, and graph processing. It's much faster than MapReduce due to in-memory computation."
+    },
+    {
+      "question": "Qu'est-ce qu'Apache Spark?",
+      "answer": "Apache Spark est un moteur d'analyse unifié pour le traitement de données à grande échelle. Il fournit des APIs de haut niveau en Java, Scala, Python et R, et supporte les requêtes SQL, le streaming de données, l'apprentissage automatique et le traitement de graphes. Il est beaucoup plus rapide que MapReduce grâce au calcul en mémoire."
+    },
+    {
+      "question": "What is Apache Airflow?",
+      "answer": "Apache Airflow is a workflow orchestration platform to programmatically author, schedule, and monitor data pipelines. It uses Directed Acyclic Graphs (DAGs) to define task dependencies, provides rich UI for monitoring, and supports dynamic pipeline generation using Python."
+    },
+    {
+      "question": "Qu'est-ce qu'Apache Airflow?",
+      "answer": "Apache Airflow est une plateforme d'orchestration de flux de travail pour créer, planifier et surveiller programmatiquement les pipelines de données. Il utilise des graphes acycliques dirigés (DAGs) pour définir les dépendances de tâches, fournit une interface utilisateur riche pour la surveillance et supporte la génération dynamique de pipelines en Python."
+    },
+    {
+      "question": "What is the CAP theorem?",
+      "answer": "CAP theorem states that a distributed database can only guarantee two of three properties: Consistency (all nodes see same data), Availability (every request receives a response), and Partition tolerance (system continues despite network failures). Examples: MongoDB (CP), Cassandra (AP), traditional RDBMS (CA)."
+    },
+    {
+      "question": "Qu'est-ce que le théorème CAP?",
+      "answer": "Le théorème CAP stipule qu'une base de données distribuée ne peut garantir que deux des trois propriétés: Cohérence (tous les nœuds voient les mêmes données), Disponibilité (chaque requête reçoit une réponse) et Tolérance aux partitions (le système continue malgré les pannes réseau). Exemples: MongoDB (CP), Cassandra (AP), RDBMS traditionnel (CA)."
+    },
+    {
+      "question": "What is data partitioning?",
+      "answer": "Data partitioning divides large datasets into smaller, manageable segments based on specific criteria (date ranges, regions, hash values). Benefits include improved query performance, easier maintenance, parallel processing, and efficient data archiving. Common types: range, hash, list, and composite partitioning."
+    },
+    {
+      "question": "Qu'est-ce que le partitionnement de données?",
+      "answer": "Le partitionnement de données divise de grands ensembles de données en segments plus petits et gérables basés sur des critères spécifiques (plages de dates, régions, valeurs de hachage). Les avantages incluent une meilleure performance des requêtes, une maintenance plus facile, le traitement parallèle et l'archivage efficace des données. Types courants: partitionnement par plage, hachage, liste et composite."
+    },
+    {
+      "question": "What is dimensional modeling?",
+      "answer": "Dimensional modeling is a design technique for data warehouses using fact tables (metrics) and dimension tables (context). The star schema has a central fact table connected to dimension tables. The snowflake schema normalizes dimension tables. It's optimized for analytical queries and business user understanding."
+    },
+    {
+      "question": "Qu'est-ce que la modélisation dimensionnelle?",
+      "answer": "La modélisation dimensionnelle est une technique de conception pour les entrepôts de données utilisant des tables de faits (métriques) et des tables de dimensions (contexte). Le schéma en étoile a une table de faits centrale connectée aux tables de dimensions. Le schéma en flocon normalise les tables de dimensions. C'est optimisé pour les requêtes analytiques et la compréhension des utilisateurs métier."
+    },
+    {
+      "question": "What is a fact table?",
+      "answer": "A fact table is the central table in a dimensional model containing quantitative metrics (facts) and foreign keys to dimension tables. Facts are typically numeric, additive values like sales amount, quantity, or count. Examples include sales transactions, inventory levels, or website clicks."
+    },
+    {
+      "question": "Qu'est-ce qu'une table de faits?",
+      "answer": "Une table de faits est la table centrale dans un modèle dimensionnel contenant des métriques quantitatives (faits) et des clés étrangères vers les tables de dimensions. Les faits sont généralement des valeurs numériques additives comme le montant des ventes, la quantité ou le comptage. Les exemples incluent les transactions de vente, les niveaux de stock ou les clics sur un site web."
+    },
+    {
+      "question": "What is a dimension table?",
+      "answer": "A dimension table contains descriptive attributes (dimensions) that provide context to facts. Examples include customer demographics, product details, time periods, and locations. Dimensions answer 'who, what, when, where, why' about facts and are used for filtering, grouping, and labeling reports."
+    },
+    {
+      "question": "Qu'est-ce qu'une table de dimensions?",
+      "answer": "Une table de dimensions contient des attributs descriptifs (dimensions) qui fournissent le contexte aux faits. Les exemples incluent les données démographiques des clients, les détails des produits, les périodes de temps et les emplacements. Les dimensions répondent à 'qui, quoi, quand, où, pourquoi' sur les faits et sont utilisées pour filtrer, regrouper et étiqueter les rapports."
+    },
+    {
+      "question": "What is slowly changing dimension (SCD)?",
+      "answer": "SCD is a technique to handle dimension attribute changes over time. Type 1 overwrites old values (no history). Type 2 creates new rows with version tracking (full history). Type 3 adds columns for current and previous values (limited history). Type 4 uses separate history tables."
+    },
+    {
+      "question": "Qu'est-ce qu'une dimension à variation lente (SCD)?",
+      "answer": "SCD est une technique pour gérer les changements d'attributs de dimension au fil du temps. Type 1 écrase les anciennes valeurs (pas d'historique). Type 2 crée de nouvelles lignes avec suivi de version (historique complet). Type 3 ajoute des colonnes pour les valeurs actuelles et précédentes (historique limité). Type 4 utilise des tables d'historique séparées."
+    },
+    {
+      "question": "What is OLTP vs OLAP?",
+      "answer": "OLTP (Online Transaction Processing) handles day-to-day transactions with frequent short updates, normalized schemas, and focuses on data integrity. OLAP (Online Analytical Processing) handles complex queries for analysis, uses denormalized schemas (star/snowflake), focuses on query performance, and supports historical data analysis."
+    },
+    {
+      "question": "Qu'est-ce que OLTP vs OLAP?",
+      "answer": "OLTP (Online Transaction Processing) gère les transactions quotidiennes avec des mises à jour fréquentes et courtes, des schémas normalisés et se concentre sur l'intégrité des données. OLAP (Online Analytical Processing) gère des requêtes complexes pour l'analyse, utilise des schémas dénormalisés (étoile/flocon), se concentre sur la performance des requêtes et supporte l'analyse de données historiques."
+    },
+    {
+      "question": "What is data quality?",
+      "answer": "Data quality measures how well data serves its intended purpose. Key dimensions include: Accuracy (correct values), Completeness (no missing data), Consistency (uniform across systems), Timeliness (up-to-date), Validity (conforms to rules), and Uniqueness (no duplicates). Poor quality leads to bad decisions."
+    },
+    {
+      "question": "Qu'est-ce que la qualité des données?",
+      "answer": "La qualité des données mesure dans quelle mesure les données servent leur objectif. Les dimensions clés incluent: Exactitude (valeurs correctes), Complétude (pas de données manquantes), Cohérence (uniforme à travers les systèmes), Actualité (à jour), Validité (conforme aux règles) et Unicité (pas de doublons). Une mauvaise qualité conduit à de mauvaises décisions."
+    },
+    {
+      "question": "What is data governance?",
+      "answer": "Data governance is the framework of policies, procedures, and standards for managing data assets. It covers data quality, security, privacy, lifecycle management, and compliance. It defines roles (data owners, stewards, custodians) and ensures data is trustworthy, secure, and used appropriately."
+    },
+    {
+      "question": "Qu'est-ce que la gouvernance des données?",
+      "answer": "La gouvernance des données est le cadre de politiques, procédures et normes pour gérer les actifs de données. Elle couvre la qualité des données, la sécurité, la confidentialité, la gestion du cycle de vie et la conformité. Elle définit les rôles (propriétaires de données, gestionnaires, gardiens) et garantit que les données sont fiables, sécurisées et utilisées de manière appropriée."
+    },
+    {
+      "question": "What is data lineage?",
+      "answer": "Data lineage tracks the flow and transformation of data from source to destination. It shows where data originates, how it moves through systems, what transformations are applied, and where it's consumed. Essential for debugging, compliance, impact analysis, and data governance."
+    },
+    {
+      "question": "Qu'est-ce que la lignée de données?",
+      "answer": "La lignée de données suit le flux et la transformation des données de la source à la destination. Elle montre d'où proviennent les données, comment elles se déplacent à travers les systèmes, quelles transformations sont appliquées et où elles sont consommées. Essentielle pour le débogage, la conformité, l'analyse d'impact et la gouvernance des données."
+    },
+    {
+      "question": "What is CDC (Change Data Capture)?",
+      "answer": "CDC is a technique to identify and capture data changes (inserts, updates, deletes) in source systems. Methods include log-based (reading transaction logs), trigger-based (database triggers), timestamp-based (modified date columns), and snapshot comparison. Used for real-time data replication and incremental loading."
+    },
+    {
+      "question": "Qu'est-ce que CDC (Change Data Capture)?",
+      "answer": "CDC est une technique pour identifier et capturer les changements de données (insertions, mises à jour, suppressions) dans les systèmes sources. Les méthodes incluent basé sur les journaux (lecture des journaux de transactions), basé sur les déclencheurs (triggers de base de données), basé sur l'horodatage (colonnes de date modifiée) et comparaison d'instantanés. Utilisé pour la réplication de données en temps réel et le chargement incrémental."
+    },
+    {
+      "question": "What is data pipeline orchestration?",
+      "answer": "Data pipeline orchestration coordinates the execution, scheduling, and monitoring of data workflows. Tools like Airflow, Prefect, and Dagster define task dependencies, handle failures, manage retries, and provide visibility. It ensures data flows reliably from sources to destinations with proper sequencing."
+    },
+    {
+      "question": "Qu'est-ce que l'orchestration de pipeline de données?",
+      "answer": "L'orchestration de pipeline de données coordonne l'exécution, la planification et la surveillance des flux de travail de données. Des outils comme Airflow, Prefect et Dagster définissent les dépendances de tâches, gèrent les échecs, gèrent les nouvelles tentatives et fournissent de la visibilité. Elle garantit que les données circulent de manière fiable des sources vers les destinations avec un séquençage approprié."
+    },
+    {
+      "question": "What is idempotency in data pipelines?",
+      "answer": "Idempotency means a data pipeline can be run multiple times with the same input producing the same output without side effects. It's crucial for reliability, enabling safe retries after failures. Achieved through techniques like merge/upsert operations, partition replacement, and transactional writes."
+    },
+    {
+      "question": "Qu'est-ce que l'idempotence dans les pipelines de données?",
+      "answer": "L'idempotence signifie qu'un pipeline de données peut être exécuté plusieurs fois avec la même entrée produisant la même sortie sans effets secondaires. C'est crucial pour la fiabilité, permettant des tentatives sûres après les échecs. Réalisé grâce à des techniques comme les opérations de fusion/upsert, le remplacement de partitions et les écritures transactionnelles."
+    },
+    {
+      "question": "What is data validation?",
+      "answer": "Data validation ensures data meets quality standards and business rules before processing. Types include schema validation (correct structure), constraint validation (business rules), completeness checks (no missing values), and anomaly detection (outliers). Implemented at ingestion, transformation, and output stages."
+    },
+    {
+      "question": "Qu'est-ce que la validation de données?",
+      "answer": "La validation de données garantit que les données respectent les normes de qualité et les règles métier avant le traitement. Les types incluent la validation de schéma (structure correcte), la validation de contraintes (règles métier), les vérifications de complétude (pas de valeurs manquantes) et la détection d'anomalies (valeurs aberrantes). Implémentée aux étapes d'ingestion, de transformation et de sortie."
+    },
+    {
+      "question": "What is batch processing vs stream processing?",
+      "answer": "Batch processing processes large volumes of data at scheduled intervals (hourly, daily). It's efficient for historical analysis but has latency. Stream processing handles data in real-time as it arrives. It's suited for immediate insights, alerting, and low-latency requirements. Tools: Batch (Spark), Stream (Kafka, Flink)."
+    },
+    {
+      "question": "Qu'est-ce que le traitement par lots vs le traitement de flux?",
+      "answer": "Le traitement par lots traite de grands volumes de données à des intervalles planifiés (horaire, quotidien). C'est efficace pour l'analyse historique mais a de la latence. Le traitement de flux gère les données en temps réel au fur et à mesure de leur arrivée. Il convient aux insights immédiats, aux alertes et aux exigences de faible latence. Outils: Batch (Spark), Stream (Kafka, Flink)."
+    },
+    {
+      "question": "What is Apache Kafka?",
+      "answer": "Apache Kafka is a distributed streaming platform for building real-time data pipelines. It provides high-throughput, fault-tolerant messaging with publish-subscribe model. Components include producers (write data), brokers (store data), consumers (read data), and topics (data categories). Used for event streaming and log aggregation."
+    },
+    {
+      "question": "Qu'est-ce qu'Apache Kafka?",
+      "answer": "Apache Kafka est une plateforme de streaming distribuée pour construire des pipelines de données en temps réel. Elle fournit une messagerie à haut débit et tolérante aux pannes avec un modèle publication-abonnement. Les composants incluent les producteurs (écrire des données), les courtiers (stocker des données), les consommateurs (lire des données) et les topics (catégories de données). Utilisé pour le streaming d'événements et l'agrégation de journaux."
+    },
+    {
+      "question": "What is star schema?",
+      "answer": "Star schema is a dimensional modeling design with a central fact table connected directly to dimension tables, forming a star shape. It's simple, intuitive, and optimized for query performance. Dimension tables are denormalized. Ideal for business users and BI tools due to straightforward joins and fast aggregations."
+    },
+    {
+      "question": "Qu'est-ce que le schéma en étoile?",
+      "answer": "Le schéma en étoile est une conception de modélisation dimensionnelle avec une table de faits centrale connectée directement aux tables de dimensions, formant une forme d'étoile. C'est simple, intuitif et optimisé pour la performance des requêtes. Les tables de dimensions sont dénormalisées. Idéal pour les utilisateurs métier et les outils BI en raison de jointures simples et d'agrégations rapides."
+    },
+    {
+      "question": "What is snowflake schema?",
+      "answer": "Snowflake schema is a dimensional modeling design where dimension tables are normalized into multiple related tables, creating a snowflake shape. It saves storage space but requires more joins, potentially impacting query performance. Used when storage is critical or dimension tables are very large with high redundancy."
+    },
+    {
+      "question": "Qu'est-ce que le schéma en flocon?",
+      "answer": "Le schéma en flocon est une conception de modélisation dimensionnelle où les tables de dimensions sont normalisées en plusieurs tables liées, créant une forme de flocon. Il économise l'espace de stockage mais nécessite plus de jointures, impactant potentiellement la performance des requêtes. Utilisé lorsque le stockage est critique ou que les tables de dimensions sont très grandes avec une forte redondance."
+    },
+    {
+      "question": "What is data mart?",
+      "answer": "A data mart is a subset of a data warehouse focused on a specific business area (sales, finance, HR). It contains summarized, subject-oriented data optimized for particular user groups. Types include dependent (derived from enterprise DW) and independent (standalone). Provides faster queries and easier maintenance."
+    },
+    {
+      "question": "Qu'est-ce qu'un data mart?",
+      "answer": "Un data mart est un sous-ensemble d'un entrepôt de données axé sur un domaine d'activité spécifique (ventes, finances, RH). Il contient des données résumées et orientées sujet optimisées pour des groupes d'utilisateurs particuliers. Les types incluent dépendant (dérivé de l'entrepôt d'entreprise) et indépendant (autonome). Fournit des requêtes plus rapides et une maintenance plus facile."
+    },
+    {
+      "question": "What is SQL window functions?",
+      "answer": "Window functions perform calculations across a set of rows related to the current row without grouping them. Examples: ROW_NUMBER() (assign row numbers), RANK() (ranking with gaps), LAG/LEAD (access previous/next rows), SUM/AVG OVER (running totals/averages). Used for ranking, running aggregations, and moving averages."
+    },
+    {
+      "question": "Qu'est-ce que les fonctions fenêtre SQL?",
+      "answer": "Les fonctions fenêtre effectuent des calculs sur un ensemble de lignes liées à la ligne actuelle sans les regrouper. Exemples: ROW_NUMBER() (attribuer des numéros de ligne), RANK() (classement avec écarts), LAG/LEAD (accéder aux lignes précédentes/suivantes), SUM/AVG OVER (totaux/moyennes cumulés). Utilisées pour le classement, les agrégations cumulées et les moyennes mobiles."
+    },
+    {
+      "question": "What is CTE (Common Table Expression)?",
+      "answer": "CTE is a temporary named result set defined within a SQL query using WITH clause. It improves readability, enables recursive queries, and can be referenced multiple times. Exists only during query execution. Useful for breaking complex queries into manageable parts and avoiding nested subqueries."
+    },
+    {
+      "question": "Qu'est-ce qu'une CTE (Common Table Expression)?",
+      "answer": "Une CTE est un ensemble de résultats temporaire nommé défini dans une requête SQL en utilisant la clause WITH. Elle améliore la lisibilité, permet les requêtes récursives et peut être référencée plusieurs fois. N'existe que pendant l'exécution de la requête. Utile pour décomposer des requêtes complexes en parties gérables et éviter les sous-requêtes imbriquées."
+    },
+    {
+      "question": "What is database transaction?",
+      "answer": "A database transaction is a unit of work that follows ACID properties: Atomicity (all or nothing), Consistency (valid state transitions), Isolation (concurrent transactions don't interfere), Durability (committed changes persist). Controlled with BEGIN, COMMIT, and ROLLBACK commands. Essential for data integrity."
+    },
+    {
+      "question": "Qu'est-ce qu'une transaction de base de données?",
+      "answer": "Une transaction de base de données est une unité de travail qui suit les propriétés ACID: Atomicité (tout ou rien), Cohérence (transitions d'état valides), Isolation (les transactions concurrentes n'interfèrent pas), Durabilité (les changements validés persistent). Contrôlée avec les commandes BEGIN, COMMIT et ROLLBACK. Essentielle pour l'intégrité des données."
+    },
+    {
+      "question": "What is ACID in databases?",
+      "answer": "ACID ensures reliable database transactions: Atomicity (all operations succeed or none do), Consistency (data remains valid before/after transaction), Isolation (concurrent transactions don't interfere), Durability (committed data survives system failures). Critical for financial systems, inventory management, and data integrity."
+    },
+    {
+      "question": "Qu'est-ce qu'ACID dans les bases de données?",
+      "answer": "ACID garantit des transactions de base de données fiables: Atomicité (toutes les opérations réussissent ou aucune), Cohérence (les données restent valides avant/après la transaction), Isolation (les transactions concurrentes n'interfèrent pas), Durabilité (les données validées survivent aux pannes système). Critique pour les systèmes financiers, la gestion des stocks et l'intégrité des données."
+    },
+    {
+      "question": "What is sharding?",
+      "answer": "Sharding is horizontal partitioning that distributes data across multiple database servers. Each shard contains a subset of data based on a shard key (user ID, region). Benefits include improved performance, scalability, and availability. Challenges include complex queries across shards and maintaining consistency."
+    },
+    {
+      "question": "Qu'est-ce que le sharding?",
+      "answer": "Le sharding est un partitionnement horizontal qui distribue les données sur plusieurs serveurs de base de données. Chaque shard contient un sous-ensemble de données basé sur une clé de shard (ID utilisateur, région). Les avantages incluent une meilleure performance, évolutivité et disponibilité. Les défis incluent des requêtes complexes à travers les shards et le maintien de la cohérence."
+    },
+    {
+      "question": "What is replication in databases?",
+      "answer": "Replication copies data from one database (primary) to one or more databases (replicas). Types: Master-Slave (one-way), Master-Master (bi-directional), and Multi-Master. Benefits include high availability, load distribution, disaster recovery, and geographic distribution. Challenges include consistency and conflict resolution."
+    },
+    {
+      "question": "Qu'est-ce que la réplication dans les bases de données?",
+      "answer": "La réplication copie les données d'une base de données (primaire) vers une ou plusieurs bases de données (répliques). Types: Maître-Esclave (unidirectionnel), Maître-Maître (bidirectionnel) et Multi-Maître. Les avantages incluent haute disponibilité, distribution de charge, récupération en cas de sinistre et distribution géographique. Les défis incluent la cohérence et la résolution de conflits."
+    },
+    {
+      "question": "What is eventual consistency?",
+      "answer": "Eventual consistency is a consistency model where replicas will eventually have the same data if no new updates occur. Updates propagate asynchronously, allowing temporary inconsistencies. Common in distributed NoSQL systems (Cassandra, DynamoDB) for high availability and performance. Trade-off for CAP theorem's availability."
+    },
+    {
+      "question": "Qu'est-ce que la cohérence éventuelle?",
+      "answer": "La cohérence éventuelle est un modèle de cohérence où les répliques auront éventuellement les mêmes données si aucune nouvelle mise à jour ne se produit. Les mises à jour se propagent de manière asynchrone, permettant des incohérences temporaires. Courante dans les systèmes NoSQL distribués (Cassandra, DynamoDB) pour la haute disponibilité et la performance. Compromis pour la disponibilité du théorème CAP."
+    },
+    {
+      "question": "What is Databricks Unity Catalog?",
+      "answer": "Unity Catalog is Databricks' unified governance solution providing centralized metadata, access control, and audit logging across workspaces. It manages tables, files, ML models, and credentials. Features include fine-grained permissions, data lineage, automatic discovery, and multi-cloud support. Simplifies governance at scale."
+    },
+    {
+      "question": "Qu'est-ce que Databricks Unity Catalog?",
+      "answer": "Unity Catalog est la solution de gouvernance unifiée de Databricks fournissant des métadonnées centralisées, un contrôle d'accès et une journalisation d'audit à travers les espaces de travail. Il gère les tables, fichiers, modèles ML et les informations d'identification. Les fonctionnalités incluent des permissions granulaires, la lignée de données, la découverte automatique et le support multi-cloud. Simplifie la gouvernance à grande échelle."
+    },
+    {
+      "question": "What is Databricks Auto Loader?",
+      "answer": "Auto Loader incrementally and efficiently processes new files as they arrive in cloud storage. It automatically detects new files, infers schemas, handles schema evolution, and provides exactly-once processing guarantees. Uses file notification (event-driven) or directory listing. Simplifies streaming data ingestion from cloud storage."
+    },
+    {
+      "question": "Qu'est-ce que Databricks Auto Loader?",
+      "answer": "Auto Loader traite de manière incrémentale et efficace les nouveaux fichiers au fur et à mesure qu'ils arrivent dans le stockage cloud. Il détecte automatiquement les nouveaux fichiers, infère les schémas, gère l'évolution des schémas et fournit des garanties de traitement exactement une fois. Utilise la notification de fichiers (événementielle) ou le listing de répertoires. Simplifie l'ingestion de données en streaming depuis le stockage cloud."
+    },
+    {
+      "question": "What are Databricks notebooks?",
+      "answer": "Databricks notebooks are collaborative, web-based development environments supporting SQL, Python, Scala, and R. Features include real-time collaboration, version control, parameterization, scheduling, and rich visualizations. They integrate with clusters, Delta Lake, and MLflow for complete data science and engineering workflows."
+    },
+    {
+      "question": "Qu'est-ce que les notebooks Databricks?",
+      "answer": "Les notebooks Databricks sont des environnements de développement collaboratifs basés sur le web supportant SQL, Python, Scala et R. Les fonctionnalités incluent la collaboration en temps réel, le contrôle de version, la paramétrisation, la planification et les visualisations riches. Ils s'intègrent avec les clusters, Delta Lake et MLflow pour des flux de travail complets de science des données et d'ingénierie."
+    },
+    {
+      "question": "What is Databricks SQL?",
+      "answer": "Databricks SQL is a serverless SQL analytics platform for running ad-hoc queries, building dashboards, and creating alerts. It provides SQL endpoints (compute clusters), query editor, visualization builder, and integration with BI tools. Optimized for business analysts and supports Delta Lake, data sharing, and Unity Catalog."
+    },
+    {
+      "question": "Qu'est-ce que Databricks SQL?",
+      "answer": "Databricks SQL est une plateforme d'analyse SQL serverless pour exécuter des requêtes ad-hoc, créer des tableaux de bord et créer des alertes. Elle fournit des points de terminaison SQL (clusters de calcul), un éditeur de requêtes, un constructeur de visualisation et une intégration avec les outils BI. Optimisé pour les analystes métier et supporte Delta Lake, le partage de données et Unity Catalog."
+    },
+    {
+      "question": "What is medallion architecture in Databricks?",
+      "answer": "Medallion architecture organizes data into three layers: Bronze (raw data ingestion), Silver (cleaned, filtered, validated), and Gold (aggregated, business-level). Each layer adds quality and refinement. Benefits include clear data lineage, incremental improvements, multiple consumption levels, and simplified debugging. Standard pattern in Delta Lake."
+    },
+    {
+      "question": "Qu'est-ce que l'architecture médaillon dans Databricks?",
+      "answer": "L'architecture médaillon organise les données en trois couches: Bronze (ingestion de données brutes), Silver (nettoyées, filtrées, validées) et Gold (agrégées, niveau métier). Chaque couche ajoute qualité et raffinement. Les avantages incluent une lignée de données claire, des améliorations incrémentales, plusieurs niveaux de consommation et un débogage simplifié. Modèle standard dans Delta Lake."
+    },
+    {
+      "question": "What is Snowflake Time Travel?",
+      "answer": "Time Travel allows querying, cloning, and restoring data from past points in time (up to 90 days). Uses AT or BEFORE clauses with timestamps or offsets. Enables recovering dropped objects, analyzing historical data, and auditing changes. Retention period configurable at account, database, schema, or table level."
+    },
+    {
+      "question": "Qu'est-ce que Snowflake Time Travel?",
+      "answer": "Time Travel permet d'interroger, cloner et restaurer des données à partir de points dans le temps passés (jusqu'à 90 jours). Utilise les clauses AT ou BEFORE avec des horodatages ou des décalages. Permet de récupérer des objets supprimés, d'analyser des données historiques et d'auditer les changements. Période de rétention configurable au niveau du compte, de la base de données, du schéma ou de la table."
+    },
+    {
+      "question": "What are Snowflake Stages?",
+      "answer": "Stages are storage locations for data files used in loading/unloading data. Types: Internal (Snowflake-managed), External (cloud storage like S3, Azure Blob, GCS). Named stages are database objects with credentials. Table stages and user stages are special types. Used with COPY INTO and GET/PUT commands."
+    },
+    {
+      "question": "Qu'est-ce que les Stages Snowflake?",
+      "answer": "Les Stages sont des emplacements de stockage pour les fichiers de données utilisés lors du chargement/déchargement de données. Types: Interne (géré par Snowflake), Externe (stockage cloud comme S3, Azure Blob, GCS). Les stages nommés sont des objets de base de données avec des identifiants. Les stages de table et les stages d'utilisateur sont des types spéciaux. Utilisés avec les commandes COPY INTO et GET/PUT."
+    },
+    {
+      "question": "What is Snowflake Clustering?",
+      "answer": "Clustering organizes table data based on cluster keys to improve query performance. Snowflake automatically maintains clustering as data is added/modified. Benefits include faster pruning (skipping irrelevant micro-partitions), better compression, and optimized queries. Particularly useful for large tables with frequent range or equality filters."
+    },
+    {
+      "question": "Qu'est-ce que le Clustering Snowflake?",
+      "answer": "Le Clustering organise les données de table basées sur des clés de cluster pour améliorer la performance des requêtes. Snowflake maintient automatiquement le clustering lorsque les données sont ajoutées/modifiées. Les avantages incluent un élagage plus rapide (sauter les micro-partitions non pertinentes), une meilleure compression et des requêtes optimisées. Particulièrement utile pour les grandes tables avec des filtres fréquents par plage ou égalité."
+    },
+    {
+      "question": "What is Snowflake Data Sharing?",
+      "answer": "Data Sharing enables secure, real-time sharing of data between Snowflake accounts without copying. Providers create shares granting read access to databases/objects. Consumers access shared data instantly. No data movement, ETL, or APIs needed. Use cases include partner collaboration, vendor data distribution, and cross-organization analytics."
+    },
+    {
+      "question": "Qu'est-ce que le partage de données Snowflake?",
+      "answer": "Le partage de données permet le partage sécurisé et en temps réel de données entre les comptes Snowflake sans copie. Les fournisseurs créent des partages accordant un accès en lecture aux bases de données/objets. Les consommateurs accèdent instantanément aux données partagées. Pas besoin de mouvement de données, ETL ou API. Les cas d'usage incluent la collaboration avec les partenaires, la distribution de données de fournisseurs et l'analyse inter-organisations."
+    },
+    {
+      "question": "What is Snowflake SnowPipe?",
+      "answer": "SnowPipe is Snowflake's continuous data ingestion service that automatically loads data as it arrives in cloud storage. Triggered by cloud storage events (S3 notifications, Azure Event Grid). Provides near real-time loading, auto-scaling, and serverless compute. Ideal for streaming data ingestion and micro-batch processing."
+    },
+    {
+      "question": "Qu'est-ce que Snowflake SnowPipe?",
+      "answer": "SnowPipe est le service d'ingestion de données continue de Snowflake qui charge automatiquement les données au fur et à mesure qu'elles arrivent dans le stockage cloud. Déclenché par des événements de stockage cloud (notifications S3, Azure Event Grid). Fournit un chargement quasi en temps réel, une mise à l'échelle automatique et un calcul serverless. Idéal pour l'ingestion de données en streaming et le traitement par micro-lots."
+    },
+    {
+      "question": "What is Snowflake Streams?",
+      "answer": "Streams capture change data (inserts, updates, deletes) on tables, views, or external tables. Used for implementing CDC, triggering downstream processes, and incremental processing. Streams track metadata (METADATA$ACTION, METADATA$ISUPDATE) for change tracking. Consumed by querying the stream and offset updated automatically."
+    },
+    {
+      "question": "Qu'est-ce que les Streams Snowflake?",
+      "answer": "Les Streams capturent les changements de données (insertions, mises à jour, suppressions) sur les tables, vues ou tables externes. Utilisés pour implémenter CDC, déclencher des processus en aval et le traitement incrémental. Les Streams suivent les métadonnées (METADATA$ACTION, METADATA$ISUPDATE) pour le suivi des changements. Consommés en interrogeant le stream et le décalage mis à jour automatiquement."
+    },
+    {
+      "question": "What is Snowflake Tasks?",
+      "answer": "Tasks are scheduled SQL statements or stored procedures that execute independently. Support cron-like scheduling, dependencies (DAGs), error handling, and monitoring. Serverless tasks auto-scale compute. Used for pipeline orchestration, scheduled reports, and maintenance jobs. Can be combined with streams for CDC pipelines."
+    },
+    {
+      "question": "Qu'est-ce que les Tasks Snowflake?",
+      "answer": "Les Tasks sont des instructions SQL planifiées ou des procédures stockées qui s'exécutent indépendamment. Supportent la planification de type cron, les dépendances (DAGs), la gestion des erreurs et la surveillance. Les tasks serverless mettent à l'échelle automatiquement le calcul. Utilisées pour l'orchestration de pipelines, les rapports planifiés et les tâches de maintenance. Peuvent être combinées avec les streams pour les pipelines CDC."
+    },
+    {
+      "question": "What is Power BI DirectQuery vs Import mode?",
+      "answer": "Import mode loads data into Power BI's in-memory engine (fast queries, offline access, limited by memory). DirectQuery queries source database in real-time (always current data, unlimited size, slower performance). Composite models combine both. Choose based on data size, refresh requirements, and performance needs."
+    },
+    {
+      "question": "Qu'est-ce que DirectQuery vs mode Import dans Power BI?",
+      "answer": "Le mode Import charge les données dans le moteur en mémoire de Power BI (requêtes rapides, accès hors ligne, limité par la mémoire). DirectQuery interroge la base de données source en temps réel (données toujours actuelles, taille illimitée, performance plus lente). Les modèles composites combinent les deux. Choisir en fonction de la taille des données, des exigences de rafraîchissement et des besoins de performance."
+    },
+    {
+      "question": "What are Power BI calculated columns vs measures?",
+      "answer": "Calculated columns are computed row-by-row during data load, stored in model, and increase file size. Measures are computed at query time based on filter context, not stored, and optimized for aggregations. Use columns for categorization/filtering, measures for dynamic aggregations. Measures are generally preferred for performance."
+    },
+    {
+      "question": "Qu'est-ce que les colonnes calculées vs mesures dans Power BI?",
+      "answer": "Les colonnes calculées sont calculées ligne par ligne lors du chargement des données, stockées dans le modèle et augmentent la taille du fichier. Les mesures sont calculées au moment de la requête en fonction du contexte de filtre, non stockées et optimisées pour les agrégations. Utiliser les colonnes pour la catégorisation/filtrage, les mesures pour les agrégations dynamiques. Les mesures sont généralement préférées pour la performance."
+    },
+    {
+      "question": "What is Power BI row-level security (RLS)?",
+      "answer": "RLS restricts data access at row level based on user roles. Defined using DAX filters on tables. Roles assigned to users/groups in Power BI Service. Supports dynamic RLS using USERNAME() or USERPRINCIPALNAME() functions. Essential for multi-tenant reports and data privacy compliance."
+    },
+    {
+      "question": "Qu'est-ce que la sécurité au niveau des lignes (RLS) dans Power BI?",
+      "answer": "RLS restreint l'accès aux données au niveau des lignes en fonction des rôles utilisateur. Défini en utilisant des filtres DAX sur les tables. Les rôles sont attribués aux utilisateurs/groupes dans Power BI Service. Supporte le RLS dynamique en utilisant les fonctions USERNAME() ou USERPRINCIPALNAME(). Essentiel pour les rapports multi-locataires et la conformité à la confidentialité des données."
+    },
+    {
+      "question": "What are Power BI dataflows?",
+      "answer": "Dataflows are reusable ETL processes in Power BI Service that prepare and store data in Azure Data Lake. Benefits include centralized data preparation, reusability across reports, separation of ETL from reporting, and computed entities. Supports incremental refresh and premium features like AI insights."
+    },
+    {
+      "question": "Qu'est-ce que les dataflows Power BI?",
+      "answer": "Les dataflows sont des processus ETL réutilisables dans Power BI Service qui préparent et stockent des données dans Azure Data Lake. Les avantages incluent la préparation centralisée des données, la réutilisabilité à travers les rapports, la séparation de l'ETL du reporting et les entités calculées. Supporte le rafraîchissement incrémental et les fonctionnalités premium comme les insights IA."
+    },
+    {
+      "question": "What is Power BI paginated reports?",
+      "answer": "Paginated reports are pixel-perfect, print-ready reports designed for operational reporting. Support multi-page documents, precise layout control, export to PDF/Excel, and subscription-based delivery. Use Report Builder for authoring. Ideal for invoices, receipts, regulatory reports, and tabular data exports."
+    },
+    {
+      "question": "Qu'est-ce que les rapports paginés Power BI?",
+      "answer": "Les rapports paginés sont des rapports parfaits au pixel près, prêts à imprimer, conçus pour le reporting opérationnel. Supportent les documents multi-pages, le contrôle précis de la mise en page, l'export vers PDF/Excel et la livraison par abonnement. Utiliser Report Builder pour la création. Idéal pour les factures, reçus, rapports réglementaires et exports de données tabulaires."
+    },
+    {
+      "question": "What are Power BI bookmarks?",
+      "answer": "Bookmarks capture report state including filters, slicers, visuals, and page navigation. Used for creating story narratives, report navigation, toggling visuals, and saving user views. Can be personal (user-specific) or report (shared). Combine with buttons and actions for interactive experiences."
+    },
+    {
+      "question": "Qu'est-ce que les signets Power BI?",
+      "answer": "Les signets capturent l'état du rapport incluant les filtres, segments, visuels et la navigation de page. Utilisés pour créer des récits, la navigation de rapports, basculer les visuels et sauvegarder les vues utilisateur. Peuvent être personnels (spécifiques à l'utilisateur) ou de rapport (partagés). Combiner avec des boutons et des actions pour des expériences interactives."
+    },
+    {
+      "question": "What is Power BI incremental refresh?",
+      "answer": "Incremental refresh loads only new or changed data instead of full refreshes. Configured using RangeStart and RangeEnd parameters to filter data. Benefits include faster refreshes, reduced resource usage, and handling large datasets. Requires Power BI Premium or Premium Per User licensing."
+    },
+    {
+      "question": "Qu'est-ce que le rafraîchissement incrémental Power BI?",
+      "answer": "Le rafraîchissement incrémental charge uniquement les données nouvelles ou modifiées au lieu de rafraîchissements complets. Configuré en utilisant les paramètres RangeStart et RangeEnd pour filtrer les données. Les avantages incluent des rafraîchissements plus rapides, une utilisation réduite des ressources et la gestion de grands ensembles de données. Nécessite une licence Power BI Premium ou Premium Par Utilisateur."
+    },
+    {
+      "question": "What are SQL aggregate functions?",
+      "answer": "Aggregate functions perform calculations on multiple rows returning a single value. Common functions: COUNT (count rows), SUM (total values), AVG (average), MIN/MAX (minimum/maximum), GROUP_CONCAT (concatenate strings). Used with GROUP BY for category-level aggregations. Support HAVING clause for filtering aggregated results."
+    },
+    {
+      "question": "Qu'est-ce que les fonctions d'agrégation SQL?",
+      "answer": "Les fonctions d'agrégation effectuent des calculs sur plusieurs lignes retournant une seule valeur. Fonctions courantes: COUNT (compter les lignes), SUM (total des valeurs), AVG (moyenne), MIN/MAX (minimum/maximum), GROUP_CONCAT (concaténer des chaînes). Utilisées avec GROUP BY pour les agrégations au niveau des catégories. Supportent la clause HAVING pour filtrer les résultats agrégés."
+    },
+    {
+      "question": "What is SQL subquery?",
+      "answer": "A subquery is a query nested inside another query. Types: Scalar (returns single value), Row (returns single row), Table (returns table), Correlated (references outer query). Used in SELECT, FROM, WHERE, and HAVING clauses. Can replace joins or provide dynamic filtering. Wrap in parentheses."
+    },
+    {
+      "question": "Qu'est-ce qu'une sous-requête SQL?",
+      "answer": "Une sous-requête est une requête imbriquée dans une autre requête. Types: Scalaire (retourne une seule valeur), Ligne (retourne une seule ligne), Table (retourne une table), Corrélée (référence la requête externe). Utilisée dans les clauses SELECT, FROM, WHERE et HAVING. Peut remplacer les jointures ou fournir un filtrage dynamique. Envelopper entre parenthèses."
+    },
+    {
+      "question": "What is database view?",
+      "answer": "A view is a virtual table based on a SELECT query. Benefits include simplified queries, security (hiding columns), abstraction (logical layer), and consistent logic. Materialized views store results physically for faster access. Views can't contain ORDER BY (without TOP/LIMIT) and have update limitations."
+    },
+    {
+      "question": "Qu'est-ce qu'une vue de base de données?",
+      "answer": "Une vue est une table virtuelle basée sur une requête SELECT. Les avantages incluent des requêtes simplifiées, la sécurité (masquage de colonnes), l'abstraction (couche logique) et une logique cohérente. Les vues matérialisées stockent les résultats physiquement pour un accès plus rapide. Les vues ne peuvent pas contenir ORDER BY (sans TOP/LIMIT) et ont des limitations de mise à jour."
+    },
+    {
+      "question": "What is stored procedure?",
+      "answer": "A stored procedure is precompiled SQL code stored in the database. Benefits include performance (compiled once), security (controlled access), reusability, reduced network traffic, and complex logic support. Accepts parameters, returns values, supports transactions, error handling, and conditional logic. Called using EXEC/CALL."
+    },
+    {
+      "question": "Qu'est-ce qu'une procédure stockée?",
+      "answer": "Une procédure stockée est du code SQL précompilé stocké dans la base de données. Les avantages incluent la performance (compilé une fois), la sécurité (accès contrôlé), la réutilisabilité, le trafic réseau réduit et le support de logique complexe. Accepte des paramètres, retourne des valeurs, supporte les transactions, la gestion d'erreurs et la logique conditionnelle. Appelée en utilisant EXEC/CALL."
+    },
+    {
+      "question": "What is database trigger?",
+      "answer": "A trigger is automatic code execution in response to database events (INSERT, UPDATE, DELETE). Types: BEFORE (pre-event validation), AFTER (post-event actions), INSTEAD OF (replace default action). Used for audit logging, enforcing business rules, cascading changes, and maintaining derived data. Can impact performance."
+    },
+    {
+      "question": "Qu'est-ce qu'un déclencheur de base de données?",
+      "answer": "Un déclencheur est une exécution automatique de code en réponse à des événements de base de données (INSERT, UPDATE, DELETE). Types: BEFORE (validation pré-événement), AFTER (actions post-événement), INSTEAD OF (remplacer l'action par défaut). Utilisé pour la journalisation d'audit, l'application de règles métier, les changements en cascade et la maintenance de données dérivées. Peut impacter la performance."
+    },
+    {
+      "question": "What is UNION vs UNION ALL?",
+      "answer": "UNION combines result sets removing duplicates (slower, requires sorting). UNION ALL combines results keeping all rows including duplicates (faster, no sorting). Both require same number of columns with compatible data types. Use UNION when duplicates must be removed, UNION ALL for better performance when duplicates are acceptable or impossible."
+    },
+    {
+      "question": "Qu'est-ce que UNION vs UNION ALL?",
+      "answer": "UNION combine les ensembles de résultats en supprimant les doublons (plus lent, nécessite un tri). UNION ALL combine les résultats en conservant toutes les lignes y compris les doublons (plus rapide, pas de tri). Les deux nécessitent le même nombre de colonnes avec des types de données compatibles. Utiliser UNION lorsque les doublons doivent être supprimés, UNION ALL pour une meilleure performance lorsque les doublons sont acceptables ou impossibles."
+    },
+    {
+      "question": "What is SQL execution plan?",
+      "answer": "An execution plan shows how the database engine executes a query. Displays operations (scans, seeks, joins), cost estimates, row counts, and performance metrics. Types: estimated (without execution), actual (runtime statistics). Used for performance tuning, identifying bottlenecks, and optimizing indexes. Access via EXPLAIN or execution plan tools."
+    },
+    {
+      "question": "Qu'est-ce qu'un plan d'exécution SQL?",
+      "answer": "Un plan d'exécution montre comment le moteur de base de données exécute une requête. Affiche les opérations (scans, seeks, jointures), les estimations de coût, les comptages de lignes et les métriques de performance. Types: estimé (sans exécution), réel (statistiques d'exécution). Utilisé pour l'optimisation de performance, l'identification des goulots d'étranglement et l'optimisation des index. Accessible via EXPLAIN ou les outils de plan d'exécution."
+    },
+    {
+      "question": "What is Parquet file format?",
+      "answer": "Parquet is a columnar storage format optimized for analytics. Benefits include efficient compression, column-level encoding, schema evolution, and predicate pushdown. Reads only required columns reducing I/O. Supports complex nested data structures. Widely used in big data ecosystems (Spark, Hive, Snowflake, Databricks) for performance and storage efficiency."
+    },
+    {
+      "question": "Qu'est-ce que le format de fichier Parquet?",
+      "answer": "Parquet est un format de stockage en colonnes optimisé pour l'analyse. Les avantages incluent une compression efficace, un encodage au niveau des colonnes, l'évolution du schéma et le predicate pushdown. Lit uniquement les colonnes requises réduisant l'I/O. Supporte les structures de données imbriquées complexes. Largement utilisé dans les écosystèmes big data (Spark, Hive, Snowflake, Databricks) pour la performance et l'efficacité de stockage."
+    },
+    {
+      "question": "What is data observability?",
+      "answer": "Data observability monitors data pipeline health across five pillars: freshness (data timeliness), distribution (expected ranges), volume (row counts), schema (structure changes), and lineage (data flow). Tools like Monte Carlo, Datafold, and Great Expectations provide anomaly detection, alerting, root cause analysis, and impact assessment."
+    },
+    {
+      "question": "Qu'est-ce que l'observabilité des données?",
+      "answer": "L'observabilité des données surveille la santé du pipeline de données à travers cinq piliers: fraîcheur (actualité des données), distribution (plages attendues), volume (comptages de lignes), schéma (changements de structure) et lignée (flux de données). Des outils comme Monte Carlo, Datafold et Great Expectations fournissent la détection d'anomalies, les alertes, l'analyse de cause racine et l'évaluation d'impact."
+    },
+    {
+      "question": "What is lakehouse architecture?",
+      "answer": "Lakehouse combines data lake flexibility with data warehouse performance. It stores data in open formats (Parquet) with ACID transactions, schema enforcement, and governance. Technologies: Delta Lake, Apache Iceberg, Apache Hudi. Benefits: single platform for BI and ML, reduced ETL, cost efficiency, and support for all data types."
+    },
+    {
+      "question": "Qu'est-ce que l'architecture lakehouse?",
+      "answer": "Le lakehouse combine la flexibilité du data lake avec la performance de l'entrepôt de données. Il stocke les données dans des formats ouverts (Parquet) avec des transactions ACID, l'application de schéma et la gouvernance. Technologies: Delta Lake, Apache Iceberg, Apache Hudi. Avantages: plateforme unique pour BI et ML, ETL réduit, efficacité des coûts et support pour tous les types de données."
+    },
+    {
+      "question": "What is real-time analytics?",
+      "answer": "Real-time analytics processes data immediately for instant insights. Use cases: fraud detection, recommendation engines, IoT monitoring, and trading. Technologies: stream processing (Kafka, Flink), in-memory databases (Redis), and OLAP engines (Druid, Pinot). Trade-offs include complexity, cost, and eventual consistency challenges."
+    },
+    {
+      "question": "Qu'est-ce que l'analyse en temps réel?",
+      "answer": "L'analyse en temps réel traite les données immédiatement pour des insights instantanés. Cas d'usage: détection de fraude, moteurs de recommandation, surveillance IoT et trading. Technologies: traitement de flux (Kafka, Flink), bases de données en mémoire (Redis) et moteurs OLAP (Druid, Pinot). Les compromis incluent la complexité, le coût et les défis de cohérence éventuelle."
+    },
+    {
+      "question": "What is reverse ETL?",
+      "answer": "Reverse ETL moves data from data warehouses back to operational systems (CRM, marketing tools). Use cases: syncing customer segments, enriching SaaS tools, and operationalizing analytics. Tools like Census, Hightouch, and Polytomic enable business teams to activate warehouse data without engineering effort. Completes the data cycle."
+    },
+    {
+      "question": "Qu'est-ce que le reverse ETL?",
+      "answer": "Le reverse ETL déplace les données des entrepôts de données vers les systèmes opérationnels (CRM, outils marketing). Cas d'usage: synchronisation des segments de clients, enrichissement des outils SaaS et opérationnalisation de l'analyse. Des outils comme Census, Hightouch et Polytomic permettent aux équipes métier d'activer les données de l'entrepôt sans effort d'ingénierie. Complète le cycle de données."
+    },
+    {
+      "question": "What is data democratization?",
+      "answer": "Data democratization makes data accessible to non-technical users through self-service tools, data catalogs, and business-friendly interfaces. Goals include reducing dependency on IT, faster insights, and data-driven culture. Requires governance, training, documentation, and user-friendly BI tools. Balance access with security and quality."
+    },
+    {
+      "question": "Qu'est-ce que la démocratisation des données?",
+      "answer": "La démocratisation des données rend les données accessibles aux utilisateurs non techniques à travers des outils en libre-service, des catalogues de données et des interfaces conviviales. Les objectifs incluent la réduction de la dépendance à l'IT, des insights plus rapides et une culture axée sur les données. Nécessite gouvernance, formation, documentation et outils BI conviviaux. Équilibrer l'accès avec la sécurité et la qualité."
+    }
+  ]
+}

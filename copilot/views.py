@@ -7,7 +7,7 @@ import subprocess
 import os
 import json
 import asyncio
-from .utils import get_resume_summary, get_job_description_summary, extract_text_from_pdf, extract_company_and_position, extract_text_from_file, generate_response_async, reload_faq_cache, clear_faq_cache, get_faq_cache_stats
+from .utils import get_resume_summary, get_job_description_summary, extract_text_from_pdf, extract_company_and_position, extract_text_from_file, generate_response_async, reload_faq_cache, clear_faq_cache, get_faq_cache_stats, get_all_faq_data
 import PyPDF2
 
 def index(request):
@@ -640,4 +640,22 @@ def clear_faq(request):
         return JsonResponse({
             'success': False,
             'message': f'Failed to clear cache: {str(e)}'
+        }, status=500)
+
+@csrf_exempt
+def get_faq_data(request):
+    """Get all FAQ questions and answers"""
+    try:
+        faq_data = get_all_faq_data()
+
+        return JsonResponse({
+            'success': True,
+            'faqs': faq_data,
+            'count': len(faq_data)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to get FAQ data: {str(e)}'
         }, status=500)

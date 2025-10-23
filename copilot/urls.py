@@ -12,5 +12,6 @@ urlpatterns = [
     path('compare-llms/', views.compare_llms, name='compare_llms'),
     path('upload-faq/', views.upload_faq, name='upload_faq'),
     path('get-faq-stats/', views.get_faq_stats, name='get_faq_stats'),
+    path('get-faq-data/', views.get_faq_data, name='get_faq_data'),
     path('clear-faq/', views.clear_faq, name='clear_faq'),
 ]

@@ -286,6 +286,7 @@
                     </div>
                 </header>
 
+                <!-- Top Grid: Resume + Interview Details -->
                 <div class="resume-builder-grid">
                     <!-- Resume Upload Section -->
                     <div class="upload-section">
@@ -354,56 +355,28 @@
                     </div>
                 </div>
 
-                <!-- Knowledge Base (FAQ) Upload Section -->
-                <div class="upload-section">
-                    <h3>🧠 Knowledge Base (FAQ)</h3>
-                    <p class="section-description">Upload FAQ JSON file to provide instant answers to common questions</p>
-
-                    <div class="faq-upload-area" id="faqUploadArea">
-                        <div class="upload-placeholder">
-                            <span class="upload-icon">📚</span>
-                            <p class="upload-text">Drag & Drop FAQ JSON file here</p>
-                            <p class="upload-subtext">or click to browse</p>
-                            <p class="upload-formats">Supports: .json files only</p>
-                        </div>
-                        <input type="file" id="faqFileInput" accept=".json" hidden>
+                <!-- Summaries Table Section -->
+                <div class="summaries-table-section">
+                    <div class="summaries-header">
+                        <h3>📄 Generated Summaries</h3>
+                        <button class="btn btn-sm btn-danger" id="clearAllSummariesBtn" onclick="clearAllSummaries()" style="display: none;">🗑️ Clear All</button>
                     </div>
-
-                    <div class="faq-stats" id="faqStats" style="display: none;">
-                        <div class="faq-stat-item">
-                            <span class="stat-label">📊 Questions Loaded:</span>
-                            <span class="stat-value" id="faqCount">0</span>
-                        </div>
-                        <div class="faq-stat-item">
-                            <span class="stat-label">🕒 Last Updated:</span>
-                            <span class="stat-value" id="faqLastUpdate">Never</span>
-                        </div>
-                        <button class="btn btn-sm btn-danger" id="clearFaqBtn">🗑️ Clear FAQ</button>
-                    </div>
-                </div>
-
-                <!-- Resume Summary Section -->
-                <div class="summary-section">
-                    <div class="summary-card">
-                        <h3>📋 Resume Summary</h3>
-                        <div class="summary-content" id="builderResumeSummary">
-                            <p class="empty-state">Upload a resume to generate summary...</p>
-                        </div>
-                        <div class="summary-actions">
-                            <button class="btn btn-sm btn-outline">📋 Copy</button>
-                            <button class="btn btn-sm btn-outline">✏️ Edit</button>
-                        </div>
-                    </div>
-
-                    <div class="summary-card">
-                        <h3>💼 Job Description Summary</h3>
-                        <div class="summary-content" id="builderJobSummary">
-                            <p class="empty-state">Upload a job description to generate summary...</p>
-                        </div>
-                        <div class="summary-actions">
-                            <button class="btn btn-sm btn-outline">📋 Copy</button>
-                            <button class="btn btn-sm btn-outline">✏️ Edit</button>
-                        </div>
+                    <div class="summaries-table-container">
+                        <table class="summaries-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Summary Preview</th>
+                                    <th>Generated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summariesTableBody">
+                                <tr>
+                                    <td colspan="4" class="no-data">No summaries generated yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -444,6 +417,42 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Knowledge Base (FAQ) - Compact Card -->
+                <div class="faq-section-compact">
+                    <div class="faq-compact-card">
+                        <div class="faq-compact-header">
+                            <h3>🧠 Knowledge Base (FAQ)</h3>
+                            <div class="faq-stats-inline" id="faqStats" style="display: none;">
+                                <span class="faq-stat-inline">📊 <strong id="faqCount">0</strong></span>
+                                <span class="faq-stat-inline">🕒 <span id="faqLastUpdate">Never</span></span>
+                                <button class="btn btn-xs btn-primary" id="viewFaqBtn" onclick="toggleFaqViewer()">👁️ View</button>
+                                <button class="btn btn-xs btn-danger" id="clearFaqBtn">Clear</button>
+                            </div>
+                        </div>
+                        <div class="faq-compact-body">
+                            <div class="faq-upload-area-small" id="faqUploadArea">
+                                <span class="upload-icon-small">📚</span>
+                                <span class="upload-text-small">Drop FAQ JSON here or click to browse</span>
+                                <input type="file" id="faqFileInput" accept=".json" hidden>
+                            </div>
+
+                            <!-- FAQ Viewer Section -->
+                            <div class="faq-viewer" id="faqViewer" style="display: none;">
+                                <div class="faq-viewer-header">
+                                    <h4>📖 FAQ Questions & Answers</h4>
+                                    <button class="btn-close-viewer" onclick="toggleFaqViewer()">✕</button>
+                                </div>
+                                <div class="faq-search-box">
+                                    <input type="text" id="faqSearchInput" placeholder="🔍 Search questions..." class="faq-search-input">
+                                </div>
+                                <div class="faq-items-container" id="faqItemsContainer">
+                                    <p class="loading-text">Loading FAQs...</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

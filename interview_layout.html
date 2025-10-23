@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Co-pilot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fb;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            grid-template-rows: auto auto auto auto 1fr;
+        }
+
+        /* HEADER - Span all columns */
+        .header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .model-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        /* PANELS */
+        .panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .panel-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* LEFT COLUMN */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Screen Preview */
+        .screen-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafbfc;
+            color: #999;
+            font-size: 13px;
+            border-radius: 6px;
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        /* Live Transcript */
+        .transcript-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .transcript-line {
+            padding: 10px;
+            background: #f9fafb;
+            border-left: 2px solid #e5e7eb;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #374151;
+            transition: all 0.2s;
+        }
+
+        .transcript-line:hover {
+            background: #f0f4f8;
+            border-left-color: #667eea;
+        }
+
+        .transcript-time {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        /* RIGHT COLUMN - Interview Chat */
+        .interview-chat {
+            display: flex;
+            flex-direction: column;
+            grid-column: 2;
+            grid-row: 2 / -1;
+            height: auto;
+        }
+
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.ai {
+            justify-content: flex-start;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .avatar-user {
+            background: #667eea;
+            color: white;
+        }
+
+        .avatar-ai {
+            background: #e0e7ff;
+            color: #667eea;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai .message-bubble {
+            background: #f3f4f6;
+            color: #374151;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message.ai .message-time {
+            text-align: left;
+        }
+
+        .ai-suggestion {
+            background: linear-gradient(135deg, #10b98115 0%, #06b6d415 100%);
+            border: 1px solid #10b98130;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #059669;
+        }
+
+        .suggestion-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .suggestion-text {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            color: #047857;
+        }
+
+        .suggestion-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .suggestion-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .suggestion-btn-accept {
+            background: #10b981;
+            color: white;
+        }
+
+        .suggestion-btn-accept:hover {
+            background: #059669;
+        }
+
+        .suggestion-btn-edit {
+            background: white;
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+
+        .suggestion-btn-edit:hover {
+            background: #f0fdf4;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .chat-input-area input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .chat-input-area button {
+            padding: 12px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .chat-input-area button:hover {
+            background: #5568d3;
+        }
+
+        /* Scrollbar */
+        .panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-left">
+                <div class="model-badge">🚀 GPT-4o Mini</div>
+                <div class="status">Disconnected from transcription service</div>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-primary">🔄 Open Overlay</button>
+                <button class="btn btn-secondary">✏️ Iniciar Entrevista</button>
+            </div>
+        </div>
+
+        <!-- LEFT COLUMN -->
+        <div class="left-column">
+            <!-- Screen Preview -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">🖥️</div>
+                        Screen Preview
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="screen-preview">
+                        Screen preview will appear here when you start sharing...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Transcript -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">📝</div>
+                        Live Transcript
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="transcript-header">Recent Lines</div>
+                    
+                    <div class="transcript-line">
+                        <div class="transcript-time">12:11:59</div>
+                        <div>Tell me about your experience with on-site vs virtual interviews?</div>
+                    </div>
+
+                    <div class="transcript-line">
+                        <div class="transcript-time">12:12:45</div>
+                        <div>What's your experience with team dynamics and different interview processes?</div>
+                    </div>
+
+                    <div class="transcript-line">
+                        <div class="transcript-time">12:13:12</div>
+                        <div>How do you stay updated with industry trends?</div>
+                    </div>
+
+                    <div class="transcript-line">
+                        <div class="transcript-time">12:13:55</div>
+                        <div>Can you describe a challenging project you've worked on?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Interview Conversation Chat -->
+        <div class="panel interview-chat">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <div class="panel-icon">💬</div>
+                    Interview Conversation
+                </div>
+            </div>
+            <div class="panel-content" style="display: flex; flex-direction: column;">
+                <div class="chat-messages">
+                    <!-- Question 1 -->
+                    <div class="message user">
+                        <div>
+                            <div class="message-bubble">
+                                Tell me about your experience with on-site vs virtual interviews?
+                            </div>
+                            <div class="message-time">12:11:59</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Response 1 -->
+                    <div class="message ai">
+                        <div>
+                            <div class="message-bubble">
+                                Here's a suggested response based on your CV:
+                                <div class="ai-suggestion">
+                                    <div class="suggestion-label">
+                                        ✨ Suggested Response
+                                    </div>
+                                    <div class="suggestion-text">
+                                        I'm comfortable with on-site interviews. I believe they provide a great opportunity to connect with the team and understand the company culture better. I'm also well-prepared for virtual interviews and can effectively communicate my experience and skills through that medium as well.
+                                    </div>
+                                    <div class="suggestion-actions">
+                                        <button class="suggestion-btn suggestion-btn-accept">✓ Use</button>
+                                        <button class="suggestion-btn suggestion-btn-edit">✏️ Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="message-time">12:12:02</div>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="message user">
+                        <div>
+                            <div class="message-bubble">
+                                What's your experience with team dynamics and different interview processes?
+                            </div>
+                            <div class="message-time">12:12:45</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Response 2 -->
+                    <div class="message ai">
+                        <div>
+                            <div class="message-bubble">
+                                <div class="ai-suggestion">
+                                    <div class="suggestion-label">
+                                        ✨ Suggested Response
+                                    </div>
+                                    <div class="suggestion-text">
+                                        I've worked in diverse teams with different management styles. Most positions have unique interview processes—some use a single Zoom round, while others have multiple stages including technical assessments. I adapt well to different formats and am prepared for any interview structure.
+                                    </div>
+                                    <div class="suggestion-actions">
+                                        <button class="suggestion-btn suggestion-btn-accept">✓ Use</button>
+                                        <button class="suggestion-btn suggestion-btn-edit">✏️ Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="message-time">12:12:48</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-area">
+                    <input type="text" placeholder="Paste transcribed question or type manually...">
+                    <button>→</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

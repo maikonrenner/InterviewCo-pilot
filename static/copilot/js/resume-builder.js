@@ -213,12 +213,8 @@ function removeFile(type) {
 
     container.innerHTML = '';
 
-    // Clear summary if exists
-    const summaryId = type === 'resume' ? 'builderResumeSummary' : 'builderJobSummary';
-    const summaryElement = document.getElementById(summaryId);
-    if (summaryElement) {
-        summaryElement.innerHTML = '<p class="empty-state">Upload a ' + (type === 'resume' ? 'resume' : 'job description') + ' to generate summary...</p>';
-    }
+    // Clear summary from table
+    deleteSummary(type);
 }
 
 function uploadFile(file, type) {
@@ -249,19 +245,16 @@ function uploadFile(file, type) {
                 saveDetectedLanguage(type, data.language, data.language_code);
             }
 
-            // Show summary element
-            const summaryId = type === 'resume' ? 'builderResumeSummary' : 'builderJobSummary';
-            const summaryElement = document.getElementById(summaryId);
-
             // If resume with generated summary
             if (type === 'resume' && data.resume_summary) {
-                summaryElement.innerHTML = `<p>${data.resume_summary}</p>`;
-
                 // Update interview page summary
                 const resumeSummaryElement = document.getElementById('resumeSummary');
                 if (resumeSummaryElement) {
                     resumeSummaryElement.textContent = data.resume_summary;
                 }
+
+                // Reload summaries to update table
+                loadExistingSummaries();
 
                 alert('✅ Resume uploaded and summary generated automatically!');
             }
@@ -279,23 +272,20 @@ function uploadFile(file, type) {
 
                 // Display job summary if available
                 if (data.job_summary) {
-                    summaryElement.innerHTML = `<p>${data.job_summary}</p>`;
-
                     // Update interview page summary
                     const jobSummaryElement = document.getElementById('jobSummary');
                     if (jobSummaryElement) {
                         jobSummaryElement.textContent = data.job_summary;
                     }
-                } else {
-                    summaryElement.innerHTML = '<p class="empty-state">✅ File uploaded and analyzed! Company and position extracted automatically.</p>';
+
+                    // Reload summaries to update table
+                    loadExistingSummaries();
                 }
 
                 // Add to interviews list
                 addInterviewToList(data.company, data.position);
 
                 alert(`✅ Extracted:\n🏢 Company: ${data.company}\n💼 Position: ${data.position}`);
-            } else {
-                summaryElement.innerHTML = '<p class="empty-state">✅ File uploaded successfully!</p>';
             }
 
             // Store file info for versioning
@@ -307,11 +297,7 @@ function uploadFile(file, type) {
     .catch(error => {
         hideLoader();
         console.error('Upload error:', error);
-        const summaryId = type === 'resume' ? 'builderResumeSummary' : 'builderJobSummary';
-        const summaryElement = document.getElementById(summaryId);
-        if (summaryElement) {
-            summaryElement.innerHTML = '<p class="empty-state" style="color: #e74c3c;">❌ Upload failed: ' + error.message + '</p>';
-        }
+        alert('❌ Upload failed: ' + error.message);
     });
 }
 
@@ -339,7 +325,6 @@ function saveJobText() {
     }
 
     const jobFiles = document.getElementById('jobFiles');
-    const builderJobSummary = document.getElementById('builderJobSummary');
 
     // Show loader
     showLoader('Analyzing Job Description... (This may take up to 30 seconds)');
@@ -390,23 +375,20 @@ function saveJobText() {
 
                 // Display job summary if available
                 if (data.job_summary) {
-                    builderJobSummary.innerHTML = `<p>${data.job_summary}</p>`;
-
                     // Update interview page summary
                     const jobSummaryElement = document.getElementById('jobSummary');
                     if (jobSummaryElement) {
                         jobSummaryElement.textContent = data.job_summary;
                     }
-                } else {
-                    builderJobSummary.innerHTML = '<p class="empty-state">✅ Job description saved and analyzed!</p>';
+
+                    // Reload summaries to update table
+                    loadExistingSummaries();
                 }
 
                 // Add to interviews list
                 addInterviewToList(data.company, data.position);
 
                 alert(`✅ Extracted:\n🏢 Company: ${data.company}\n💼 Position: ${data.position}`);
-            } else {
-                builderJobSummary.innerHTML = '<p class="empty-state">✅ Job description saved!</p>';
             }
 
             // Store in versions
@@ -418,7 +400,6 @@ function saveJobText() {
     .catch(error => {
         hideLoader();
         console.error('Save error:', error);
-        builderJobSummary.innerHTML = '<p class="empty-state" style="color: #e74c3c;">❌ Save failed: ' + error.message + '</p>';
         alert('❌ Failed to save job description: ' + error.message);
     });
 }
@@ -426,7 +407,6 @@ function saveJobText() {
 function clearJobText() {
     document.getElementById('jobTextArea').value = '';
     document.getElementById('jobFiles').innerHTML = '';
-    document.getElementById('builderJobSummary').innerHTML = '<p class="empty-state">Upload a job description to generate summary...</p>';
 }
 
 function storeTextVersion(text, type) {
@@ -458,17 +438,8 @@ function loadExistingSummaries() {
                 saveDetectedLanguage('job', data.job_language, data.job_language_code);
             }
 
-            // Update builder summaries - only if they're not "No ... found" messages
-            if (data.resume_summary &&
-                data.resume_summary !== 'Loading...' &&
-                !data.resume_summary.includes('No resume found')) {
-                document.getElementById('builderResumeSummary').innerHTML = `<p>${data.resume_summary}</p>`;
-            }
-            if (data.job_summary &&
-                data.job_summary !== 'Loading...' &&
-                !data.job_summary.includes('No job description found')) {
-                document.getElementById('builderJobSummary').innerHTML = `<p>${data.job_summary}</p>`;
-            }
+            // Update summaries table
+            updateSummariesTable(data);
 
             // Update interview page summaries
             if (document.getElementById('resumeSummary') && data.resume_summary) {
@@ -482,6 +453,74 @@ function loadExistingSummaries() {
     .catch(error => {
         console.log('No existing summaries found:', error);
     });
+}
+
+function updateSummariesTable(data) {
+    const tableBody = document.getElementById('summariesTableBody');
+    const clearAllBtn = document.getElementById('clearAllSummariesBtn');
+
+    if (!tableBody) return;
+
+    let hasData = false;
+    let rows = '';
+
+    // Add Resume Summary row
+    if (data.resume_summary &&
+        data.resume_summary !== 'Loading...' &&
+        !data.resume_summary.includes('No resume found')) {
+        hasData = true;
+        const preview = data.resume_summary.length > 100 ?
+            data.resume_summary.substring(0, 100) + '...' :
+            data.resume_summary;
+        const date = new Date().toLocaleDateString();
+
+        rows += `
+            <tr data-type="resume">
+                <td><span class="summary-type-badge badge-resume">📋 Resume</span></td>
+                <td class="summary-preview" onclick="showFullSummary('resume', '${data.resume_summary.replace(/'/g, "\\'")}')">
+                    ${preview}
+                </td>
+                <td>${date}</td>
+                <td class="actions-cell">
+                    <button class="btn-icon-sm" onclick="copySummary('resume', '${data.resume_summary.replace(/'/g, "\\'")}')">📋</button>
+                    <button class="btn-icon-sm" onclick="deleteSummary('resume')">🗑️</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    // Add Job Description Summary row
+    if (data.job_summary &&
+        data.job_summary !== 'Loading...' &&
+        !data.job_summary.includes('No job description found')) {
+        hasData = true;
+        const preview = data.job_summary.length > 100 ?
+            data.job_summary.substring(0, 100) + '...' :
+            data.job_summary;
+        const date = new Date().toLocaleDateString();
+
+        rows += `
+            <tr data-type="job">
+                <td><span class="summary-type-badge badge-job">💼 Job Description</span></td>
+                <td class="summary-preview" onclick="showFullSummary('job', '${data.job_summary.replace(/'/g, "\\'")}')">
+                    ${preview}
+                </td>
+                <td>${date}</td>
+                <td class="actions-cell">
+                    <button class="btn-icon-sm" onclick="copySummary('job', '${data.job_summary.replace(/'/g, "\\'")}')">📋</button>
+                    <button class="btn-icon-sm" onclick="deleteSummary('job')">🗑️</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    if (hasData) {
+        tableBody.innerHTML = rows;
+        if (clearAllBtn) clearAllBtn.style.display = 'block';
+    } else {
+        tableBody.innerHTML = '<tr><td colspan="4" class="no-data">No summaries generated yet.</td></tr>';
+        if (clearAllBtn) clearAllBtn.style.display = 'none';
+    }
 }
 
 function updateVersionsDisplay() {
@@ -716,17 +755,8 @@ function generateSummaries() {
                 saveDetectedLanguage('job', data.job_language, data.job_language_code);
             }
 
-            // Update resume summary
-            if (data.resume_summary) {
-                document.getElementById('builderResumeSummary').innerHTML =
-                    `<p>${data.resume_summary}</p>`;
-            }
-
-            // Update job summary
-            if (data.job_summary) {
-                document.getElementById('builderJobSummary').innerHTML =
-                    `<p>${data.job_summary}</p>`;
-            }
+            // Update summaries table
+            updateSummariesTable(data);
 
             // Also update the interview page summaries
             if (document.getElementById('resumeSummary')) {
@@ -745,41 +775,12 @@ function generateSummaries() {
         hideLoader();
         console.error('Generation error:', error);
         alert('❌ Failed to generate summaries: ' + error.message);
-        document.getElementById('builderResumeSummary').innerHTML =
-            '<p class="empty-state" style="color: #e74c3c;">❌ Generation failed</p>';
-        document.getElementById('builderJobSummary').innerHTML =
-            '<p class="empty-state" style="color: #e74c3c;">❌ Generation failed</p>';
     })
     .finally(() => {
         generateBtn.disabled = false;
         generateBtn.textContent = '🔄 Generate Summaries';
     });
 }
-
-// Copy to clipboard functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const copyButtons = document.querySelectorAll('.summary-actions button');
-
-    copyButtons.forEach(btn => {
-        if (btn.textContent.includes('Copy')) {
-            btn.addEventListener('click', function() {
-                const summaryCard = this.closest('.summary-card');
-                const summaryContent = summaryCard.querySelector('.summary-content');
-                const text = summaryContent.textContent.trim();
-
-                if (text && !text.includes('Upload')) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        const originalText = this.textContent;
-                        this.textContent = '✅ Copied!';
-                        setTimeout(() => {
-                            this.textContent = originalText;
-                        }, 2000);
-                    });
-                }
-            });
-        }
-    });
-});
 
 // Initialize versions display and interviews table when page loads
 document.addEventListener('pageChanged', function(e) {
@@ -934,4 +935,187 @@ function clearFaqCache() {
         console.error('FAQ clear error:', error);
         alert('❌ Failed to clear FAQ cache: ' + error.message);
     });
+}
+
+// Summaries Table Functions
+function showFullSummary(type, summary) {
+    const title = type === 'resume' ? '📋 Resume Summary' : '💼 Job Description Summary';
+    alert(`${title}\n\n${summary}`);
+}
+
+function copySummary(type, summary) {
+    navigator.clipboard.writeText(summary).then(() => {
+        alert('✅ Summary copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('❌ Failed to copy to clipboard');
+    });
+}
+
+function deleteSummary(type) {
+    if (!confirm(`Are you sure you want to delete the ${type === 'resume' ? 'Resume' : 'Job Description'} summary?`)) {
+        return;
+    }
+
+    // Remove the row from the table
+    const tableBody = document.getElementById('summariesTableBody');
+    const row = tableBody.querySelector(`tr[data-type="${type}"]`);
+    if (row) {
+        row.remove();
+    }
+
+    // Check if table is now empty
+    const remainingRows = tableBody.querySelectorAll('tr[data-type]');
+    if (remainingRows.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="no-data">No summaries generated yet.</td></tr>';
+        const clearAllBtn = document.getElementById('clearAllSummariesBtn');
+        if (clearAllBtn) clearAllBtn.style.display = 'none';
+    }
+
+    // Clear from interview page if exists
+    if (type === 'resume' && document.getElementById('resumeSummary')) {
+        document.getElementById('resumeSummary').textContent = 'No resume uploaded';
+    } else if (type === 'job' && document.getElementById('jobSummary')) {
+        document.getElementById('jobSummary').textContent = 'No job description uploaded';
+    }
+
+    alert(`✅ ${type === 'resume' ? 'Resume' : 'Job Description'} summary deleted!`);
+}
+
+function clearAllSummaries() {
+    if (!confirm('Are you sure you want to clear all summaries?')) {
+        return;
+    }
+
+    const tableBody = document.getElementById('summariesTableBody');
+    const clearAllBtn = document.getElementById('clearAllSummariesBtn');
+
+    if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="no-data">No summaries generated yet.</td></tr>';
+    }
+
+    if (clearAllBtn) {
+        clearAllBtn.style.display = 'none';
+    }
+
+    // Clear from interview page
+    if (document.getElementById('resumeSummary')) {
+        document.getElementById('resumeSummary').textContent = 'No resume uploaded';
+    }
+    if (document.getElementById('jobSummary')) {
+        document.getElementById('jobSummary').textContent = 'No job description uploaded';
+    }
+
+    alert('✅ All summaries cleared!');
+}
+
+// FAQ Viewer Functions
+let cachedFaqData = null;
+
+function toggleFaqViewer() {
+    const viewer = document.getElementById('faqViewer');
+    if (!viewer) return;
+
+    if (viewer.style.display === 'none') {
+        viewer.style.display = 'block';
+        loadFaqData();
+    } else {
+        viewer.style.display = 'none';
+    }
+}
+
+function loadFaqData() {
+    const container = document.getElementById('faqItemsContainer');
+    if (!container) return;
+
+    // If we have cached data, use it
+    if (cachedFaqData) {
+        renderFaqItems(cachedFaqData);
+        return;
+    }
+
+    container.innerHTML = '<p class="loading-text">Loading FAQs...</p>';
+
+    // Fetch FAQ data from backend
+    fetch('/get-faq-data/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.faqs && data.faqs.length > 0) {
+                cachedFaqData = data.faqs;
+                renderFaqItems(cachedFaqData);
+                setupFaqSearch();
+            } else {
+                container.innerHTML = '<p class="no-results-text">No FAQ data available.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading FAQ data:', error);
+            container.innerHTML = '<p class="no-results-text">Failed to load FAQ data.</p>';
+        });
+}
+
+function renderFaqItems(faqs, searchTerm = '') {
+    const container = document.getElementById('faqItemsContainer');
+    if (!container) return;
+
+    // Filter FAQs based on search term
+    let filteredFaqs = faqs;
+    if (searchTerm) {
+        const lowerSearch = searchTerm.toLowerCase();
+        filteredFaqs = faqs.filter(faq =>
+            faq.question.toLowerCase().includes(lowerSearch) ||
+            faq.answer.toLowerCase().includes(lowerSearch)
+        );
+    }
+
+    if (filteredFaqs.length === 0) {
+        container.innerHTML = '<p class="no-results-text">No results found.</p>';
+        return;
+    }
+
+    let html = '';
+    filteredFaqs.forEach((faq, index) => {
+        html += `
+            <div class="faq-item" data-index="${index}">
+                <div class="faq-question" onclick="toggleFaqItem(${index})">
+                    <span class="faq-question-text">${escapeHtml(faq.question)}</span>
+                    <span class="faq-toggle-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    ${escapeHtml(faq.answer)}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function toggleFaqItem(index) {
+    const item = document.querySelector(`.faq-item[data-index="${index}"]`);
+    if (item) {
+        item.classList.toggle('expanded');
+    }
+}
+
+function setupFaqSearch() {
+    const searchInput = document.getElementById('faqSearchInput');
+    if (!searchInput) return;
+
+    // Remove previous event listeners by cloning
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+    newSearchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value;
+        if (cachedFaqData) {
+            renderFaqItems(cachedFaqData, searchTerm);
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

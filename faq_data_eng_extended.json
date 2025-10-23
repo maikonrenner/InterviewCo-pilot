@@ -1,0 +1,400 @@
+{
+  "faqs": [
+    {
+      "question": "What is ETL?",
+      "answer": "ETL stands for Extract, Transform, Load. It's a data integration process that extracts data from various sources, transforms it into a usable format, and loads it into a target database or data warehouse."
+    },
+    {
+      "question": "What is ELT and how does it differ from ETL?",
+      "answer": "ELT stands for Extract, Load, Transform. Unlike ETL, ELT loads raw data directly into the target system first, then performs transformations. This approach leverages the processing power of modern data warehouses like Snowflake and is more suitable for big data."
+    },
+    {
+      "question": "What is a Data Lake?",
+      "answer": "A Data Lake is a centralized repository that stores structured, semi-structured, and unstructured data at any scale. It allows you to store data in its raw format without having to first structure it, enabling various analytics including big data processing, real-time analytics, and machine learning."
+    },
+    {
+      "question": "What is the difference between a Data Lake and a Data Warehouse?",
+      "answer": "Data Lakes store raw, unstructured data in native formats for future processing, while Data Warehouses store processed, structured data optimized for querying. Data Lakes are schema-on-read (flexible), whereas Data Warehouses are schema-on-write (rigid structure). Data Lakes support all data types, while Data Warehouses typically handle structured data."
+    },
+    {
+      "question": "What is Databricks?",
+      "answer": "Databricks is a unified analytics platform built on Apache Spark. It provides collaborative notebooks, automated cluster management, production pipelines, and integrates with cloud storage. It's designed to simplify big data processing and machine learning workflows."
+    },
+    {
+      "question": "What is Delta Lake in Databricks?",
+      "answer": "Delta Lake is an open-source storage layer that brings ACID transactions to Apache Spark and big data workloads. It provides time travel (data versioning), schema enforcement, unified batch and streaming, and improves data reliability and performance in data lakes."
+    },
+    {
+      "question": "What is Snowflake?",
+      "answer": "Snowflake is a cloud-based data warehouse platform that separates compute and storage, enabling independent scaling. It supports multi-cloud deployment (AWS, Azure, GCP), provides automatic scaling, supports semi-structured data natively, and offers pay-per-use pricing."
+    },
+    {
+      "question": "What are Snowflake Virtual Warehouses?",
+      "answer": "Virtual Warehouses in Snowflake are clusters of compute resources that execute queries. They can be started, stopped, and scaled independently without affecting data storage. Multiple virtual warehouses can run concurrently without impacting each other's performance."
+    },
+    {
+      "question": "What is Power BI?",
+      "answer": "Power BI is Microsoft's business intelligence platform that enables users to visualize data, create interactive reports and dashboards, and share insights across organizations. It includes Power BI Desktop (authoring), Power BI Service (cloud sharing), and Power BI Mobile."
+    },
+    {
+      "question": "What is DAX in Power BI?",
+      "answer": "DAX (Data Analysis Expressions) is a formula language used in Power BI for creating custom calculations, measures, and calculated columns. It includes functions for aggregation, filtering, time intelligence, and statistical analysis."
+    },
+    {
+      "question": "What is Power Query in Power BI?",
+      "answer": "Power Query is the data transformation and preparation engine in Power BI. It provides a graphical interface to clean, reshape, and combine data from multiple sources before loading it into the data model. It uses M language behind the scenes."
+    },
+    {
+      "question": "What are the different SQL JOIN types?",
+      "answer": "INNER JOIN returns matching rows from both tables. LEFT JOIN returns all rows from left table and matching rows from right. RIGHT JOIN returns all rows from right table and matching rows from left. FULL OUTER JOIN returns all rows from both tables. CROSS JOIN returns Cartesian product of both tables."
+    },
+    {
+      "question": "What is normalization in databases?",
+      "answer": "Normalization is the process of organizing database tables to reduce redundancy and dependency. It involves dividing large tables into smaller ones and defining relationships. Common forms are 1NF (atomic values), 2NF (no partial dependencies), 3NF (no transitive dependencies), and BCNF (Boyce-Codd Normal Form)."
+    },
+    {
+      "question": "What is denormalization and when should it be used?",
+      "answer": "Denormalization is intentionally introducing redundancy into database design to improve read performance. It's used in data warehouses, OLAP systems, and when query performance is more critical than storage space. It reduces the need for complex joins but increases storage and update complexity."
+    },
+    {
+      "question": "What is a primary key?",
+      "answer": "A primary key is a unique identifier for each record in a database table. It must contain unique values, cannot contain NULL values, and each table can have only one primary key. It's used to establish relationships between tables."
+    },
+    {
+      "question": "What is a foreign key?",
+      "answer": "A foreign key is a column or set of columns in one table that references the primary key in another table. It establishes and enforces a link between the data in two tables, ensuring referential integrity by preventing actions that would destroy links between tables."
+    },
+    {
+      "question": "What is indexing in databases?",
+      "answer": "Indexing is a data structure technique to efficiently retrieve records from database tables. It creates a separate structure (B-tree, hash, bitmap) that stores column values and pointers to rows. Indexes speed up SELECT queries but slow down INSERT, UPDATE, and DELETE operations."
+    },
+    {
+      "question": "What is Apache Spark?",
+      "answer": "Apache Spark is a unified analytics engine for large-scale data processing. It provides high-level APIs in Java, Scala, Python, and R, and supports SQL queries, streaming data, machine learning, and graph processing. It's much faster than MapReduce due to in-memory computation."
+    },
+    {
+      "question": "What is Apache Airflow?",
+      "answer": "Apache Airflow is a workflow orchestration platform to programmatically author, schedule, and monitor data pipelines. It uses Directed Acyclic Graphs (DAGs) to define task dependencies, provides rich UI for monitoring, and supports dynamic pipeline generation using Python."
+    },
+    {
+      "question": "What is the CAP theorem?",
+      "answer": "CAP theorem states that a distributed database can only guarantee two of three properties: Consistency (all nodes see same data), Availability (every request receives a response), and Partition tolerance (system continues despite network failures). Examples: MongoDB (CP), Cassandra (AP), traditional RDBMS (CA)."
+    },
+    {
+      "question": "What is data partitioning?",
+      "answer": "Data partitioning divides large datasets into smaller, manageable segments based on specific criteria (date ranges, regions, hash values). Benefits include improved query performance, easier maintenance, parallel processing, and efficient data archiving. Common types: range, hash, list, and composite partitioning."
+    },
+    {
+      "question": "What is dimensional modeling?",
+      "answer": "Dimensional modeling is a design technique for data warehouses using fact tables (metrics) and dimension tables (context). The star schema has a central fact table connected to dimension tables. The snowflake schema normalizes dimension tables. It's optimized for analytical queries and business user understanding."
+    },
+    {
+      "question": "What is a fact table?",
+      "answer": "A fact table is the central table in a dimensional model containing quantitative metrics (facts) and foreign keys to dimension tables. Facts are typically numeric, additive values like sales amount, quantity, or count. Examples include sales transactions, inventory levels, or website clicks."
+    },
+    {
+      "question": "What is a dimension table?",
+      "answer": "A dimension table contains descriptive attributes (dimensions) that provide context to facts. Examples include customer demographics, product details, time periods, and locations. Dimensions answer 'who, what, when, where, why' about facts and are used for filtering, grouping, and labeling reports."
+    },
+    {
+      "question": "What is slowly changing dimension (SCD)?",
+      "answer": "SCD is a technique to handle dimension attribute changes over time. Type 1 overwrites old values (no history). Type 2 creates new rows with version tracking (full history). Type 3 adds columns for current and previous values (limited history). Type 4 uses separate history tables."
+    },
+    {
+      "question": "What is OLTP vs OLAP?",
+      "answer": "OLTP (Online Transaction Processing) handles day-to-day transactions with frequent short updates, normalized schemas, and focuses on data integrity. OLAP (Online Analytical Processing) handles complex queries for analysis, uses denormalized schemas (star/snowflake), focuses on query performance, and supports historical data analysis."
+    },
+    {
+      "question": "What is data quality?",
+      "answer": "Data quality measures how well data serves its intended purpose. Key dimensions include: Accuracy (correct values), Completeness (no missing data), Consistency (uniform across systems), Timeliness (up-to-date), Validity (conforms to rules), and Uniqueness (no duplicates). Poor quality leads to bad decisions."
+    },
+    {
+      "question": "What is data governance?",
+      "answer": "Data governance is the framework of policies, procedures, and standards for managing data assets. It covers data quality, security, privacy, lifecycle management, and compliance. It defines roles (data owners, stewards, custodians) and ensures data is trustworthy, secure, and used appropriately."
+    },
+    {
+      "question": "What is data lineage?",
+      "answer": "Data lineage tracks the flow and transformation of data from source to destination. It shows where data originates, how it moves through systems, what transformations are applied, and where it's consumed. Essential for debugging, compliance, impact analysis, and data governance."
+    },
+    {
+      "question": "What is CDC (Change Data Capture)?",
+      "answer": "CDC is a technique to identify and capture data changes (inserts, updates, deletes) in source systems. Methods include log-based (reading transaction logs), trigger-based (database triggers), timestamp-based (modified date columns), and snapshot comparison. Used for real-time data replication and incremental loading."
+    },
+    {
+      "question": "What is data pipeline orchestration?",
+      "answer": "Data pipeline orchestration coordinates the execution, scheduling, and monitoring of data workflows. Tools like Airflow, Prefect, and Dagster define task dependencies, handle failures, manage retries, and provide visibility. It ensures data flows reliably from sources to destinations with proper sequencing."
+    },
+    {
+      "question": "What is idempotency in data pipelines?",
+      "answer": "Idempotency means a data pipeline can be run multiple times with the same input producing the same output without side effects. It's crucial for reliability, enabling safe retries after failures. Achieved through techniques like merge/upsert operations, partition replacement, and transactional writes."
+    },
+    {
+      "question": "What is data validation?",
+      "answer": "Data validation ensures data meets quality standards and business rules before processing. Types include schema validation (correct structure), constraint validation (business rules), completeness checks (no missing values), and anomaly detection (outliers). Implemented at ingestion, transformation, and output stages."
+    },
+    {
+      "question": "What is batch processing vs stream processing?",
+      "answer": "Batch processing processes large volumes of data at scheduled intervals (hourly, daily). It's efficient for historical analysis but has latency. Stream processing handles data in real-time as it arrives. It's suited for immediate insights, alerting, and low-latency requirements. Tools: Batch (Spark), Stream (Kafka, Flink)."
+    },
+    {
+      "question": "What is Apache Kafka?",
+      "answer": "Apache Kafka is a distributed streaming platform for building real-time data pipelines. It provides high-throughput, fault-tolerant messaging with publish-subscribe model. Components include producers (write data), brokers (store data), consumers (read data), and topics (data categories). Used for event streaming and log aggregation."
+    },
+    {
+      "question": "What is star schema?",
+      "answer": "Star schema is a dimensional modeling design with a central fact table connected directly to dimension tables, forming a star shape. It's simple, intuitive, and optimized for query performance. Dimension tables are denormalized. Ideal for business users and BI tools due to straightforward joins and fast aggregations."
+    },
+    {
+      "question": "What is snowflake schema?",
+      "answer": "Snowflake schema is a dimensional modeling design where dimension tables are normalized into multiple related tables, creating a snowflake shape. It saves storage space but requires more joins, potentially impacting query performance. Used when storage is critical or dimension tables are very large with high redundancy."
+    },
+    {
+      "question": "What is data mart?",
+      "answer": "A data mart is a subset of a data warehouse focused on a specific business area (sales, finance, HR). It contains summarized, subject-oriented data optimized for particular user groups. Types include dependent (derived from enterprise DW) and independent (standalone). Provides faster queries and easier maintenance."
+    },
+    {
+      "question": "What is SQL window functions?",
+      "answer": "Window functions perform calculations across a set of rows related to the current row without grouping them. Examples: ROW_NUMBER() (assign row numbers), RANK() (ranking with gaps), LAG/LEAD (access previous/next rows), SUM/AVG OVER (running totals/averages). Used for ranking, running aggregations, and moving averages."
+    },
+    {
+      "question": "What is CTE (Common Table Expression)?",
+      "answer": "CTE is a temporary named result set defined within a SQL query using WITH clause. It improves readability, enables recursive queries, and can be referenced multiple times. Exists only during query execution. Useful for breaking complex queries into manageable parts and avoiding nested subqueries."
+    },
+    {
+      "question": "What is database transaction?",
+      "answer": "A database transaction is a unit of work that follows ACID properties: Atomicity (all or nothing), Consistency (valid state transitions), Isolation (concurrent transactions don't interfere), Durability (committed changes persist). Controlled with BEGIN, COMMIT, and ROLLBACK commands. Essential for data integrity."
+    },
+    {
+      "question": "What is ACID in databases?",
+      "answer": "ACID ensures reliable database transactions: Atomicity (all operations succeed or none do), Consistency (data remains valid before/after transaction), Isolation (concurrent transactions don't interfere), Durability (committed data survives system failures). Critical for financial systems, inventory management, and data integrity."
+    },
+    {
+      "question": "What is sharding?",
+      "answer": "Sharding is horizontal partitioning that distributes data across multiple database servers. Each shard contains a subset of data based on a shard key (user ID, region). Benefits include improved performance, scalability, and availability. Challenges include complex queries across shards and maintaining consistency."
+    },
+    {
+      "question": "What is replication in databases?",
+      "answer": "Replication copies data from one database (primary) to one or more databases (replicas). Types: Master-Slave (one-way), Master-Master (bi-directional), and Multi-Master. Benefits include high availability, load distribution, disaster recovery, and geographic distribution. Challenges include consistency and conflict resolution."
+    },
+    {
+      "question": "What is eventual consistency?",
+      "answer": "Eventual consistency is a consistency model where replicas will eventually have the same data if no new updates occur. Updates propagate asynchronously, allowing temporary inconsistencies. Common in distributed NoSQL systems (Cassandra, DynamoDB) for high availability and performance. Trade-off for CAP theorem's availability."
+    },
+    {
+      "question": "What is data mesh?",
+      "answer": "Data mesh is a decentralized data architecture treating data as a product owned by domain teams. Key principles: domain ownership (teams own their data), data as product (high quality, discoverable), self-serve infrastructure (platform capabilities), and federated governance (global standards, local autonomy). Contrasts with centralized data warehouses."
+    },
+    {
+      "question": "What is data catalog?",
+      "answer": "A data catalog is a metadata management tool that inventories and organizes data assets. It provides searchable information about datasets, schemas, lineage, ownership, and quality. Examples include Alation, Collibra, AWS Glue Catalog. Enables data discovery, governance, and collaboration across organizations."
+    },
+    {
+      "question": "What is schema evolution?",
+      "answer": "Schema evolution handles changes to data structures over time while maintaining backward/forward compatibility. Strategies include adding nullable columns, default values, versioning, and migration scripts. Tools like Delta Lake and Avro support schema evolution. Critical for maintaining data pipelines without breaking downstream consumers."
+    },
+    {
+      "question": "What is Databricks Unity Catalog?",
+      "answer": "Unity Catalog is Databricks' unified governance solution providing centralized metadata, access control, and audit logging across workspaces. It manages tables, files, ML models, and credentials. Features include fine-grained permissions, data lineage, automatic discovery, and multi-cloud support. Simplifies governance at scale."
+    },
+    {
+      "question": "What is Databricks Auto Loader?",
+      "answer": "Auto Loader incrementally and efficiently processes new files as they arrive in cloud storage. It automatically detects new files, infers schemas, handles schema evolution, and provides exactly-once processing guarantees. Uses file notification (event-driven) or directory listing. Simplifies streaming data ingestion from cloud storage."
+    },
+    {
+      "question": "What are Databricks notebooks?",
+      "answer": "Databricks notebooks are collaborative, web-based development environments supporting SQL, Python, Scala, and R. Features include real-time collaboration, version control, parameterization, scheduling, and rich visualizations. They integrate with clusters, Delta Lake, and MLflow for complete data science and engineering workflows."
+    },
+    {
+      "question": "What is Databricks SQL?",
+      "answer": "Databricks SQL is a serverless SQL analytics platform for running ad-hoc queries, building dashboards, and creating alerts. It provides SQL endpoints (compute clusters), query editor, visualization builder, and integration with BI tools. Optimized for business analysts and supports Delta Lake, data sharing, and Unity Catalog."
+    },
+    {
+      "question": "What is medallion architecture in Databricks?",
+      "answer": "Medallion architecture organizes data into three layers: Bronze (raw data ingestion), Silver (cleaned, filtered, validated), and Gold (aggregated, business-level). Each layer adds quality and refinement. Benefits include clear data lineage, incremental improvements, multiple consumption levels, and simplified debugging. Standard pattern in Delta Lake."
+    },
+    {
+      "question": "What is Snowflake Time Travel?",
+      "answer": "Time Travel allows querying, cloning, and restoring data from past points in time (up to 90 days). Uses AT or BEFORE clauses with timestamps or offsets. Enables recovering dropped objects, analyzing historical data, and auditing changes. Retention period configurable at account, database, schema, or table level."
+    },
+    {
+      "question": "What are Snowflake Stages?",
+      "answer": "Stages are storage locations for data files used in loading/unloading data. Types: Internal (Snowflake-managed), External (cloud storage like S3, Azure Blob, GCS). Named stages are database objects with credentials. Table stages and user stages are special types. Used with COPY INTO and GET/PUT commands."
+    },
+    {
+      "question": "What is Snowflake Clustering?",
+      "answer": "Clustering organizes table data based on cluster keys to improve query performance. Snowflake automatically maintains clustering as data is added/modified. Benefits include faster pruning (skipping irrelevant micro-partitions), better compression, and optimized queries. Particularly useful for large tables with frequent range or equality filters."
+    },
+    {
+      "question": "What is Snowflake Data Sharing?",
+      "answer": "Data Sharing enables secure, real-time sharing of data between Snowflake accounts without copying. Providers create shares granting read access to databases/objects. Consumers access shared data instantly. No data movement, ETL, or APIs needed. Use cases include partner collaboration, vendor data distribution, and cross-organization analytics."
+    },
+    {
+      "question": "What is Snowflake SnowPipe?",
+      "answer": "SnowPipe is Snowflake's continuous data ingestion service that automatically loads data as it arrives in cloud storage. Triggered by cloud storage events (S3 notifications, Azure Event Grid). Provides near real-time loading, auto-scaling, and serverless compute. Ideal for streaming data ingestion and micro-batch processing."
+    },
+    {
+      "question": "What is Snowflake Streams?",
+      "answer": "Streams capture change data (inserts, updates, deletes) on tables, views, or external tables. Used for implementing CDC, triggering downstream processes, and incremental processing. Streams track metadata (METADATA$ACTION, METADATA$ISUPDATE) for change tracking. Consumed by querying the stream and offset updated automatically."
+    },
+    {
+      "question": "What is Snowflake Tasks?",
+      "answer": "Tasks are scheduled SQL statements or stored procedures that execute independently. Support cron-like scheduling, dependencies (DAGs), error handling, and monitoring. Serverless tasks auto-scale compute. Used for pipeline orchestration, scheduled reports, and maintenance jobs. Can be combined with streams for CDC pipelines."
+    },
+    {
+      "question": "What is Power BI DirectQuery vs Import mode?",
+      "answer": "Import mode loads data into Power BI's in-memory engine (fast queries, offline access, limited by memory). DirectQuery queries source database in real-time (always current data, unlimited size, slower performance). Composite models combine both. Choose based on data size, refresh requirements, and performance needs."
+    },
+    {
+      "question": "What are Power BI calculated columns vs measures?",
+      "answer": "Calculated columns are computed row-by-row during data load, stored in model, and increase file size. Measures are computed at query time based on filter context, not stored, and optimized for aggregations. Use columns for categorization/filtering, measures for dynamic aggregations. Measures are generally preferred for performance."
+    },
+    {
+      "question": "What is Power BI row-level security (RLS)?",
+      "answer": "RLS restricts data access at row level based on user roles. Defined using DAX filters on tables. Roles assigned to users/groups in Power BI Service. Supports dynamic RLS using USERNAME() or USERPRINCIPALNAME() functions. Essential for multi-tenant reports and data privacy compliance."
+    },
+    {
+      "question": "What are Power BI dataflows?",
+      "answer": "Dataflows are reusable ETL processes in Power BI Service that prepare and store data in Azure Data Lake. Benefits include centralized data preparation, reusability across reports, separation of ETL from reporting, and computed entities. Supports incremental refresh and premium features like AI insights."
+    },
+    {
+      "question": "What is Power BI paginated reports?",
+      "answer": "Paginated reports are pixel-perfect, print-ready reports designed for operational reporting. Support multi-page documents, precise layout control, export to PDF/Excel, and subscription-based delivery. Use Report Builder for authoring. Ideal for invoices, receipts, regulatory reports, and tabular data exports."
+    },
+    {
+      "question": "What are Power BI bookmarks?",
+      "answer": "Bookmarks capture report state including filters, slicers, visuals, and page navigation. Used for creating story narratives, report navigation, toggling visuals, and saving user views. Can be personal (user-specific) or report (shared). Combine with buttons and actions for interactive experiences."
+    },
+    {
+      "question": "What is Power BI incremental refresh?",
+      "answer": "Incremental refresh loads only new or changed data instead of full refreshes. Configured using RangeStart and RangeEnd parameters to filter data. Benefits include faster refreshes, reduced resource usage, and handling large datasets. Requires Power BI Premium or Premium Per User licensing."
+    },
+    {
+      "question": "What are SQL aggregate functions?",
+      "answer": "Aggregate functions perform calculations on multiple rows returning a single value. Common functions: COUNT (count rows), SUM (total values), AVG (average), MIN/MAX (minimum/maximum), GROUP_CONCAT (concatenate strings). Used with GROUP BY for category-level aggregations. Support HAVING clause for filtering aggregated results."
+    },
+    {
+      "question": "What is SQL subquery?",
+      "answer": "A subquery is a query nested inside another query. Types: Scalar (returns single value), Row (returns single row), Table (returns table), Correlated (references outer query). Used in SELECT, FROM, WHERE, and HAVING clauses. Can replace joins or provide dynamic filtering. Wrap in parentheses."
+    },
+    {
+      "question": "What is database view?",
+      "answer": "A view is a virtual table based on a SELECT query. Benefits include simplified queries, security (hiding columns), abstraction (logical layer), and consistent logic. Materialized views store results physically for faster access. Views can't contain ORDER BY (without TOP/LIMIT) and have update limitations."
+    },
+    {
+      "question": "What is stored procedure?",
+      "answer": "A stored procedure is precompiled SQL code stored in the database. Benefits include performance (compiled once), security (controlled access), reusability, reduced network traffic, and complex logic support. Accepts parameters, returns values, supports transactions, error handling, and conditional logic. Called using EXEC/CALL."
+    },
+    {
+      "question": "What is database trigger?",
+      "answer": "A trigger is automatic code execution in response to database events (INSERT, UPDATE, DELETE). Types: BEFORE (pre-event validation), AFTER (post-event actions), INSTEAD OF (replace default action). Used for audit logging, enforcing business rules, cascading changes, and maintaining derived data. Can impact performance."
+    },
+    {
+      "question": "What is UNION vs UNION ALL?",
+      "answer": "UNION combines result sets removing duplicates (slower, requires sorting). UNION ALL combines results keeping all rows including duplicates (faster, no sorting). Both require same number of columns with compatible data types. Use UNION when duplicates must be removed, UNION ALL for better performance when duplicates are acceptable or impossible."
+    },
+    {
+      "question": "What is SQL execution plan?",
+      "answer": "An execution plan shows how the database engine executes a query. Displays operations (scans, seeks, joins), cost estimates, row counts, and performance metrics. Types: estimated (without execution), actual (runtime statistics). Used for performance tuning, identifying bottlenecks, and optimizing indexes. Access via EXPLAIN or execution plan tools."
+    },
+    {
+      "question": "What is database normalization forms?",
+      "answer": "1NF: Atomic values, no repeating groups. 2NF: 1NF + no partial dependencies (all non-key attributes depend on entire primary key). 3NF: 2NF + no transitive dependencies (non-key attributes don't depend on other non-key attributes). BCNF: 3NF + every determinant is a candidate key. 4NF/5NF address multi-valued and join dependencies."
+    },
+    {
+      "question": "What is query optimization?",
+      "answer": "Query optimization improves SQL performance through techniques: use indexes, avoid SELECT *, minimize subqueries, use JOINs over IN/EXISTS when appropriate, partition large tables, use appropriate JOIN types, avoid functions on indexed columns, batch operations, use LIMIT/TOP, analyze execution plans, and update statistics."
+    },
+    {
+      "question": "What is data lake security?",
+      "answer": "Data lake security includes: encryption (at-rest and in-transit), access control (IAM, RBAC), authentication (SSO, MFA), data masking, network isolation, audit logging, compliance certifications, and data governance. Tools like AWS Lake Formation, Azure Purview, and Databricks Unity Catalog provide centralized security management."
+    },
+    {
+      "question": "What is Apache Hive?",
+      "answer": "Apache Hive is a data warehouse system built on Hadoop providing SQL-like interface (HiveQL) for querying distributed data. It translates SQL to MapReduce/Tez/Spark jobs. Supports partitioning, bucketing, and various file formats (Parquet, ORC). Used for batch processing, data summarization, and ad-hoc queries on big data."
+    },
+    {
+      "question": "What is Parquet file format?",
+      "answer": "Parquet is a columnar storage format optimized for analytics. Benefits include efficient compression, column-level encoding, schema evolution, and predicate pushdown. Reads only required columns reducing I/O. Supports complex nested data structures. Widely used in big data ecosystems (Spark, Hive, Snowflake, Databricks) for performance and storage efficiency."
+    },
+    {
+      "question": "What is ORC file format?",
+      "answer": "ORC (Optimized Row Columnar) is a columnar file format for Hadoop ecosystem. Features include high compression, built-in indexes, predicate pushdown, ACID transactions, and stripe-based storage. Optimized for Hive queries. Includes file-level statistics and column-level bloom filters. Competes with Parquet with similar benefits."
+    },
+    {
+      "question": "What is data compression?",
+      "answer": "Data compression reduces storage space and I/O costs. Types: lossless (reversible - gzip, snappy, zstd) vs lossy (irreversible - JPEG, MP3). Columnar formats (Parquet, ORC) compress better than row-based. Trade-offs: CPU overhead vs storage/network savings. Choose compression based on use case: high compression (archival) vs fast (real-time)."
+    },
+    {
+      "question": "What is data deduplication?",
+      "answer": "Data deduplication removes duplicate records to ensure data quality. Methods: exact matching (row hash), fuzzy matching (similarity scores), key-based (business keys). Strategies: pre-processing (ETL), post-processing (data cleaning), or real-time (stream processing). Use DISTINCT, ROW_NUMBER(), or specialized tools like Dedupe library."
+    },
+    {
+      "question": "What is SLA in data engineering?",
+      "answer": "SLA (Service Level Agreement) defines expected service levels for data pipelines. Metrics include: pipeline completion time, data freshness (latency), availability (uptime %), data quality (accuracy), and recovery time objective (RTO). SLAs drive design decisions for reliability, monitoring, alerting, and incident response processes."
+    },
+    {
+      "question": "What is data observability?",
+      "answer": "Data observability monitors data pipeline health across five pillars: freshness (data timeliness), distribution (expected ranges), volume (row counts), schema (structure changes), and lineage (data flow). Tools like Monte Carlo, Datafold, and Great Expectations provide anomaly detection, alerting, root cause analysis, and impact assessment."
+    },
+    {
+      "question": "What is data versioning?",
+      "answer": "Data versioning tracks changes to datasets over time enabling reproducibility, rollback, and auditing. Approaches: snapshot-based (full copies), delta-based (change logs), or hybrid (Delta Lake, Lakehouse). Benefits include reproducible analytics, debugging, compliance, and A/B testing. Tools: DVC (Data Version Control), Delta Lake, lakeFS."
+    },
+    {
+      "question": "What is data modeling best practices?",
+      "answer": "Best practices: understand business requirements, normalize for OLTP (reduce redundancy), denormalize for OLAP (optimize queries), use surrogate keys, implement SCD for dimensions, maintain data dictionary, document assumptions, validate with stakeholders, design for scalability, consider performance, and follow naming conventions consistently."
+    },
+    {
+      "question": "What is lakehouse architecture?",
+      "answer": "Lakehouse combines data lake flexibility with data warehouse performance. It stores data in open formats (Parquet) with ACID transactions, schema enforcement, and governance. Technologies: Delta Lake, Apache Iceberg, Apache Hudi. Benefits: single platform for BI and ML, reduced ETL, cost efficiency, and support for all data types."
+    },
+    {
+      "question": "What is data warehouse automation?",
+      "answer": "DWA automates design, development, and maintenance of data warehouses. Capabilities include automated modeling, ETL generation, documentation, impact analysis, and schema evolution. Tools like WhereScape, TimeXtender, and Matillion reduce manual coding, accelerate delivery, improve consistency, and simplify maintenance. Trade-off: flexibility vs speed."
+    },
+    {
+      "question": "What is synthetic data generation?",
+      "answer": "Synthetic data is artificially generated data mimicking real data characteristics without exposing sensitive information. Used for: testing (without production data), ML training (augmentation), privacy compliance (GDPR), and development environments. Methods: rule-based generation, statistical modeling, or generative AI. Tools: Faker, SDV, Gretel."
+    },
+    {
+      "question": "What is metadata management?",
+      "answer": "Metadata management organizes information about data: technical metadata (schemas, formats), business metadata (definitions, ownership), operational metadata (lineage, quality), and social metadata (tags, ratings). Centralized in data catalogs, it enables discovery, governance, lineage tracking, and impact analysis. Critical for data democratization."
+    },
+    {
+      "question": "What is API-first data architecture?",
+      "answer": "API-first treats data as products exposed through well-defined APIs. Principles include versioning, documentation, security (authentication/authorization), rate limiting, and monitoring. Benefits: decoupling, reusability, self-service access, and cross-platform integration. Technologies: REST, GraphQL, gRPC. Supports data mesh and microservices architectures."
+    },
+    {
+      "question": "What is real-time analytics?",
+      "answer": "Real-time analytics processes data immediately for instant insights. Use cases: fraud detection, recommendation engines, IoT monitoring, and trading. Technologies: stream processing (Kafka, Flink), in-memory databases (Redis), and OLAP engines (Druid, Pinot). Trade-offs include complexity, cost, and eventual consistency challenges."
+    },
+    {
+      "question": "What is data testing?",
+      "answer": "Data testing validates data quality and pipeline correctness. Types: schema validation, data profiling, completeness checks, referential integrity, business rule validation, anomaly detection, and regression testing. Tools: Great Expectations, dbt tests, custom SQL assertions. Implemented in ETL/ELT pipelines to catch issues early."
+    },
+    {
+      "question": "What is cost optimization in data engineering?",
+      "answer": "Cost optimization strategies: compress data, partition effectively, use appropriate storage tiers (hot/cold), right-size compute resources, implement auto-scaling, cache frequently accessed data, optimize queries, delete unused data, use spot/preemptible instances, monitor usage patterns, and choose cost-effective storage formats (Parquet vs CSV)."
+    },
+    {
+      "question": "What is reverse ETL?",
+      "answer": "Reverse ETL moves data from data warehouses back to operational systems (CRM, marketing tools). Use cases: syncing customer segments, enriching SaaS tools, and operationalizing analytics. Tools like Census, Hightouch, and Polytomic enable business teams to activate warehouse data without engineering effort. Completes the data cycle."
+    },
+    {
+      "question": "What is zero-copy cloning?",
+      "answer": "Zero-copy cloning creates independent copies of data objects (databases, schemas, tables) without duplicating underlying data. Snowflake and Delta Lake support this using metadata pointers. Benefits: instant clones, storage efficiency, isolated dev/test environments, and quick experimentation. Storage charged only for changes from original."
+    },
+    {
+      "question": "What is data democratization?",
+      "answer": "Data democratization makes data accessible to non-technical users through self-service tools, data catalogs, and business-friendly interfaces. Goals include reducing dependency on IT, faster insights, and data-driven culture. Requires governance, training, documentation, and user-friendly BI tools. Balance access with security and quality."
+    },
+    {
+      "question": "What is serverless data processing?",
+      "answer": "Serverless abstracts infrastructure management, auto-scaling compute based on workload. Examples: AWS Glue, Azure Synapse Serverless, Google BigQuery, Snowflake, Databricks Serverless. Benefits include pay-per-use pricing, zero administration, automatic scaling, and faster time-to-value. Trade-offs: cold starts, vendor lock-in, and less control."
+    },
+    {
+      "question": "What is data pipeline monitoring?",
+      "answer": "Pipeline monitoring tracks execution metrics: duration, success/failure rates, data volume, resource usage, and SLA compliance. Tools include Datadog, Prometheus + Grafana, custom dashboards, and built-in orchestration monitoring (Airflow UI). Alerts notify on failures, delays, or anomalies. Essential for production reliability."
+    }
+  ]
+}

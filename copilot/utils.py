@@ -161,6 +161,26 @@ def clear_faq_cache():
     print(f'[FAQ Clear] Cleared {count} entries from cache')
     return count
 
+def get_all_faq_data():
+    """Get all FAQ questions and answers from cache."""
+    if not _faq_cache:
+        return []
+
+    # Convert cache to list of Q&A pairs, sorted by question
+    faq_list = []
+    for entry in _faq_cache.values():
+        faq_list.append({
+            'question': entry['question'],
+            'answer': entry['answer'],
+            'hit_count': entry['hit_count'],
+            'timestamp': entry['timestamp'].isoformat() if entry['timestamp'] else None
+        })
+
+    # Sort by question alphabetically
+    faq_list.sort(key=lambda x: x['question'].lower())
+
+    return faq_list
+
 def extract_text_from_pdf(file_path):
     """Extract text from a PDF file."""
     if not os.path.exists(file_path):
