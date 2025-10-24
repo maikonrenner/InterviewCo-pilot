@@ -34,6 +34,9 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 - **⚡ FAQ Cache System**: Instant responses (<50ms) for frequently asked questions with smart matching
 - **🧠 Smart Question Extraction**: Automatically extracts clean questions from long, cluttered transcripts
 - **🔄 Real-time Streaming**: WebSocket-based streaming for instant response delivery
+- **🎯 Next Question Predictions**: AI predicts likely next questions based on job requirements and conversation flow
+- **💼 Company Questions Generator**: Generate intelligent questions to ask the employer during interviews
+- **🌐 Multilingual AI**: Predictions and responses automatically adapt to interview language (EN/FR/PT)
 
 #### 📊 **Analytics & Management**
 - **📊 Dashboard Analytics**: Interactive charts (activity, languages, questions, model performance) with 7-day history
@@ -47,9 +50,26 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 - **🎨 Modern UI**: Clean, responsive interface with live transcript mirroring
 - **🔐 Secure Storage**: API keys stored in browser localStorage (never committed to git)
 
-### 🆕 Recent Updates (v2.1)
+### 🆕 Recent Updates (v2.2)
 
-**NEW: FAQ Knowledge Base Enhancements:**
+**NEW: Intelligent Question Prediction System:**
+- 🎯 **Predictions Toggle**: User-controlled toggle to enable/disable Next Question Predictions (ON by default)
+- 🌐 **Multilingual Predictions**: Questions automatically generated in the same language as your interview conversation
+  - Supports Portuguese, French, and English
+  - Automatic language detection from transcription
+  - 50+ keyword translations per language for accurate predictions
+- 🧠 **Smart QuestionPredictor**: AI-powered system that analyzes job requirements and predicts next likely questions
+  - Extracts technical skills from job description (Python, SQL, ETL, Spark, AWS, etc.)
+  - Analyzes answer depth to determine question type (follow-up vs. related topic)
+  - Confidence scoring system (60%-90%) based on relevance
+  - Prioritizes uncovered job requirements
+- 💼 **Company Questions Generator**: Generate intelligent questions to ask the employer
+  - 2 General + 3 Technical + 2 Fit & Culture questions
+  - Based on job description context
+  - Click-to-send functionality for seamless use
+  - Multilingual generation matching job description language
+
+**FAQ Knowledge Base Enhancements (v2.1):**
 - 🧠 **Compact FAQ Card**: Moved to bottom of dashboard, 70% smaller footprint with horizontal inline stats
 - 📖 **Interactive FAQ Viewer**: Browse all FAQ questions with accordion-style expandable Q&A items
 - 🔍 **Real-time Search**: Filter FAQ questions and answers as you type
@@ -180,9 +200,10 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 ```
 ai-interview-copilot/
 ├── copilot/                    # Main Django app
-│   ├── consumers.py           # WebSocket consumer (live transcription broadcast)
+│   ├── consumers.py           # WebSocket consumer (live transcription broadcast, language detection)
+│   ├── pattern_analyzer.py    # QuestionPredictor (intelligent question prediction system)
 │   ├── utils.py               # Helper functions (question extraction, response generation, FAQ cache)
-│   ├── views.py               # HTTP views (summaries, calendar, FAQ upload)
+│   ├── views.py               # HTTP views (summaries, calendar, FAQ upload, company questions)
 │   └── urls.py                # URL routing
 ├── electron/                   # Electron overlay app
 │   ├── main.js                # Electron main process
@@ -599,6 +620,103 @@ Improved visual organization for better readability:
   - Rounded corners (10px)
 - **Better Spacing**: 20px between messages (was 15px)
 - **Shadows**: Subtle depth with layered shadows
+
+#### 14. Next Question Predictions (🎯)
+
+Intelligent prediction system that anticipates likely interview questions:
+
+**How It Works:**
+```
+1. Interview question asked and answered
+   ↓
+2. QuestionPredictor analyzes:
+   - Current topic (Python, SQL, ETL, etc.)
+   - Answer depth (superficial vs. detailed)
+   - Job requirements (extracted from description)
+   - Covered vs. uncovered topics
+   ↓
+3. Language detection from transcription
+   - Portuguese: "você", "qual", "como"
+   - French: "vous", "quel", "comment"
+   - English: "you", "what", "how"
+   ↓
+4. Generate 3 predictions with confidence scores
+   - Follow-up questions (dig deeper, 85%-90%)
+   - Related topics (move to next skill, 75%-88%)
+   ↓
+5. Translate predictions to detected language
+   - "Can you describe" → "Pode descrever" (PT)
+   - "What's your experience" → "Quelle est votre expérience" (FR)
+   ↓
+6. Display in predictions panel
+   - Click to ask automatically
+   - Toggle ON/OFF with 🎯 Predictions switch
+```
+
+**Features:**
+- **Job-Aware**: Prioritizes skills mentioned in job description
+- **Context-Sensitive**: Adjusts based on answer quality
+- **Multilingual**: Auto-translates to interview language
+- **User Control**: Toggle predictions ON/OFF at any time
+- **Smart Categorization**: Follow-up vs. related topic questions
+
+**Example (Portuguese Interview):**
+```
+Question: "Como você trabalha com Python?"
+Answer: [Detailed response about libraries and projects]
+Predictions:
+  → "Quais bibliotecas Python você já utilizou?" (85%)
+  → "Como você otimiza código Python?" (83%)
+  → "Qual é sua experiência com SQL?" (80%)
+```
+
+#### 15. Company Questions Generator (💼)
+
+Generate strategic questions to ask the employer during interviews:
+
+**How It Works:**
+```
+1. Click "💼 Questions for Company" button
+   ↓
+2. System reads job description
+   ↓
+3. Detects language (English/French/Portuguese)
+   ↓
+4. GPT-4o-mini generates categorized questions:
+   - 2 General (company overview, role expectations)
+   - 3 Technical (tools, methodologies, challenges)
+   - 2 Fit & Culture (team dynamics, growth opportunities)
+   ↓
+5. Display in panel with color-coded categories:
+   - 🌐 General (blue)
+   - ⚙️ Technical (purple)
+   - 🤝 Fit & Culture (green)
+   ↓
+6. Click any question to send automatically
+```
+
+**Benefits:**
+- Shows genuine interest in the role
+- Demonstrates understanding of technical requirements
+- Helps evaluate company fit
+- Questions adapt to job description specifics
+- Multilingual support (EN/FR/PT)
+
+**Example Questions:**
+```
+🌐 General:
+- What are the key success metrics for this role in the first 90 days?
+- How does this position contribute to the company's strategic goals?
+
+⚙️ Technical:
+- What data stack and tools does the team currently use?
+- How do you approach data quality and governance?
+- What are the biggest data engineering challenges the team is facing?
+
+🤝 Fit & Culture:
+- How does the team collaborate on cross-functional projects?
+- What opportunities exist for professional development and learning?
+```
 
 ### 🔐 Security Notes
 
