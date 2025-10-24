@@ -259,6 +259,77 @@ header {
 }
 
 /* ============================================
+   FAQ TOGGLE SWITCH
+   ============================================ */
+
+.faq-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.faq-toggle-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* ============================================
    RESPONSIVE BEHAVIOR (< 1024px)
    ============================================ */
 
@@ -491,6 +562,33 @@ main {
     background-color: #c0392b;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+.conversation-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-generate-questions {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-generate-questions:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    filter: brightness(1.1);
 }
 
 .preview-container h2, .conversation-container h2, .transcript-container h2 {
@@ -3502,4 +3600,187 @@ body {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+}
+
+/* ============================================
+   QUESTION PREDICTIONS PANEL
+   ============================================ */
+
+.predictions-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 15px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.predictions-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.predictions-icon {
+    font-size: 20px;
+}
+
+.predictions-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    flex: 1;
+}
+
+.btn-close-predictions {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.btn-close-predictions:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.predictions-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.predictions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.prediction-item {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.prediction-item:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.prediction-item:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.prediction-item:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.prediction-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-left-color: #667eea;
+}
+
+.prediction-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.prediction-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.prediction-type.follow-up {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.prediction-type.related {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.prediction-confidence {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #657786;
+}
+
+.confidence-bar {
+    width: 40px;
+    height: 4px;
+    background: #e1e8ed;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+}
+
+.prediction-question {
+    font-size: 14px;
+    font-weight: 600;
+    color: #14171a;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.prediction-reason {
+    font-size: 11px;
+    color: #657786;
+    font-style: italic;
 }

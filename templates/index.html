@@ -217,6 +217,14 @@
                             <span class="timer-icon">⏱</span>
                             <span id="interviewTimer" class="timer-text">00:00:00</span>
                         </div>
+                        <!-- Predictions Toggle -->
+                        <div class="faq-toggle-container">
+                            <span class="faq-toggle-label">🎯 Predictions</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="predictionsToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                         <div class="action-buttons">
                             <button id="overlayButton" class="btn-pill btn-secondary">
                                 <span class="btn-icon">🖥️</span>
@@ -264,13 +272,49 @@
             <div class="conversation-container">
                 <div class="conversation-header">
                     <h2>Interview Conversation</h2>
-                    <button id="clearConversationBtn" class="btn-clear-conversation" title="Clear conversation history">
-                        🗑️ Clear
-                    </button>
+                    <div class="conversation-header-actions">
+                        <button id="generateCompanyQuestionsBtn" class="btn-generate-questions" title="Generate questions to ask the company">
+                            💼 Questions for Company
+                        </button>
+                        <button id="clearConversationBtn" class="btn-clear-conversation" title="Clear conversation history">
+                            🗑️ Clear
+                        </button>
+                    </div>
                 </div>
+
                 <div id="conversationBox">
                     <div class="system-message">
                         <p>Welcome to Interview Co-pilot! Click "Start Interview" to begin.</p>
+                    </div>
+                </div>
+
+                <!-- Question Predictions Panel - Moved below conversation -->
+                <div id="predictionsPanel" class="predictions-panel" style="display: none;">
+                    <div class="predictions-header">
+                        <span class="predictions-icon">🎯</span>
+                        <h3>Next Question Predictions</h3>
+                        <button id="closePredictionsBtn" class="btn-close-predictions">✕</button>
+                    </div>
+                    <div class="predictions-subtitle">
+                        Click on a question to ask it automatically
+                    </div>
+                    <div id="predictionsList" class="predictions-list">
+                        <!-- Predictions will be inserted here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Company Questions Panel -->
+                <div id="companyQuestionsPanel" class="predictions-panel" style="display: none;">
+                    <div class="predictions-header">
+                        <span class="predictions-icon">💼</span>
+                        <h3>Questions for Company</h3>
+                        <button id="closeCompanyQuestionsBtn" class="btn-close-predictions">✕</button>
+                    </div>
+                    <div class="predictions-subtitle">
+                        Click on a question to ask it automatically
+                    </div>
+                    <div id="companyQuestionsList" class="predictions-list">
+                        <!-- Company questions will be inserted here dynamically -->
                     </div>
                 </div>
             </div>

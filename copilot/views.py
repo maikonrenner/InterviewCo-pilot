@@ -659,3 +659,134 @@ def get_faq_data(request):
             'success': False,
             'message': f'Failed to get FAQ data: {str(e)}'
         }, status=500)
+
+@csrf_exempt
+def generate_company_questions(request):
+    """Generate intelligent questions for the candidate to ask the company based on job description"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+    try:
+        # Get job description summary and language
+        job_summary, job_language, job_language_code = get_job_description_summary()
+
+        if "not found" in job_summary.lower() or "created" in job_summary.lower():
+            return JsonResponse({
+                'success': False,
+                'message': 'Please upload a job description first'
+            }, status=400)
+
+        # Use synchronous OpenAI client for simplicity
+        from openai import OpenAI
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+        # Map language to instruction and category labels
+        language_config = {
+            'English': {
+                'instruction': 'Generate all questions in English.',
+                'general_label': 'General Questions',
+                'technical_label': 'Technical Questions',
+                'culture_label': 'Fit & Culture Questions'
+            },
+            'French': {
+                'instruction': 'Générez toutes les questions en français.',
+                'general_label': 'Questions Générales',
+                'technical_label': 'Questions Techniques',
+                'culture_label': 'Questions de Fit & Culture'
+            },
+            'Portuguese': {
+                'instruction': 'Gere todas as perguntas em português.',
+                'general_label': 'Perguntas Gerais',
+                'technical_label': 'Perguntas Técnicas',
+                'culture_label': 'Perguntas de Fit & Cultura'
+            },
+            'en': {
+                'instruction': 'Generate all questions in English.',
+                'general_label': 'General Questions',
+                'technical_label': 'Technical Questions',
+                'culture_label': 'Fit & Culture Questions'
+            },
+            'fr': {
+                'instruction': 'Générez toutes les questions en français.',
+                'general_label': 'Questions Générales',
+                'technical_label': 'Questions Techniques',
+                'culture_label': 'Questions de Fit & Culture'
+            },
+            'pt': {
+                'instruction': 'Gere todas as perguntas em português.',
+                'general_label': 'Perguntas Gerais',
+                'technical_label': 'Perguntas Técnicas',
+                'culture_label': 'Perguntas de Fit & Cultura'
+            }
+        }
+
+        # Get language config (default to English if not found)
+        config = language_config.get(job_language, language_config['English'])
+
+        print(f"Detected job description language: {job_language} ({job_language_code})")
+        print(f"Language instruction: {config['instruction']}")
+
+        # Create prompt to generate categorized questions
+        prompt = f"""Based on the following job description, generate intelligent and strategic questions that a candidate should ask the company during an interview.
+
+Generate exactly 7 questions divided into these categories:
+
+1. GENERAL QUESTIONS (2 questions):
+   - Questions about the company, role overview, and general expectations
+   - Show genuine interest in the organization
+
+2. TECHNICAL QUESTIONS (3 questions):
+   - Questions about technologies, tools, methodologies, and technical challenges
+   - Demonstrate deep understanding of the technical aspects of the role
+   - Be specific to the job description
+
+3. FIT & CULTURE QUESTIONS (2 questions):
+   - Questions about team dynamics, work culture, growth opportunities
+   - Help evaluate if the role and company culture are a good fit
+
+IMPORTANT: {config['instruction']}
+
+Job Description:
+{job_summary}
+
+Format your response as a JSON object with this structure:
+{{
+  "general": ["question 1", "question 2"],
+  "technical": ["question 1", "question 2", "question 3"],
+  "culture": ["question 1", "question 2"]
+}}
+
+Return ONLY the JSON object, no additional text."""
+
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Fast and cost-effective
+            messages=[
+                {"role": "system", "content": "You are a career coach helping candidates prepare thoughtful questions for job interviews. Always respond in the same language as requested and return valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=800,
+            response_format={"type": "json_object"}
+        )
+
+        # Extract questions from response
+        questions_json = json.loads(response.choices[0].message.content.strip())
+
+        return JsonResponse({
+            'success': True,
+            'questions': questions_json,
+            'labels': {
+                'general': config['general_label'],
+                'technical': config['technical_label'],
+                'culture': config['culture_label']
+            },
+            'language': job_language
+        })
+
+    except Exception as e:
+        print(f"Error generating company questions: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to generate questions: {str(e)}'
+        }, status=500)

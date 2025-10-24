@@ -3,7 +3,48 @@ import asyncio
 import time
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .utils import get_resume_summary, get_job_description_summary, generate_response_async, get_cached_answer, cache_answer, load_faq_from_file
+from .pattern_analyzer import QuestionPredictor
 from datetime import datetime
+
+
+def detect_language(text: str) -> str:
+    """
+    Detect language of text based on common words.
+    Returns: 'Portuguese', 'French', or 'English' (default)
+    """
+    if not text:
+        return 'English'
+
+    text_lower = text.lower()
+
+    # Portuguese indicators
+    portuguese_words = ['você', 'qual', 'como', 'quando', 'onde', 'porque', 'posso', 'pode',
+                        'que', 'para', 'com', 'seu', 'sua', 'meu', 'minha', 'estou', 'está',
+                        'fazer', 'trabalho', 'experiência', 'projeto', 'dados', 'sistema']
+    pt_count = sum(1 for word in portuguese_words if word in text_lower)
+
+    # French indicators
+    french_words = ['vous', 'quel', 'quelle', 'comment', 'quand', 'où', 'pourquoi', 'puis',
+                    'avec', 'pour', 'votre', 'mon', 'ma', 'suis', 'êtes', 'faire',
+                    'travail', 'expérience', 'projet', 'données', 'système']
+    fr_count = sum(1 for word in french_words if word in text_lower)
+
+    # English indicators
+    english_words = ['you', 'what', 'how', 'when', 'where', 'why', 'can', 'could',
+                     'your', 'my', 'the', 'with', 'work', 'experience', 'project', 'data']
+    en_count = sum(1 for word in english_words if word in text_lower)
+
+    # Return language with highest match
+    max_count = max(pt_count, fr_count, en_count)
+
+    if max_count == 0:
+        return 'English'  # Default
+    elif pt_count == max_count:
+        return 'Portuguese'
+    elif fr_count == max_count:
+        return 'French'
+    else:
+        return 'English'
 
 class InterviewConsumer(AsyncWebsocketConsumer):
     # Class-level cache (shared across all WebSocket instances)
@@ -28,6 +69,10 @@ class InterviewConsumer(AsyncWebsocketConsumer):
         # Store conversation history
         self.conversation_history = []
 
+        # Initialize question predictor (will be created after we have summaries)
+        self.question_predictor = None
+        self.last_question = None
+
         # Load FAQ from file on first connection (automatic preload for instant responses)
         if not InterviewConsumer._faq_loaded:
             await asyncio.to_thread(load_faq_from_file)
@@ -49,9 +94,13 @@ class InterviewConsumer(AsyncWebsocketConsumer):
         else:
             print("Cache hit - using cached summaries (instant!)")
 
-        # Use cached values
-        self.resume_summary = self._resume_cache
-        self.job_summary = self._job_cache
+        # Use cached values - extract only the summary string (first element of tuple)
+        self.resume_summary = self._resume_cache[0] if isinstance(self._resume_cache, tuple) else self._resume_cache
+        self.job_summary = self._job_cache[0] if isinstance(self._job_cache, tuple) else self._job_cache
+
+        # Initialize question predictor with job description
+        self.question_predictor = QuestionPredictor(job_description=self.job_summary)
+        print(f"[PREDICTOR] Initialized with job description ({len(self.job_summary)} chars)")
 
         # Send initialization message
         await self.send(text_data=json.dumps({
@@ -87,11 +136,16 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             transcribed_text = text_data_json.get('text', '')
             llm_provider = text_data_json.get('provider', 'openai')  # Default to openai
             selected_model = text_data_json.get('model', 'gpt-4o-mini')  # Default to gpt-4o-mini (faster)
+            predictions_enabled = text_data_json.get('predictions_enabled', True)  # Default to enabled for backward compatibility
             timestamp = datetime.now().strftime("%H:%M:%S")
 
             print(f"Received transcription: {transcribed_text}")
             print(f"LLM Provider: {llm_provider}")
             print(f"Selected model: {selected_model}")
+            print(f"Predictions enabled: {predictions_enabled}")
+
+            # Store current question for prediction
+            self.last_question = transcribed_text
 
             # Use transcript directly - no need for extraction (saves API call and time)
             # Truncate only for display if very long, but keep full transcript for LLM context
@@ -202,6 +256,37 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                     'timestamp': timestamp
                 }
             )
+
+            # Generate predictions for next questions (only if enabled)
+            if predictions_enabled and self.last_question and full_response and self.question_predictor:
+                try:
+                    # Detect language from transcription
+                    detected_language = detect_language(transcribed_text)
+                    print(f"[PREDICTIONS] Detected language: {detected_language}")
+
+                    predictions = await asyncio.to_thread(
+                        self.question_predictor.predict_next_questions,
+                        self.last_question,
+                        full_response,
+                        detected_language
+                    )
+
+                    # Send predictions to all clients
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'question_predictions_message',
+                            'predictions': predictions
+                        }
+                    )
+
+                    print(f"[PREDICTIONS] Generated {len(predictions)} predictions in {detected_language}")
+                except Exception as e:
+                    print(f"[ERROR] Failed to generate predictions: {e}")
+                    import traceback
+                    print(traceback.format_exc())
+            elif not predictions_enabled:
+                print("[PREDICTIONS] Predictions disabled by user - skipping")
     
     async def _process_openai_stream(self, response_stream):
         """Process LLM streaming response (OpenAI or Ollama) and yield content chunks"""
@@ -265,4 +350,12 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             'hit_count': event.get('hit_count', 0),
             'model': event.get('model', ''),
             'provider': event.get('provider', '')
+        }))
+
+    # Handler for question predictions
+    async def question_predictions_message(self, event):
+        """Send predicted next questions to WebSocket"""
+        await self.send(text_data=json.dumps({
+            'type': 'question_predictions',
+            'predictions': event['predictions']
         }))

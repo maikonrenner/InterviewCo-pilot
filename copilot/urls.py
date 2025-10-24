@@ -14,4 +14,5 @@ urlpatterns = [
     path('get-faq-stats/', views.get_faq_stats, name='get_faq_stats'),
     path('get-faq-data/', views.get_faq_data, name='get_faq_data'),
     path('clear-faq/', views.clear_faq, name='clear_faq'),
+    path('generate-company-questions/', views.generate_company_questions, name='generate_company_questions'),
 ]

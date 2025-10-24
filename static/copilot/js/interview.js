@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const dualAudioButton = document.getElementById('dualAudioButton');
     const overlayButton = document.getElementById('overlayButton');
-    const statusElement = document.getElementById('status');
+    const statusElement = document.querySelector('.status-text'); // Fixed: use class selector
     const conversationBox = document.getElementById('conversationBox');
     const liveTranscriptBox = document.getElementById('liveTranscriptBox');
     const transcriptInput = document.getElementById('transcriptInput');
@@ -168,11 +168,172 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Setup generate company questions button
+    function setupGenerateQuestionsButton() {
+        const generateBtn = document.getElementById('generateCompanyQuestionsBtn');
+        if (generateBtn) {
+            // Remove any existing listener first
+            generateBtn.replaceWith(generateBtn.cloneNode(true));
+            const newGenerateBtn = document.getElementById('generateCompanyQuestionsBtn');
+
+            newGenerateBtn.addEventListener('click', async () => {
+                logger.log('Generate company questions button clicked');
+
+                // Show loading indicator
+                const originalText = newGenerateBtn.innerHTML;
+                newGenerateBtn.innerHTML = '⏳ Generating...';
+                newGenerateBtn.disabled = true;
+
+                try {
+                    // Call backend to generate questions
+                    const response = await fetch('/generate-company-questions/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate questions');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.questions) {
+                        // Display in panel (categorized)
+                        displayCompanyQuestions(data.questions, data.labels);
+                        logger.log('Company questions generated and displayed');
+                    }
+                } catch (error) {
+                    logger.error('Error generating company questions:', error);
+                    alert('Erro ao gerar perguntas. Por favor, tente novamente.');
+                } finally {
+                    // Restore button state
+                    newGenerateBtn.innerHTML = originalText;
+                    newGenerateBtn.disabled = false;
+                }
+            });
+            logger.log('Generate questions button listener registered');
+        } else {
+            logger.warn('Generate questions button not found in DOM');
+        }
+    }
+
+    // Display company questions in panel (categorized)
+    function displayCompanyQuestions(questions, labels) {
+        if (!questions) {
+            logger.log('No company questions to display');
+            return;
+        }
+
+        logger.log('Displaying company questions:', questions);
+
+        const companyQuestionsPanel = document.getElementById('companyQuestionsPanel');
+        const companyQuestionsList = document.getElementById('companyQuestionsList');
+
+        if (!companyQuestionsPanel || !companyQuestionsList) {
+            logger.error('Company questions panel elements not found');
+            return;
+        }
+
+        // Clear previous questions
+        companyQuestionsList.innerHTML = '';
+
+        // Define categories and their icons
+        const categories = [
+            { key: 'general', icon: '🌐', color: '#3b82f6' },
+            { key: 'technical', icon: '⚙️', color: '#8b5cf6' },
+            { key: 'culture', icon: '🤝', color: '#10b981' }
+        ];
+
+        let questionNumber = 1;
+
+        // Create sections for each category
+        categories.forEach(category => {
+            const categoryQuestions = questions[category.key];
+            if (!categoryQuestions || categoryQuestions.length === 0) return;
+
+            // Create category header
+            const categoryHeader = document.createElement('div');
+            categoryHeader.style.cssText = `
+                font-size: 14px;
+                font-weight: 700;
+                color: ${category.color};
+                margin-top: ${questionNumber === 1 ? '0' : '15px'};
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            `;
+            categoryHeader.innerHTML = `
+                <span style="font-size: 16px;">${category.icon}</span>
+                <span>${labels[category.key]}</span>
+            `;
+            companyQuestionsList.appendChild(categoryHeader);
+
+            // Create question items for this category
+            categoryQuestions.forEach((question) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'prediction-item';
+
+                questionItem.innerHTML = `
+                    <div class="prediction-question" style="font-size: 15px; font-weight: 500;">
+                        <strong>${questionNumber}.</strong> ${question}
+                    </div>
+                `;
+
+                // Add click handler to send question automatically
+                questionItem.addEventListener('click', () => {
+                    logger.log('Company question clicked:', question);
+
+                    // Visual feedback
+                    questionItem.style.background = '#e8f5fd';
+                    setTimeout(() => {
+                        questionItem.style.background = 'white';
+                    }, 300);
+
+                    // Send the question automatically
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        logger.log('Sending company question to server...');
+                        sendTranscriptionToServer(question);
+
+                        // Hide panel after sending
+                        companyQuestionsPanel.style.display = 'none';
+                    } else {
+                        logger.error('WebSocket is not open! Cannot send company question.');
+                        alert('WebSocket não está conectado. Por favor, inicie a entrevista primeiro.');
+                    }
+                });
+
+                companyQuestionsList.appendChild(questionItem);
+                questionNumber++;
+            });
+        });
+
+        // Show panel with animation
+        companyQuestionsPanel.style.display = 'block';
+    }
+
+    // Setup close company questions button
+    function setupCompanyQuestionsPanel() {
+        const closeBtn = document.getElementById('closeCompanyQuestionsBtn');
+        const companyQuestionsPanel = document.getElementById('companyQuestionsPanel');
+
+        if (closeBtn && companyQuestionsPanel) {
+            closeBtn.addEventListener('click', () => {
+                companyQuestionsPanel.style.display = 'none';
+                logger.log('Company questions panel closed');
+            });
+        }
+    }
+
     // Listen for page changes to update interview info
     document.addEventListener('pageChanged', function(e) {
         if (e.detail.page === 'interview') {
             updateInterviewInfo();
             setupClearButton(); // Setup clear button when page becomes active
+            setupGenerateQuestionsButton(); // Setup generate questions button when page becomes active
+            setupCompanyQuestionsPanel(); // Setup company questions panel close button
         }
     });
 
@@ -287,6 +448,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         provider: data.provider
                     };
                     logger.log('Badge info stored:', pendingBadge);
+                    break;
+
+                case 'question_predictions':
+                    // Display predicted next questions
+                    displayPredictions(data.predictions);
                     break;
             }
         };
@@ -467,8 +633,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const llmProvider = window.getLLMProvider ? window.getLLMProvider() : 'openai';
         const currentModel = window.getCurrentModel ? window.getCurrentModel() : 'gpt-4o-mini';
 
+        // Get Predictions toggle state
+        const predictionsToggle = document.getElementById('predictionsToggle');
+        const predictionsEnabled = predictionsToggle ? predictionsToggle.checked : true; // Default to enabled if toggle not found
+
         logger.log('LLM Provider:', llmProvider);
         logger.log('Current Model:', currentModel);
+        logger.log('Predictions Enabled:', predictionsEnabled);
 
         // Strip HTML tags before sending to server
         const cleanText = stripHtmlTags(text);
@@ -480,7 +651,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: 'transcription',
                 text: cleanText,
                 provider: llmProvider,
-                model: currentModel
+                model: currentModel,
+                predictions_enabled: predictionsEnabled
             }));
             logger.log('Message sent to WebSocket!');
         } else {
@@ -607,7 +779,102 @@ document.addEventListener('DOMContentLoaded', function() {
 
         logger.log(`Cache indicator displayed: ${isCached ? 'CACHE' : 'LLM'}`);
     }
-    
+
+    // Display predicted next questions
+    function displayPredictions(predictions) {
+        if (!predictions || predictions.length === 0) {
+            logger.log('No predictions to display');
+            return;
+        }
+
+        logger.log('Displaying predictions:', predictions);
+
+        const predictionsPanel = document.getElementById('predictionsPanel');
+        const predictionsList = document.getElementById('predictionsList');
+
+        if (!predictionsPanel || !predictionsList) {
+            logger.error('Predictions panel elements not found');
+            return;
+        }
+
+        // Clear previous predictions
+        predictionsList.innerHTML = '';
+
+        // Create prediction items
+        predictions.forEach((pred, index) => {
+            const predItem = document.createElement('div');
+            predItem.className = 'prediction-item';
+
+            // Type badge
+            const typeClass = pred.type === 'follow_up' ? 'follow-up' : 'related';
+            const typeLabel = pred.type === 'follow_up' ? '🔍 Follow-up' : '🔗 Related';
+
+            // Confidence percentage
+            const confidencePercent = Math.round(pred.confidence * 100);
+
+            predItem.innerHTML = `
+                <div class="prediction-item-header">
+                    <span class="prediction-type ${typeClass}">${typeLabel}</span>
+                    <div class="prediction-confidence">
+                        <span>${confidencePercent}%</span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidencePercent}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="prediction-question">${pred.question}</div>
+                <div class="prediction-reason">${pred.reason}</div>
+            `;
+
+            // Add click handler to send question automatically
+            predItem.addEventListener('click', () => {
+                logger.log('Prediction clicked:', pred.question);
+
+                // Visual feedback
+                predItem.style.background = '#e8f5fd';
+                setTimeout(() => {
+                    predItem.style.background = 'white';
+                }, 300);
+
+                // Send the question automatically
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    logger.log('Sending predicted question to server...');
+                    sendTranscriptionToServer(pred.question);
+
+                    // Hide predictions panel after sending
+                    predictionsPanel.style.display = 'none';
+                } else {
+                    logger.error('WebSocket is not open! Cannot send predicted question.');
+                    alert('WebSocket não está conectado. Por favor, inicie a entrevista primeiro.');
+                }
+            });
+
+            predictionsList.appendChild(predItem);
+        });
+
+        // Show panel with animation
+        predictionsPanel.style.display = 'block';
+    }
+
+    // Setup close predictions button
+    function setupPredictionsPanel() {
+        const closeBtn = document.getElementById('closePredictionsBtn');
+        const predictionsPanel = document.getElementById('predictionsPanel');
+
+        if (closeBtn && predictionsPanel) {
+            closeBtn.addEventListener('click', () => {
+                predictionsPanel.style.display = 'none';
+                logger.log('Predictions panel closed');
+            });
+        }
+    }
+
+    // Initialize predictions panel on page load
+    setupPredictionsPanel();
+
+    // Initialize company questions panel on page load
+    setupCompanyQuestionsPanel();
+
     // Get supported MIME type for recording
     function getSupportedMimeType() {
         const types = [
