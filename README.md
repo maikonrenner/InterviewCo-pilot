@@ -24,6 +24,7 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 #### 🎤 **Audio & Transcription**
 - **🎤 Live Transcription**: Real-time speech-to-text using Deepgram Nova-3 API
 - **🎙️ Dual Audio Capture**: Simultaneously captures system audio (screen sharing) and microphone with automatic speaker identification
+- **📱 Phone Mode**: Microphone-only capture for phone interviews without screen sharing - toggle to hide preview and expand transcript
 - **👥 Speaker Diarization**: Automatically distinguishes between Interviewer and Candidate voices with color-coded labels (🟥 Red for Interviewer, 🟩 Green for You)
 - **🌐 Multi-language Support**: Automatic multi-language detection (English, Portuguese, French, Spanish, German, Hindi, Russian, Japanese, Italian, Dutch)
 
@@ -50,9 +51,18 @@ AI Interview Co-pilot is an intelligent real-time assistant designed to help you
 - **🎨 Modern UI**: Clean, responsive interface with live transcript mirroring
 - **🔐 Secure Storage**: API keys stored in browser localStorage (never committed to git)
 
-### 🆕 Recent Updates (v2.2)
+### 🆕 Recent Updates (v2.3)
 
-**NEW: Intelligent Question Prediction System:**
+**NEW: Phone Mode for Microphone-Only Interviews (v2.3):**
+- 📱 **Phone Toggle**: New "📱 Telefone" toggle switch in Live Transcript section
+- 🎤 **Microphone-Only Capture**: Activate phone mode to capture audio without screen sharing
+- 📐 **Dynamic Layout**: Screen Preview hides and Live Transcript expands to full height automatically
+- ⚡ **One-Click Activation**: Toggle ON to start microphone capture, OFF to stop
+- 🔄 **Independent Mode**: Works separately from dual audio mode (screen + microphone)
+- 📱 **Perfect for Phone Calls**: Ideal for traditional phone interviews without video/screen sharing
+- 🎨 **Seamless Integration**: All AI features (question extraction, responses, predictions) work in phone mode
+
+**Intelligent Question Prediction System (v2.2):**
 - 🎯 **Predictions Toggle**: User-controlled toggle to enable/disable Next Question Predictions (ON by default)
 - 🌐 **Multilingual Predictions**: Questions automatically generated in the same language as your interview conversation
   - Supports Portuguese, French, and English
@@ -468,6 +478,44 @@ The system simultaneously captures audio from two sources and automatically iden
 
 This feature is perfect for virtual interviews where you need to capture both sides of the conversation accurately.
 
+#### 1.5. Phone Mode (📱)
+
+For phone-only interviews where screen sharing isn't needed:
+
+**How It Works:**
+```
+1. User activates "📱 Telefone" toggle in Live Transcript section
+   ↓
+2. System automatically:
+   - Hides Screen Preview container
+   - Expands Live Transcript to full height (100%)
+   - Starts microphone capture
+   ↓
+3. Microphone captures candidate's voice
+   ↓
+4. Audio sent to Deepgram for real-time transcription
+   ↓
+5. Transcription displayed in expanded view
+   ↓
+6. User deactivates toggle to stop:
+   - Screen Preview reappears
+   - Live Transcript returns to normal size
+   - Microphone capture stops
+```
+
+**Key Benefits:**
+- ✅ **Maximized Screen Space**: Full transcript view without screen preview
+- ✅ **Phone Interview Optimized**: Perfect for phone calls without screen sharing
+- ✅ **Independent Mode**: Separate from dual audio capture (screen + mic)
+- ✅ **One-Click Toggle**: Easy activation/deactivation
+- ✅ **Seamless Integration**: Works with all existing features (AI responses, question extraction, etc.)
+
+**Visual Changes:**
+- **Toggle ON**: Screen Preview hidden, Transcript expands upward to fill space
+- **Toggle OFF**: Screen Preview visible, Transcript returns to normal layout
+
+This feature is ideal for traditional phone interviews or when you only need to capture your own voice without screen content.
+
 #### 2. Smart Question Extraction
 
 The system uses GPT-3.5-turbo to extract clean questions from potentially long, cluttered transcripts:
@@ -805,6 +853,7 @@ AI Interview Co-pilot é um assistente inteligente em tempo real projetado para 
 
 - **🎤 Transcrição ao Vivo**: Conversão de fala em texto em tempo real usando Deepgram Nova-3 API
 - **🎙️ Captura Dupla de Áudio**: Captura simultaneamente áudio do sistema (compartilhamento de tela) e microfone com identificação automática de locutores
+- **📱 Modo Telefone**: Captura apenas do microfone para entrevistas telefônicas sem compartilhamento de tela - toggle para ocultar preview e expandir transcrição
 - **👥 Diarização de Locutores**: Distingue automaticamente entre Entrevistador e Candidato com etiquetas coloridas
 - **🖥️ Overlay Electron**: Janela transparente sempre visível para experiência de entrevista perfeita
 - **🤖 Respostas com IA**: Respostas conscientes do contexto usando modelos GPT-4/GPT-4o
