@@ -604,6 +604,29 @@ main {
     margin-bottom: 10px;
 }
 
+.phone-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.phone-toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #14171a;
+}
+
+/* Hide preview when phone mode is active */
+.preview-container.hidden {
+    display: none !important;
+}
+
+/* Expand transcript when preview is hidden - takes all available space */
+.transcript-container.expanded {
+    flex: 1 !important;
+    height: 100%;
+}
+
 .mic-button {
     background-color: #f8f9fa;
     border: 2px solid #1da1f2;

@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const transcriptInput = document.getElementById('transcriptInput');
     const videoPreview = document.getElementById('videoPreview');
     const microphoneButton = document.getElementById('microphoneButton');
+    const phoneToggle = document.getElementById('phoneToggle');
+    const previewContainer = document.querySelector('.preview-container');
+    const transcriptContainer = document.querySelector('.transcript-container');
 
     // Helper function to update status indicator
     function updateStatusIndicator(isActive) {
@@ -1001,7 +1004,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (btnIcon) btnIcon.textContent = '⏹️';
             if (btnText) btnText.textContent = 'Parar';
             dualAudioButton.classList.add('btn-stop');
-            microphoneButton.disabled = true;
+            if (microphoneButton) {
+                microphoneButton.disabled = true;
+            }
 
             // Update status indicator to recording
             updateStatusIndicator(true);
@@ -1088,7 +1093,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Disable buttons (only for microphone mode, not used anymore)
             dualAudioButton.disabled = true;
-            microphoneButton.disabled = true;
+            if (microphoneButton) {
+                microphoneButton.disabled = true;
+            }
 
         } catch (error) {
             logger.error('Error accessing screen audio:', error);
@@ -1222,7 +1229,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset microphone mode if it was active
         if (isMicrophoneMode) {
             isMicrophoneMode = false;
-            microphoneButton.classList.remove('active');
+            if (microphoneButton) {
+                microphoneButton.classList.remove('active');
+            }
+            // Reset phone toggle if it was active
+            if (phoneToggle && phoneToggle.checked) {
+                phoneToggle.checked = false;
+                previewContainer.classList.remove('hidden');
+                transcriptContainer.classList.remove('expanded');
+            }
         }
 
         // Reset dual audio mode
@@ -1237,7 +1252,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (btnIcon) btnIcon.textContent = '🎙️';
         if (btnText) btnText.textContent = 'Iniciar';
         dualAudioButton.classList.remove('btn-stop');
-        microphoneButton.disabled = false;
+        if (microphoneButton) {
+            microphoneButton.disabled = false;
+        }
 
         // Update status indicator to ready
         updateStatusIndicator(false);
@@ -1285,29 +1302,56 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Event listener for microphone button toggle
-    microphoneButton.addEventListener('click', async () => {
-        if (!isMicrophoneMode) {
-            // Activate microphone and start capturing
-            isMicrophoneMode = true;
-            microphoneButton.classList.add('active');
-            logger.log('Starting microphone capture...');
+    if (microphoneButton) {
+        microphoneButton.addEventListener('click', async () => {
+            if (!isMicrophoneMode) {
+                // Activate microphone and start capturing
+                isMicrophoneMode = true;
+                microphoneButton.classList.add('active');
+                logger.log('Starting microphone capture...');
 
-            await startMicrophoneCapture();
-        } else {
-            // Deactivate microphone and stop capturing
-            isMicrophoneMode = false;
-            microphoneButton.classList.remove('active');
-            logger.log('Stopping microphone capture...');
+                await startMicrophoneCapture();
+            } else {
+                // Deactivate microphone and stop capturing
+                isMicrophoneMode = false;
+                microphoneButton.classList.remove('active');
+                logger.log('Stopping microphone capture...');
 
-            stopCapturing();
-        }
-    });
+                stopCapturing();
+            }
+        });
+    }
+
+    // Event listener for phone toggle (hide preview, expand transcript, start microphone)
+    if (phoneToggle) {
+        phoneToggle.addEventListener('change', async () => {
+            if (phoneToggle.checked) {
+                // Phone mode activated - hide preview, expand transcript, start microphone
+                previewContainer.classList.add('hidden');
+                transcriptContainer.classList.add('expanded');
+                isMicrophoneMode = true;
+                logger.log('📱 Phone mode activated - Starting microphone capture...');
+                await startMicrophoneCapture(true); // Pass true to indicate phone mode
+            } else {
+                // Phone mode deactivated - show preview, normal transcript, stop microphone
+                previewContainer.classList.remove('hidden');
+                transcriptContainer.classList.remove('expanded');
+                isMicrophoneMode = false;
+                logger.log('📱 Phone mode deactivated - Stopping microphone capture...');
+                stopCapturing();
+            }
+        });
+    }
 
     // Function to start microphone capture
-    async function startMicrophoneCapture() {
+    async function startMicrophoneCapture(isPhoneMode = false) {
         if (!checkBrowserSupport()) {
             isMicrophoneMode = false;
-            microphoneButton.classList.remove('active');
+            if (isPhoneMode && phoneToggle) {
+                phoneToggle.checked = false;
+            } else if (microphoneButton) {
+                microphoneButton.classList.remove('active');
+            }
             return;
         }
 
@@ -1323,14 +1367,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('No microphone available. Please check your microphone settings.');
                 stream.getTracks().forEach(track => track.stop());
                 isMicrophoneMode = false;
-                microphoneButton.classList.remove('active');
+                if (isPhoneMode && phoneToggle) {
+                    phoneToggle.checked = false;
+                } else if (microphoneButton) {
+                    microphoneButton.classList.remove('active');
+                }
                 return;
             }
 
-            // Hide video preview for microphone mode
-            videoPreview.style.display = 'none';
-            document.querySelector('.preview-placeholder').style.display = 'flex';
-            document.querySelector('.preview-placeholder').textContent = '🎤 Microphone Active';
+            // Hide video preview for microphone mode (only if not in phone mode)
+            if (!isPhoneMode) {
+                videoPreview.style.display = 'none';
+                document.querySelector('.preview-placeholder').style.display = 'flex';
+                document.querySelector('.preview-placeholder').textContent = '🎤 Microphone Active';
+            }
 
             // Create audio stream
             const audioStream = new MediaStream(audioTracks);
@@ -1344,7 +1394,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Your browser does not support any of the required audio recording formats.');
                 audioStream.getTracks().forEach(track => track.stop());
                 isMicrophoneMode = false;
-                microphoneButton.classList.remove('active');
+                if (isPhoneMode && phoneToggle) {
+                    phoneToggle.checked = false;
+                } else if (microphoneButton) {
+                    microphoneButton.classList.remove('active');
+                }
                 return;
             }
 
@@ -1398,7 +1452,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             isMicrophoneMode = false;
-            microphoneButton.classList.remove('active');
+            if (isPhoneMode && phoneToggle) {
+                phoneToggle.checked = false;
+            } else if (microphoneButton) {
+                microphoneButton.classList.remove('active');
+            }
         }
     }
 

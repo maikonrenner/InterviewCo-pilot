@@ -251,9 +251,13 @@
                 <div class="transcript-container">
                     <div class="transcript-header">
                         <h2>Live Transcript</h2>
-                        <button id="microphoneButton" class="mic-button" title="Toggle Microphone">
-                            <span class="mic-icon">🎤</span>
-                        </button>
+                        <div class="phone-toggle-container">
+                            <span class="phone-toggle-label">📱 Telefone</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="phoneToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                     <div id="liveTranscriptBox">
                         <p class="transcript-placeholder">Live transcription will appear here...</p>
