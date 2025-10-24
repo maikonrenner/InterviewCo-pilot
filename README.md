@@ -233,6 +233,8 @@ ai-interview-copilot/
 ├── faq_data_eng.json          # Original FAQ knowledge base (20 questions)
 ├── faq_data_eng_extended.json # Extended FAQ (100 questions - English only)
 ├── faq_data_bilingual.json    # Bilingual FAQ (200 questions - EN/FR)
+├── start_server.bat           # Simple Windows startup script
+├── start_advanced.bat         # Advanced Windows control panel
 ├── .env.example               # Environment variables template
 ├── OLLAMA_SETUP.md           # Complete Ollama installation guide
 ├── TEST_OLLAMA_INTEGRATION.md # Ollama integration testing guide
@@ -318,7 +320,30 @@ mkdir job_description
 
 #### Step 5: Run Django Server
 
+**Option A: Using Batch Script (Windows - Recommended):**
+
+1. **Simple Startup** - Double-click `start_server.bat`:
+   - Activates virtual environment automatically
+   - Applies migrations
+   - Prompts for port number (default: 8004)
+   - Starts server
+
+2. **Advanced Control Panel** - Double-click `start_advanced.bat`:
+   - Interactive menu with 6 options:
+     - 🚀 Start Server (Custom Port)
+     - ⚡ Quick Start (Port 8004)
+     - 🔄 Apply Migrations Only
+     - 🧹 Clear Cache + Restart
+     - 📦 Install/Update Dependencies
+     - ❌ Exit
+   - Color-coded UI with professional interface
+
+**Option B: Manual Command Line:**
+
 ```bash
+# Activate virtual environment (Windows)
+venv\Scripts\activate
+
 # Apply migrations
 python manage.py migrate
 
