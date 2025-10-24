@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Display company questions in panel (categorized)
+    // Display company questions in modal (categorized)
     function displayCompanyQuestions(questions, labels) {
         if (!questions) {
             logger.log('No company questions to display');
@@ -231,11 +231,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         logger.log('Displaying company questions:', questions);
 
-        const companyQuestionsPanel = document.getElementById('companyQuestionsPanel');
+        const companyQuestionsModal = document.getElementById('companyQuestionsModal');
         const companyQuestionsList = document.getElementById('companyQuestionsList');
 
-        if (!companyQuestionsPanel || !companyQuestionsList) {
-            logger.error('Company questions panel elements not found');
+        if (!companyQuestionsModal || !companyQuestionsList) {
+            logger.error('Company questions modal elements not found');
             return;
         }
 
@@ -300,8 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         logger.log('Sending company question to server...');
                         sendTranscriptionToServer(question);
 
-                        // Hide panel after sending
-                        companyQuestionsPanel.style.display = 'none';
+                        // Hide modal after sending
+                        companyQuestionsModal.style.display = 'none';
                     } else {
                         logger.error('WebSocket is not open! Cannot send company question.');
                         alert('WebSocket não está conectado. Por favor, inicie a entrevista primeiro.');
@@ -313,19 +313,28 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Show panel with animation
-        companyQuestionsPanel.style.display = 'block';
+        // Show modal with animation
+        companyQuestionsModal.style.display = 'flex';
     }
 
-    // Setup close company questions button
+    // Setup close company questions modal
     function setupCompanyQuestionsPanel() {
         const closeBtn = document.getElementById('closeCompanyQuestionsBtn');
-        const companyQuestionsPanel = document.getElementById('companyQuestionsPanel');
+        const companyQuestionsModal = document.getElementById('companyQuestionsModal');
 
-        if (closeBtn && companyQuestionsPanel) {
+        if (closeBtn && companyQuestionsModal) {
+            // Close button click
             closeBtn.addEventListener('click', () => {
-                companyQuestionsPanel.style.display = 'none';
-                logger.log('Company questions panel closed');
+                companyQuestionsModal.style.display = 'none';
+                logger.log('Company questions modal closed');
+            });
+
+            // Close when clicking on backdrop (outside the modal dialog)
+            companyQuestionsModal.addEventListener('click', (e) => {
+                if (e.target === companyQuestionsModal) {
+                    companyQuestionsModal.style.display = 'none';
+                    logger.log('Company questions modal closed by backdrop click');
+                }
             });
         }
     }
