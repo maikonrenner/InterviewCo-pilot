@@ -745,33 +745,33 @@ def generate_company_questions(request):
         # Create enhanced prompt with full job description and company context
         company_context = f"Company: {company_name}\nPosition: {position_title}\n\n" if company_name and position_title else ""
 
-        prompt = f"""Based on the following job description, generate SHORT, direct questions that a candidate should ask {company_name if company_name else 'the company'} during an interview for the {position_title if position_title else 'role'} position.
+        # Language-specific prompt templates
+        language_prompts = {
+            'en': f"""Based on the following job description, generate SHORT, direct questions that a candidate should ask {company_name if company_name else 'the company'} during an interview for the {position_title if position_title else 'role'} position.
+
+LANGUAGE: Generate ALL questions in ENGLISH.
 
 {company_context}CRITICAL REQUIREMENTS:
 1. Questions MUST be SHORT and DIRECT (maximum 15-20 words)
 2. Questions MUST reference SPECIFIC details from the job description
 3. Questions MUST be conversational and natural
-4. Avoid long, complex questions - keep them concise and focused
+4. Questions MUST be in ENGLISH
 
 Generate exactly 7 SHORT questions divided into these categories:
 
 1. COMPANY & ROLE QUESTIONS (2 questions):
    - Short questions about the company or role specifics
-   - Reference specific aspects mentioned in the job description
-   - Example: "How does this role contribute to [specific company initiative]?"
+   - Example: "How does this role contribute to [specific initiative]?"
 
 2. TECHNICAL QUESTIONS (3 questions):
-   - SHORT questions about specific technologies, tools, or technical challenges
-   - Reference specific tech mentioned in the job description
+   - SHORT questions about specific technologies or technical challenges
    - Example: "What's the team's experience with [specific technology]?"
 
 3. FIT & CULTURE QUESTIONS (2 questions):
    - SHORT questions about team dynamics, work culture, or growth
-   - Reference specific culture aspects mentioned
    - Example: "How does the hybrid work arrangement work in practice?"
 
-IMPORTANT: {config['instruction']}
-REMEMBER: Keep ALL questions SHORT (max 15-20 words each)
+REMEMBER: ALL questions in ENGLISH - Keep each question SHORT (max 15-20 words)
 
 Full Job Description:
 {job_full_text if job_full_text else job_summary}
@@ -783,13 +783,102 @@ Format your response as a JSON object with this structure:
   "culture": ["question 1", "question 2"]
 }}
 
-Return ONLY the JSON object, no additional text."""
+Return ONLY the JSON object, no additional text.""",
+
+            'fr': f"""Basé sur la description de poste suivante, générez des questions COURTES et directes qu'un candidat devrait poser à {company_name if company_name else "l'entreprise"} lors d'un entretien pour le poste de {position_title if position_title else 'ce rôle'}.
+
+LANGUE: Générez TOUTES les questions en FRANÇAIS.
+
+{company_context}EXIGENCES CRITIQUES:
+1. Les questions DOIVENT être COURTES et DIRECTES (maximum 15-20 mots)
+2. Les questions DOIVENT référencer des détails SPÉCIFIQUES de la description de poste
+3. Les questions DOIVENT être conversationnelles et naturelles
+4. Les questions DOIVENT être en FRANÇAIS
+
+Générez exactement 7 questions COURTES divisées en ces catégories:
+
+1. QUESTIONS ENTREPRISE & POSTE (2 questions):
+   - Questions courtes sur l'entreprise ou les spécificités du poste
+   - Exemple: "Comment ce rôle contribue-t-il à [initiative spécifique]?"
+
+2. QUESTIONS TECHNIQUES (3 questions):
+   - Questions COURTES sur des technologies ou défis techniques spécifiques
+   - Exemple: "Quelle est l'expérience de l'équipe avec [technologie spécifique]?"
+
+3. QUESTIONS FIT & CULTURE (2 questions):
+   - Questions COURTES sur la dynamique d'équipe, la culture ou la croissance
+   - Exemple: "Comment fonctionne le mode hybride en pratique?"
+
+RAPPEL: TOUTES les questions en FRANÇAIS - Chaque question COURTE (max 15-20 mots)
+
+Description de poste complète:
+{job_full_text if job_full_text else job_summary}
+
+Formatez votre réponse comme un objet JSON avec cette structure:
+{{
+  "general": ["question 1", "question 2"],
+  "technical": ["question 1", "question 2", "question 3"],
+  "culture": ["question 1", "question 2"]
+}}
+
+Retournez UNIQUEMENT l'objet JSON, pas de texte supplémentaire.""",
+
+            'pt': f"""Baseado na seguinte descrição de vaga, gere perguntas CURTAS e diretas que um candidato deve fazer à {company_name if company_name else 'empresa'} durante uma entrevista para a vaga de {position_title if position_title else 'este cargo'}.
+
+IDIOMA: Gere TODAS as perguntas em PORTUGUÊS.
+
+{company_context}REQUISITOS CRÍTICOS:
+1. As perguntas DEVEM ser CURTAS e DIRETAS (máximo 15-20 palavras)
+2. As perguntas DEVEM referenciar detalhes ESPECÍFICOS da descrição da vaga
+3. As perguntas DEVEM ser conversacionais e naturais
+4. As perguntas DEVEM estar em PORTUGUÊS
+
+Gere exatamente 7 perguntas CURTAS divididas nestas categorias:
+
+1. PERGUNTAS EMPRESA & VAGA (2 perguntas):
+   - Perguntas curtas sobre a empresa ou especificidades da vaga
+   - Exemplo: "Como este cargo contribui para [iniciativa específica]?"
+
+2. PERGUNTAS TÉCNICAS (3 perguntas):
+   - Perguntas CURTAS sobre tecnologias ou desafios técnicos específicos
+   - Exemplo: "Qual a experiência da equipe com [tecnologia específica]?"
+
+3. PERGUNTAS FIT & CULTURA (2 perguntas):
+   - Perguntas CURTAS sobre dinâmica de equipe, cultura ou crescimento
+   - Exemplo: "Como funciona o modelo híbrido na prática?"
+
+LEMBRE-SE: TODAS as perguntas em PORTUGUÊS - Cada pergunta CURTA (máx 15-20 palavras)
+
+Descrição completa da vaga:
+{job_full_text if job_full_text else job_summary}
+
+Formate sua resposta como um objeto JSON com esta estrutura:
+{{
+  "general": ["pergunta 1", "pergunta 2"],
+  "technical": ["pergunta 1", "pergunta 2", "pergunta 3"],
+  "culture": ["pergunta 1", "pergunta 2"]
+}}
+
+Retorne APENAS o objeto JSON, sem texto adicional."""
+        }
+
+        # Get prompt in the correct language (default to English)
+        prompt = language_prompts.get(job_language_code, language_prompts.get('en'))
+
+        # Language-specific system messages
+        system_messages = {
+            'en': "You are an expert career coach specializing in helping candidates prepare highly specific, tailored questions for job interviews. You analyze job descriptions carefully and create questions that reference specific details, technologies, and company information. CRITICAL: You MUST generate ALL questions in ENGLISH only. Always return valid JSON.",
+            'fr': "Vous êtes un coach de carrière expert spécialisé dans l'aide aux candidats pour préparer des questions spécifiques et adaptées pour les entretiens d'embauche. Vous analysez attentivement les descriptions de poste et créez des questions qui font référence à des détails, technologies et informations spécifiques sur l'entreprise. CRITIQUE: Vous DEVEZ générer TOUTES les questions en FRANÇAIS uniquement. Retournez toujours un JSON valide.",
+            'pt': "Você é um coach de carreira especializado em ajudar candidatos a preparar perguntas específicas e personalizadas para entrevistas de emprego. Você analisa descrições de vagas cuidadosamente e cria perguntas que referenciam detalhes específicos, tecnologias e informações sobre a empresa. CRÍTICO: Você DEVE gerar TODAS as perguntas em PORTUGUÊS apenas. Sempre retorne JSON válido."
+        }
+
+        system_message = system_messages.get(job_language_code, system_messages.get('en'))
 
         # Call OpenAI API with enhanced parameters for better quality
         response = client.chat.completions.create(
             model="gpt-4o-mini",  # Fast and cost-effective
             messages=[
-                {"role": "system", "content": "You are an expert career coach specializing in helping candidates prepare highly specific, tailored questions for job interviews. You analyze job descriptions carefully and create questions that reference specific details, technologies, and company information. Your questions demonstrate research and genuine interest. Always respond in the same language as requested and return valid JSON."},
+                {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.8,  # Slightly higher for more creative, specific questions
