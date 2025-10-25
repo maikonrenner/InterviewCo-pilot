@@ -676,6 +676,22 @@ def generate_company_questions(request):
                 'message': 'Please upload a job description first'
             }, status=400)
 
+        # Read FULL job description text for better context
+        job_dir = settings.JOB_DESCRIPTION_DIR
+        job_files = sorted([f for f in os.listdir(job_dir) if f.endswith(('.pdf', '.txt', '.docx'))])
+
+        job_full_text = ""
+        company_name = ""
+        position_title = ""
+
+        if job_files:
+            job_path = os.path.join(job_dir, job_files[0])
+            job_full_text = extract_text_from_file(job_path)
+
+            # Extract company name and position for more targeted questions
+            company_name, position_title = extract_company_and_position(job_full_text)
+            print(f"Generating questions for: {company_name} - {position_title}")
+
         # Use synchronous OpenAI client for simplicity
         from openai import OpenAI
         client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -726,28 +742,39 @@ def generate_company_questions(request):
         print(f"Detected job description language: {job_language} ({job_language_code})")
         print(f"Language instruction: {config['instruction']}")
 
-        # Create prompt to generate categorized questions
-        prompt = f"""Based on the following job description, generate intelligent and strategic questions that a candidate should ask the company during an interview.
+        # Create enhanced prompt with full job description and company context
+        company_context = f"Company: {company_name}\nPosition: {position_title}\n\n" if company_name and position_title else ""
+
+        prompt = f"""Based on the following job description, generate intelligent and strategic questions that a candidate should ask {company_name if company_name else 'the company'} during an interview for the {position_title if position_title else 'role'} position.
+
+{company_context}CRITICAL REQUIREMENTS:
+1. Questions MUST reference SPECIFIC details from the job description (technologies, tools, responsibilities, requirements)
+2. Questions MUST be tailored to {company_name if company_name else 'this company'} and show you researched the organization
+3. Questions should be conversational and demonstrate genuine interest
+4. Avoid generic questions - make each question unique to THIS specific job posting
 
 Generate exactly 7 questions divided into these categories:
 
 1. GENERAL QUESTIONS (2 questions):
-   - Questions about the company, role overview, and general expectations
-   - Show genuine interest in the organization
+   - Reference specific aspects of the role or company mentioned in the job description
+   - Show genuine interest and research about {company_name if company_name else 'the organization'}
+   - Example approach: "I noticed in the job description that... [specific detail]. Could you tell me more about...?"
 
 2. TECHNICAL QUESTIONS (3 questions):
-   - Questions about technologies, tools, methodologies, and technical challenges
-   - Demonstrate deep understanding of the technical aspects of the role
-   - Be specific to the job description
+   - MUST reference specific technologies, tools, methodologies, or technical requirements mentioned in the job description
+   - Demonstrate deep understanding of the technical aspects
+   - Ask about technical challenges, architecture, or processes specific to this role
+   - Example approach: "The job description mentions [specific technology/tool]. How does the team currently...?"
 
 3. FIT & CULTURE QUESTIONS (2 questions):
-   - Questions about team dynamics, work culture, growth opportunities
-   - Help evaluate if the role and company culture are a good fit
+   - Reference team dynamics, work culture, or growth opportunities mentioned in the posting
+   - Ask about specifics related to the work arrangement, collaboration, or development mentioned
+   - Help evaluate if the role aligns with your career goals
 
 IMPORTANT: {config['instruction']}
 
-Job Description:
-{job_summary}
+Full Job Description:
+{job_full_text if job_full_text else job_summary}
 
 Format your response as a JSON object with this structure:
 {{
@@ -758,15 +785,15 @@ Format your response as a JSON object with this structure:
 
 Return ONLY the JSON object, no additional text."""
 
-        # Call OpenAI API
+        # Call OpenAI API with enhanced parameters for better quality
         response = client.chat.completions.create(
             model="gpt-4o-mini",  # Fast and cost-effective
             messages=[
-                {"role": "system", "content": "You are a career coach helping candidates prepare thoughtful questions for job interviews. Always respond in the same language as requested and return valid JSON."},
+                {"role": "system", "content": "You are an expert career coach specializing in helping candidates prepare highly specific, tailored questions for job interviews. You analyze job descriptions carefully and create questions that reference specific details, technologies, and company information. Your questions demonstrate research and genuine interest. Always respond in the same language as requested and return valid JSON."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=800,
+            temperature=0.8,  # Slightly higher for more creative, specific questions
+            max_tokens=1000,  # Increased to allow for more detailed questions
             response_format={"type": "json_object"}
         )
 
