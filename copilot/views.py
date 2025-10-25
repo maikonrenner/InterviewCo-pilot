@@ -700,39 +700,39 @@ def generate_company_questions(request):
         language_config = {
             'English': {
                 'instruction': 'Generate all questions in English.',
-                'general_label': 'General Questions',
-                'technical_label': 'Technical Questions',
-                'culture_label': 'Fit & Culture Questions'
+                'general_label': 'Company & Role',
+                'technical_label': 'Technical',
+                'culture_label': 'Fit & Culture'
             },
             'French': {
                 'instruction': 'Générez toutes les questions en français.',
-                'general_label': 'Questions Générales',
-                'technical_label': 'Questions Techniques',
-                'culture_label': 'Questions de Fit & Culture'
+                'general_label': 'Entreprise & Poste',
+                'technical_label': 'Techniques',
+                'culture_label': 'Fit & Culture'
             },
             'Portuguese': {
                 'instruction': 'Gere todas as perguntas em português.',
-                'general_label': 'Perguntas Gerais',
-                'technical_label': 'Perguntas Técnicas',
-                'culture_label': 'Perguntas de Fit & Cultura'
+                'general_label': 'Empresa & Vaga',
+                'technical_label': 'Técnicas',
+                'culture_label': 'Fit & Cultura'
             },
             'en': {
                 'instruction': 'Generate all questions in English.',
-                'general_label': 'General Questions',
-                'technical_label': 'Technical Questions',
-                'culture_label': 'Fit & Culture Questions'
+                'general_label': 'Company & Role',
+                'technical_label': 'Technical',
+                'culture_label': 'Fit & Culture'
             },
             'fr': {
                 'instruction': 'Générez toutes les questions en français.',
-                'general_label': 'Questions Générales',
-                'technical_label': 'Questions Techniques',
-                'culture_label': 'Questions de Fit & Culture'
+                'general_label': 'Entreprise & Poste',
+                'technical_label': 'Techniques',
+                'culture_label': 'Fit & Culture'
             },
             'pt': {
                 'instruction': 'Gere todas as perguntas em português.',
-                'general_label': 'Perguntas Gerais',
-                'technical_label': 'Perguntas Técnicas',
-                'culture_label': 'Perguntas de Fit & Cultura'
+                'general_label': 'Empresa & Vaga',
+                'technical_label': 'Técnicas',
+                'culture_label': 'Fit & Cultura'
             }
         }
 
@@ -745,33 +745,33 @@ def generate_company_questions(request):
         # Create enhanced prompt with full job description and company context
         company_context = f"Company: {company_name}\nPosition: {position_title}\n\n" if company_name and position_title else ""
 
-        prompt = f"""Based on the following job description, generate intelligent and strategic questions that a candidate should ask {company_name if company_name else 'the company'} during an interview for the {position_title if position_title else 'role'} position.
+        prompt = f"""Based on the following job description, generate SHORT, direct questions that a candidate should ask {company_name if company_name else 'the company'} during an interview for the {position_title if position_title else 'role'} position.
 
 {company_context}CRITICAL REQUIREMENTS:
-1. Questions MUST reference SPECIFIC details from the job description (technologies, tools, responsibilities, requirements)
-2. Questions MUST be tailored to {company_name if company_name else 'this company'} and show you researched the organization
-3. Questions should be conversational and demonstrate genuine interest
-4. Avoid generic questions - make each question unique to THIS specific job posting
+1. Questions MUST be SHORT and DIRECT (maximum 15-20 words)
+2. Questions MUST reference SPECIFIC details from the job description
+3. Questions MUST be conversational and natural
+4. Avoid long, complex questions - keep them concise and focused
 
-Generate exactly 7 questions divided into these categories:
+Generate exactly 7 SHORT questions divided into these categories:
 
-1. GENERAL QUESTIONS (2 questions):
-   - Reference specific aspects of the role or company mentioned in the job description
-   - Show genuine interest and research about {company_name if company_name else 'the organization'}
-   - Example approach: "I noticed in the job description that... [specific detail]. Could you tell me more about...?"
+1. COMPANY & ROLE QUESTIONS (2 questions):
+   - Short questions about the company or role specifics
+   - Reference specific aspects mentioned in the job description
+   - Example: "How does this role contribute to [specific company initiative]?"
 
 2. TECHNICAL QUESTIONS (3 questions):
-   - MUST reference specific technologies, tools, methodologies, or technical requirements mentioned in the job description
-   - Demonstrate deep understanding of the technical aspects
-   - Ask about technical challenges, architecture, or processes specific to this role
-   - Example approach: "The job description mentions [specific technology/tool]. How does the team currently...?"
+   - SHORT questions about specific technologies, tools, or technical challenges
+   - Reference specific tech mentioned in the job description
+   - Example: "What's the team's experience with [specific technology]?"
 
 3. FIT & CULTURE QUESTIONS (2 questions):
-   - Reference team dynamics, work culture, or growth opportunities mentioned in the posting
-   - Ask about specifics related to the work arrangement, collaboration, or development mentioned
-   - Help evaluate if the role aligns with your career goals
+   - SHORT questions about team dynamics, work culture, or growth
+   - Reference specific culture aspects mentioned
+   - Example: "How does the hybrid work arrangement work in practice?"
 
 IMPORTANT: {config['instruction']}
+REMEMBER: Keep ALL questions SHORT (max 15-20 words each)
 
 Full Job Description:
 {job_full_text if job_full_text else job_summary}
