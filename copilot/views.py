@@ -465,9 +465,9 @@ def compare_llms(request):
                     provider=provider
                 )
 
-                # Stream chunks
+                # Stream chunks from OpenAI
                 if hasattr(response_stream, '__aiter__'):
-                    # Async iterator (Ollama)
+                    # Async iterator
                     async for chunk in response_stream:
                         if hasattr(chunk, 'choices') and len(chunk.choices) > 0:
                             if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
@@ -475,7 +475,7 @@ def compare_llms(request):
                                 if content:
                                     yield content.encode('utf-8')
                 else:
-                    # Sync iterator (OpenAI)
+                    # Sync iterator
                     for chunk in response_stream:
                         if hasattr(chunk, 'choices') and len(chunk.choices) > 0:
                             if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):

@@ -157,7 +157,7 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                 "content": transcribed_text
             })
 
-            # Broadcast question to all connected clients (web + electron)
+            # Broadcast question to all connected clients
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -229,7 +229,7 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                 async for chunk in self._process_openai_stream(response_stream):
                     if chunk:
                         full_response += chunk
-                        # Broadcast to all connected clients (web + electron)
+                        # Broadcast to all connected clients
                         await self.channel_layer.group_send(
                             self.room_group_name,
                             {
@@ -289,17 +289,17 @@ class InterviewConsumer(AsyncWebsocketConsumer):
                 print("[PREDICTIONS] Predictions disabled by user - skipping")
     
     async def _process_openai_stream(self, response_stream):
-        """Process LLM streaming response (OpenAI or Ollama) and yield content chunks"""
-        # Handle both sync (OpenAI) and async (Ollama) iterators
+        """Process OpenAI streaming response and yield content chunks"""
+        # Handle both sync and async iterators
         if hasattr(response_stream, '__aiter__'):
-            # Async iterator (Ollama)
+            # Async iterator
             async for chunk in response_stream:
                 if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
                     content = chunk.choices[0].delta.content
                     if content:
                         yield content
         else:
-            # Sync iterator (OpenAI)
+            # Sync iterator
             for chunk in response_stream:
                 if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
                     content = chunk.choices[0].delta.content

@@ -113,14 +113,6 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 # Deepgram API Key
 DEEPGRAM_API_KEY = os.environ['DEEPGRAM_API_KEY']
 
-# LLM Configuration
-# Choose 'openai' or 'ollama'
-LLM_PROVIDER = os.environ.get('LLM_PROVIDER', 'openai')
-
-# Ollama Configuration
-OLLAMA_BASE_URL = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
-OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'gemma3:4b')
-
 # PDF Directories
 RESUME_DIR = os.path.join(BASE_DIR, 'resume')
 JOB_DESCRIPTION_DIR = os.path.join(BASE_DIR, 'job_description')

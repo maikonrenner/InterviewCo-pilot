@@ -4,7 +4,6 @@ import PyPDF2
 from django.conf import settings
 import openai
 from openai import AsyncOpenAI
-import ollama
 import hashlib
 from datetime import datetime, timedelta
 
@@ -13,9 +12,6 @@ openai.api_key = settings.OPENAI_API_KEY if settings.OPENAI_API_KEY else None
 
 # Create async client for better performance
 async_openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
-
-# Configure Ollama client
-ollama_client = ollama.Client(host=settings.OLLAMA_BASE_URL)
 
 # Cache for summaries to improve performance
 _resume_cache = {
@@ -244,16 +240,7 @@ def get_resume_summary():
         mtime = os.path.getmtime(resume_path)
         file_hashes.append(f"{resume_file}:{mtime}")
 
-    current_hash = hashlib.md5("_".join(file_hashes).encode()).hexdigest()
-
-    # Check cache
-    if _resume_cache['hash'] == current_hash and _resume_cache['summary']:
-        print(f'[Resume Cache HIT] Using cached resume summary (hash: {current_hash[:8]}...)')
-        return _resume_cache['summary'], _resume_cache['language'], _resume_cache['language_code']
-
-    print(f'[Resume Cache MISS] Generating summaries... (hash: {current_hash[:8]}...)')
-
-    # Extract text from ALL documents and combine them
+    # Extract text from ALL documents and combine them FIRST to detect language
     print(f'Found {len(resume_files)} resume document(s): {resume_files}')
     combined_resume_text = ""
 
@@ -267,10 +254,20 @@ def get_resume_summary():
 
     resume_text = combined_resume_text
 
-    # Detect language
+    # Detect language BEFORE checking cache
     print('Detecting resume language...')
     language, language_code = detect_language(resume_text)
     print(f'Detected language: {language} ({language_code})')
+
+    # Include language code in hash to ensure cache invalidation when language changes
+    current_hash = hashlib.md5(f"{'_'.join(file_hashes)}_{language_code}".encode()).hexdigest()
+
+    # Check cache with language-aware hash
+    if _resume_cache['hash'] == current_hash and _resume_cache['summary']:
+        print(f'[Resume Cache HIT] Using cached resume summary (hash: {current_hash[:8]}..., lang: {language_code})')
+        return _resume_cache['summary'], _resume_cache['language'], _resume_cache['language_code']
+
+    print(f'[Resume Cache MISS] Generating summaries... (hash: {current_hash[:8]}..., lang: {language_code})')
 
     # Language-specific instructions
     language_instructions = {
@@ -281,19 +278,11 @@ def get_resume_summary():
         'de': 'Schreiben Sie die Zusammenfassung auf Deutsch.'
     }
 
-    lang_instruction = language_instructions.get(language_code, 'Write the summary in English.')
+    # Language-specific prompts for resume summary
+    resume_prompts_by_language = {
+        'en': f"""Please provide a DETAILED and COMPREHENSIVE summary of the following resume documents. Include ALL relevant information from ALL documents.
 
-    # Generate DETAILED summary using OpenAI
-    response = openai.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": f"You are an assistant that creates detailed, structured summaries of resumes for interview preparation. {lang_instruction}"},
-            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following resume documents. Include ALL relevant information from ALL documents.
-
-IMPORTANT: {lang_instruction}
-
-Resume documents:
-{resume_text}
+IMPORTANT: Write the ENTIRE summary in ENGLISH.
 
 **REQUIRED SECTIONS:**
 1. **Professional Profile**: Current role, years of experience, expertise areas
@@ -312,7 +301,75 @@ Resume documents:
 - DO NOT summarize or skip information - include EVERYTHING relevant from ALL documents
 - If documents have overlapping information, consolidate intelligently
 
-{resume_text}"""}
+Resume documents:
+{resume_text}""",
+
+        'fr': f"""Veuillez fournir un résumé DÉTAILLÉ et COMPLET des documents de CV suivants. Incluez TOUTES les informations pertinentes de TOUS les documents.
+
+IMPORTANT: Rédigez l'INTÉGRALITÉ du résumé en FRANÇAIS.
+
+**SECTIONS REQUISES:**
+1. **Profil Professionnel**: Rôle actuel, années d'expérience, domaines d'expertise
+2. **Expérience Professionnelle**: TOUTES les entreprises, postes, dates et responsabilités/réalisations PRINCIPALES (soyez précis concernant les technologies, outils et métriques)
+3. **Compétences Techniques**: Liste complète des langages de programmation, frameworks, bases de données, outils, plateformes
+4. **Formation**: Diplômes, institutions, années
+5. **Certifications**: Toutes les certifications et formations
+6. **Projets**: Projets notables avec les technologies utilisées et l'impact
+7. **Langues**: Toutes les langues parlées et niveaux de compétence
+
+**IMPORTANT:**
+- Soyez TRÈS spécifique concernant les technologies, outils et méthodologies
+- Incluez TOUTES les entreprises et rôles de TOUS les documents
+- Incluez les métriques et réalisations (pourcentages, montants, délais)
+- Utilisez des puces pour plus de clarté
+- NE résumez PAS et ne sautez AUCUNE information - incluez TOUT ce qui est pertinent de TOUS les documents
+- Si les documents contiennent des informations qui se recoupent, consolidez intelligemment
+
+Documents de CV:
+{resume_text}""",
+
+        'pt': f"""Por favor, forneça um resumo DETALHADO e ABRANGENTE dos seguintes documentos de currículo. Inclua TODAS as informações relevantes de TODOS os documentos.
+
+IMPORTANTE: Escreva o resumo INTEIRO em PORTUGUÊS.
+
+**SEÇÕES OBRIGATÓRIAS:**
+1. **Perfil Profissional**: Cargo atual, anos de experiência, áreas de especialização
+2. **Experiência Profissional**: TODAS as empresas, cargos, datas e PRINCIPAIS responsabilidades/conquistas (seja específico sobre tecnologias, ferramentas e métricas)
+3. **Habilidades Técnicas**: Lista completa de linguagens de programação, frameworks, bancos de dados, ferramentas, plataformas
+4. **Formação**: Diplomas, instituições, anos
+5. **Certificações**: Todas as certificações e treinamentos
+6. **Projetos**: Projetos notáveis com tecnologias utilizadas e impacto
+7. **Idiomas**: Todos os idiomas falados e níveis de proficiência
+
+**IMPORTANTE:**
+- Seja MUITO específico sobre tecnologias, ferramentas e metodologias
+- Inclua TODAS as empresas e funções de TODOS os documentos
+- Inclua métricas e conquistas (porcentagens, valores, prazos)
+- Use marcadores para clareza
+- NÃO resuma ou pule informações - inclua TUDO que for relevante de TODOS os documentos
+- Se os documentos tiverem informações sobrepostas, consolide de forma inteligente
+
+Documentos de currículo:
+{resume_text}"""
+    }
+
+    # System messages by language
+    resume_system_messages = {
+        'en': "You are an assistant that creates detailed, structured summaries of resumes for interview preparation. You MUST write the entire summary in ENGLISH only.",
+        'fr': "Vous êtes un assistant qui crée des résumés détaillés et structurés de CV pour la préparation aux entretiens. Vous DEVEZ rédiger l'intégralité du résumé en FRANÇAIS uniquement.",
+        'pt': "Você é um assistente que cria resumos detalhados e estruturados de currículos para preparação de entrevistas. Você DEVE escrever o resumo inteiro em PORTUGUÊS apenas."
+    }
+
+    # Get prompt and system message in correct language (default to English)
+    resume_prompt = resume_prompts_by_language.get(language_code, resume_prompts_by_language['en'])
+    resume_system_message = resume_system_messages.get(language_code, resume_system_messages['en'])
+
+    # Generate DETAILED summary using OpenAI
+    response = openai.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": resume_system_message},
+            {"role": "user", "content": resume_prompt}
         ],
         max_tokens=3000  # Increased to 3000 for multiple documents
     )
@@ -353,23 +410,24 @@ def get_job_description_summary():
         mtime = os.path.getmtime(job_path)
         file_hashes.append(f"{job_file}:{mtime}")
 
-    current_hash = hashlib.md5("_".join(file_hashes).encode()).hexdigest()
-
-    # Check cache
-    if _job_cache['hash'] == current_hash and _job_cache['summary']:
-        print(f'[Job Cache HIT] Using cached job description summary (hash: {current_hash[:8]}...)')
-        return _job_cache['summary'], _job_cache['language'], _job_cache['language_code']
-
-    print(f'[Job Cache MISS] Generating job description summary... (hash: {current_hash[:8]}...)')
-
-    # Use the first job description found
+    # Use the first job description found - extract text FIRST to detect language
     job_path = os.path.join(job_dir, job_files[0])
     job_text = extract_text_from_file(job_path)
 
-    # Detect language
+    # Detect language BEFORE checking cache
     print('Detecting job description language...')
     language, language_code = detect_language(job_text)
     print(f'Detected language: {language} ({language_code})')
+
+    # Include language code in hash to ensure cache invalidation when language changes
+    current_hash = hashlib.md5(f"{'_'.join(file_hashes)}_{language_code}".encode()).hexdigest()
+
+    # Check cache with language-aware hash
+    if _job_cache['hash'] == current_hash and _job_cache['summary']:
+        print(f'[Job Cache HIT] Using cached job description summary (hash: {current_hash[:8]}..., lang: {language_code})')
+        return _job_cache['summary'], _job_cache['language'], _job_cache['language_code']
+
+    print(f'[Job Cache MISS] Generating job description summary... (hash: {current_hash[:8]}..., lang: {language_code})')
 
     # Language-specific instructions
     language_instructions = {
@@ -380,18 +438,11 @@ def get_job_description_summary():
         'de': 'Schreiben Sie die Zusammenfassung auf Deutsch.'
     }
 
-    lang_instruction = language_instructions.get(language_code, 'Write the summary in English.')
+    # Language-specific prompts for job description summary
+    prompts_by_language = {
+        'en': f"""Please provide a DETAILED and COMPREHENSIVE summary of the following job description. Include ALL relevant information.
 
-    # Generate DETAILED summary using OpenAI
-    response = openai.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": f"You are an assistant that creates detailed, structured summaries of job descriptions for interview preparation. {lang_instruction}"},
-            {"role": "user", "content": f"""Please provide a DETAILED and COMPREHENSIVE summary of the following job description. Include ALL relevant information.
-
-IMPORTANT: {lang_instruction}
-
-Job description text:
+IMPORTANT: Write the ENTIRE summary in ENGLISH.
 
 **REQUIRED SECTIONS:**
 1. **Position Overview**: Job title, level (Junior/Mid/Senior), employment type, location/remote
@@ -415,7 +466,85 @@ Job description text:
 - DO NOT summarize or skip information - include EVERYTHING relevant
 - If some sections are not mentioned in the job description, note that clearly
 
-{job_text}"""}
+Job description text:
+{job_text}""",
+
+        'fr': f"""Veuillez fournir un résumé DÉTAILLÉ et COMPLET de la description de poste suivante. Incluez TOUTES les informations pertinentes.
+
+IMPORTANT: Rédigez l'INTÉGRALITÉ du résumé en FRANÇAIS.
+
+**SECTIONS REQUISES:**
+1. **Aperçu du Poste**: Titre du poste, niveau (Junior/Intermédiaire/Senior), type d'emploi, lieu/télétravail
+2. **Informations sur l'Entreprise**: Nom de l'entreprise, secteur, taille, culture (si mentionné)
+3. **Responsabilités Principales**: TOUTES les tâches et responsabilités principales (soyez précis et détaillé)
+4. **Qualifications Requises**:
+   - Exigences de formation
+   - Années d'expérience requises
+   - Compétences techniques (langages de programmation, frameworks, outils, plateformes)
+   - Compétences relationnelles (communication, leadership, travail d'équipe, etc.)
+5. **Qualifications Préférées**: Compétences souhaitées, certifications, expérience supplémentaire
+6. **Stack Technique**: Liste complète des technologies, outils, bases de données, plateformes cloud mentionnés
+7. **Avantages et Rémunération**: Fourchette salariale (si mentionnée), avantages, bénéfices, modalités de travail
+8. **Processus d'Entretien**: Si mentionné, décrivez les étapes du processus de recrutement
+
+**IMPORTANT:**
+- Soyez TRÈS spécifique concernant les technologies, outils et méthodologies
+- Incluez TOUTES les qualifications requises et préférées
+- Incluez les métriques et attentes (pourcentages, montants, délais) si mentionnés
+- Utilisez des puces pour plus de clarté
+- NE résumez PAS et ne sautez AUCUNE information - incluez TOUT ce qui est pertinent
+- Si certaines sections ne sont pas mentionnées dans la description de poste, notez-le clairement
+
+Texte de la description de poste:
+{job_text}""",
+
+        'pt': f"""Por favor, forneça um resumo DETALHADO e ABRANGENTE da seguinte descrição de vaga. Inclua TODAS as informações relevantes.
+
+IMPORTANTE: Escreva o resumo INTEIRO em PORTUGUÊS.
+
+**SEÇÕES OBRIGATÓRIAS:**
+1. **Visão Geral da Posição**: Título do cargo, nível (Júnior/Pleno/Sênior), tipo de emprego, local/remoto
+2. **Informações da Empresa**: Nome da empresa, setor, tamanho, cultura (se mencionado)
+3. **Principais Responsabilidades**: TODAS as principais tarefas e responsabilidades (seja específico e detalhado)
+4. **Qualificações Obrigatórias**:
+   - Requisitos de formação
+   - Anos de experiência necessários
+   - Habilidades técnicas (linguagens de programação, frameworks, ferramentas, plataformas)
+   - Soft skills (comunicação, liderança, trabalho em equipe, etc.)
+5. **Qualificações Preferenciais**: Habilidades desejáveis, certificações, experiência adicional
+6. **Stack Técnico**: Lista completa de tecnologias, ferramentas, bancos de dados, plataformas cloud mencionadas
+7. **Benefícios e Remuneração**: Faixa salarial (se mencionada), benefícios, vantagens, modalidades de trabalho
+8. **Processo de Entrevista**: Se mencionado, descreva as etapas do processo seletivo
+
+**IMPORTANTE:**
+- Seja MUITO específico sobre tecnologias, ferramentas e metodologias
+- Inclua TODAS as qualificações obrigatórias e preferenciais
+- Inclua métricas e expectativas (porcentagens, valores, prazos) se mencionados
+- Use marcadores para clareza
+- NÃO resuma ou pule informações - inclua TUDO que for relevante
+- Se algumas seções não forem mencionadas na descrição da vaga, anote isso claramente
+
+Texto da descrição da vaga:
+{job_text}"""
+    }
+
+    # System messages by language
+    system_messages = {
+        'en': "You are an assistant that creates detailed, structured summaries of job descriptions for interview preparation. You MUST write the entire summary in ENGLISH only.",
+        'fr': "Vous êtes un assistant qui crée des résumés détaillés et structurés de descriptions de poste pour la préparation aux entretiens. Vous DEVEZ rédiger l'intégralité du résumé en FRANÇAIS uniquement.",
+        'pt': "Você é um assistente que cria resumos detalhados e estruturados de descrições de vagas para preparação de entrevistas. Você DEVE escrever o resumo inteiro em PORTUGUÊS apenas."
+    }
+
+    # Get prompt and system message in correct language (default to English)
+    prompt = prompts_by_language.get(language_code, prompts_by_language['en'])
+    system_message = system_messages.get(language_code, system_messages['en'])
+
+    # Generate DETAILED summary using OpenAI
+    response = openai.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": prompt}
         ],
         max_tokens=2000  # Increased from 300 to 2000 for detailed summary
     )
@@ -580,22 +709,16 @@ A: "At Gexel Telecom, I built PySpark ETL pipelines processing 50GB daily. I imp
     for message in messages:
         full_messages.append(message)
 
-    # Generate response based on provider
+    # Generate response using OpenAI
     try:
-        if provider == 'ollama':
-            # Use Ollama local model with the specified model
-            ollama_model = model if model else settings.OLLAMA_MODEL
-            return await generate_ollama_response(full_messages, ollama_model)
-        else:
-            # Use OpenAI
-            response = await async_openai_client.chat.completions.create(
-                model=model,
-                messages=full_messages,
-                max_tokens=450,
-                temperature=0.3,
-                stream=True
-            )
-            return response
+        response = await async_openai_client.chat.completions.create(
+            model=model,
+            messages=full_messages,
+            max_tokens=450,
+            temperature=0.3,
+            stream=True
+        )
+        return response
     except Exception as e:
         print(f"Error generating response: {str(e)}")
         # Return a simple iterator with an error message if LLM fails
@@ -624,68 +747,3 @@ A: "At Gexel Telecom, I built PySpark ETL pipelines processing 50GB daily. I imp
                     raise StopIteration
 
         return ErrorResponse(str(e))
-
-async def generate_ollama_response(messages, model):
-    """Generate streaming response from Ollama."""
-    import asyncio
-
-    class OllamaStreamResponse:
-        def __init__(self, messages, model):
-            self.messages = messages
-            self.model = model
-            self.stream = None
-
-        def __aiter__(self):
-            return self
-
-        async def __anext__(self):
-            if self.stream is None:
-                # Start streaming
-                loop = asyncio.get_event_loop()
-                self.stream = await loop.run_in_executor(
-                    None,
-                    lambda: ollama_client.chat(
-                        model=self.model,
-                        messages=self.messages,
-                        stream=True,
-                        options={
-                            'temperature': 0.3,
-                            'num_predict': 450
-                        }
-                    )
-                )
-                self.iterator = iter(self.stream)
-
-            try:
-                loop = asyncio.get_event_loop()
-
-                def get_next():
-                    try:
-                        return next(self.iterator), False
-                    except StopIteration:
-                        return None, True
-
-                chunk, is_done = await loop.run_in_executor(None, get_next)
-
-                if is_done:
-                    raise StopAsyncIteration
-
-                # Convert Ollama format to OpenAI-like format
-                class Choice:
-                    def __init__(self, content):
-                        self.delta = type('obj', (object,), {'content': content})
-
-                class FakeResponse:
-                    def __init__(self, content):
-                        self.choices = [Choice(content)]
-
-                content = chunk.get('message', {}).get('content', '')
-                return FakeResponse(content)
-
-            except StopAsyncIteration:
-                raise
-            except Exception as e:
-                print(f"Error in Ollama streaming: {e}")
-                raise StopAsyncIteration
-
-    return OllamaStreamResponse(messages, model)
